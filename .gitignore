@@ -1,30 +1,8 @@
-# Environments & Python cache
 .venv/
 .python/
 .uv-cache/
+.model_cache/
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
 .pytest_cache/
-.coverage
-htmlcov/
 
-# Local data & storage
-backend/storage/
-storage/
-*.sqlite
-*.sqlite3
-*.db
-*.log
-
-# Keep smoke audio
-!backend/data/
-!backend/data/**
-
-# Model weights & caches (managed by parallel task)
-models/
-*.onnx
-*.tflite
-*.pt
-*.bin

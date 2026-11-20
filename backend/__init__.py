@@ -1,0 +1,2 @@
+"""EcoSonic backend foundation."""
+
