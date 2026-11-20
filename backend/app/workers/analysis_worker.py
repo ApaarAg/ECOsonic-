@@ -48,10 +48,16 @@ async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
     async with async_session_factory() as session:
         analysis_repo = AnalysisRepository(session)
         detection_repo = DetectionRepository(session)
-        analysis = await analysis_repo.get_by_id(analysis_id)
+        analysis = None
+        for _ in range(5):
+            analysis = await analysis_repo.get_by_id(analysis_id)
+            if analysis is not None:
+                break
+            await asyncio.sleep(0.05)
+
         if analysis is None:
             logger.error("Analysis %s disappeared before processing", analysis_id)
-            return
+            raise RuntimeError(f"Analysis {analysis_id} not found in database.")
 
         async def progress(stage: str, percent: float) -> None:
             nonlocal failed_stage

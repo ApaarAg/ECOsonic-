@@ -97,6 +97,14 @@ class FallbackMockEngine:
     def load(self) -> None:
         return None
 
+    @property
+    def provider(self) -> str:
+        return "MOCK"
+
+    @property
+    def model_version(self) -> str:
+        return "MOCK-1.0"
+
     def analyze_audio(self, audio_path: str, min_confidence: float = 0.0, **_: Any):
         return [ModelDetectionOutput(
             class_label="Passer domesticus_House Sparrow",
@@ -132,7 +140,10 @@ class AnalysisPipeline:
                 return
             started = time.perf_counter()
             if self._provided_engine is not None:
-                self.engine = BirdNetEngineAdapter(self._provided_engine)
+                if hasattr(self._provided_engine, "analyze_audio"):
+                    self.engine = self._provided_engine
+                else:
+                    self.engine = BirdNetEngineAdapter(self._provided_engine)
             else:
                 from app.services.birdnet_engine import BirdNetEngine
                 self.engine = BirdNetEngineAdapter(BirdNetEngine(

@@ -15,7 +15,8 @@ class AnalysisRepository:
 
     async def create(self, analysis: Analysis) -> Analysis:
         self.session.add(analysis)
-        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(analysis)
         return analysis
 
     async def get_by_id(

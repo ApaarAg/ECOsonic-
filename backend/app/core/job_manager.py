@@ -26,9 +26,22 @@ class JobManager:
     def __init__(self, max_concurrent_jobs: int = 4):
         self.max_concurrent_jobs = max_concurrent_jobs
         self._jobs: Dict[str, JobInfo] = {}
-        self._queue: asyncio.Queue[str] = asyncio.Queue()
-        self._semaphore = asyncio.Semaphore(max_concurrent_jobs)
-        self._lock = asyncio.Lock()
+        self._semaphore: Optional[asyncio.Semaphore] = None
+
+    @property
+    def semaphore(self) -> asyncio.Semaphore:
+        """Lazily provisions or retrieves the concurrency semaphore for the active event loop."""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if self._semaphore is None:
+            self._semaphore = asyncio.Semaphore(self.max_concurrent_jobs)
+        elif loop is not None and getattr(self._semaphore, "_loop", None) not in (None, loop):
+            # Prior semaphore was attached to an older or closed event loop.
+            self._semaphore = asyncio.Semaphore(self.max_concurrent_jobs)
+        return self._semaphore
 
     def register_job(self, job_id: str, metadata: Optional[Dict[str, Any]] = None) -> JobInfo:
         """Registers a new job in the tracking registry."""
@@ -92,7 +105,7 @@ class JobManager:
             job = self.register_job(job_id)
 
         async def _wrapper():
-            async with self._semaphore:
+            async with self.semaphore:
                 if job._cancelled:
                     return
 

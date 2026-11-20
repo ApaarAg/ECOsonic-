@@ -6,6 +6,8 @@ EcoSonic 2.0 is a comprehensive, production-grade bioacoustic intelligence and e
 
 ## 1. System Architecture
 
+EcoSonic 2.0 uses a **Single-Process Async Architecture** designed for single-node scientific workstations and field stations:
+
 ```mermaid
 flowchart LR
     subgraph Frontend["React 19 Frontend (:5173)"]
@@ -17,10 +19,10 @@ flowchart LR
         Rev["Review Lab"]
     end
 
-    subgraph Backend["FastAPI Backend (:8000)"]
+    subgraph Backend["FastAPI Backend (:8000) [Single-Process]"]
         direction TB
         API["REST API (/api/v1)"]
-        JobMgr["Job Manager"]
+        JobMgr["In-Memory JobManager (Semaphore=4)"]
         AudioProc["FFmpeg Ingestion"]
         Worker["Inference Worker"]
     end
@@ -33,7 +35,7 @@ flowchart LR
     end
 
     subgraph Data["Persistence"]
-        DB[(SQLite aiosqlite)]
+        DB[(SQLite WAL PRAGMA timeout=30s)]
         NPY[".npy Vector Storage"]
         WAV["32kHz Mono WAV"]
     end
@@ -49,6 +51,14 @@ flowchart LR
     Embed --> NPY
     Worker --> DB
 ```
+
+> [!WARNING]
+> **Deployment Constraint — Single-Process Deployment Only:**
+> The backend `JobManager` manages active task concurrency in-process via `asyncio.Semaphore` and in-memory tracking dictionaries. It is designed and validated to run as **one uvicorn process** (e.g. `uvicorn app.main:app` without `--workers`). Multi-worker deployments (e.g. `--workers 4`) and horizontal multi-replica pods are **unsupported** in this release because:
+> 1. Job states, progress meters, and cancellations would be isolated to individual worker processes.
+> 2. Polling requests would randomly hit workers that do not own the in-memory task.
+> 3. SQLite write concurrency under multiple independent processes is subject to lock contention despite WAL mode.
+> Horizontal multi-worker scaling requires external brokers (Celery/Redis) and a client-server RDBMS (PostgreSQL).
 
 ### Key Capabilities:
 - **Audio Ingestion & Normalization:** Standardizes multi-format audio uploads (WAV, MP3, FLAC, OGG, M4A up to 50 MB) into 32,000 Hz 16-bit PCM Mono WAV via FFmpeg.
@@ -137,38 +147,36 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 5. Running the Test Suites
 
-### 1. Fast Backend Unit Tests (Excludes heavy model inference)
+### 1. Fast Backend Hardening & Unit Tests (Excludes heavy model inference)
 ```powershell
 $env:PYTHONPATH = "backend;."
 .venv\Scripts\pytest backend/tests -v -m "not real_model"
 ```
-*Expected: 14 passed in ~1.7s.*
+*Expected: 41 passed in ~7.7s (covers audio robustness matrix, API contract audit, restart recovery, embedding consistency, security audit, and concurrency load tests).*
 
-### 2. Real Model Pipeline Acceptance Test (GPU / Full HTTP Ingestion)
+### 2. Real Model Pipeline & Hardware Fallback Acceptance Suite
 ```powershell
 $env:PYTHONPATH = "backend;."
-.venv\Scripts\pytest backend/tests/test_real_pipeline.py -m "real_model" -v -s
+.venv\Scripts\pytest backend/tests -v -m "real_model"
 ```
-*Processes all 3 real recordings through the complete FastAPI stack with real ONNX inference.*
+*Expected: 4 passed in ~37s (verifies full HTTP ingestion across 3 environmental recordings, 3 concurrent real-model analyses, CUDA GPU inference, and CPU fallback).*
 
 ### 3. BirdNET Model Smoke & Edge Case Suite
 ```powershell
-$env:PYTHONPATH = "backend;."
+$env:PYTHONPATH = "."
 .venv\Scripts\python backend/tests/smoke_test_birdnet.py
 ```
 *Verifies model checksums, 1280-D embeddings, and zero-variance/short-audio edge cases.*
 
 ### 4. Frontend Vitest Unit Tests
 ```powershell
-cd frontend
-npm test
+npm test --prefix frontend
 ```
-*Expected: 12 passed in ~0.8s.*
+*Expected: 12 passed in ~0.6s.*
 
 ### 5. Frontend Production Build
 ```powershell
-cd frontend
-npm run build
+npm run build --prefix frontend
 ```
 *Generates optimized production bundle in `frontend/dist/`.*
 

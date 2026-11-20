@@ -1,12 +1,12 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReviewCreate(BaseModel):
-    review_status: str = Field(
+    review_status: Literal["confirmed", "rejected", "uncertain", "unreviewed"] = Field(
         ...,
-        description="Review decision: confirmed, rejected, uncertain, or custom status",
+        description="Review decision: confirmed, rejected, uncertain, or unreviewed",
     )
     reviewer_note: Optional[str] = Field(default=None, description="Optional reviewer remarks")
 

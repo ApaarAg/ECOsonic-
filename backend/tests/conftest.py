@@ -19,6 +19,7 @@ if model_cache_path.exists():
 
 from app.config import settings
 from app.core.database import Base, get_db
+from app.core.job_manager import job_manager
 from app.main import app
 from app.services.analysis_pipeline import analysis_pipeline, FallbackMockEngine
 from app.workers import analysis_worker
@@ -34,7 +35,7 @@ def cleanup_temp_dir():
 async def test_engine():
     engine = create_async_engine(
         f"sqlite+aiosqlite:///{test_db_path}",
-        connect_args={"check_same_thread": False},
+        connect_args={"check_same_thread": False, "timeout": 30},
     )
     from sqlalchemy import event
 
@@ -42,6 +43,8 @@ async def test_engine():
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=30000")
         cursor.close()
 
     async with engine.begin() as conn:
@@ -69,6 +72,7 @@ async def client(test_engine) -> AsyncGenerator[AsyncClient, None]:
     previous_engine = analysis_pipeline.engine
     previous_factory = analysis_worker.async_session_factory
     analysis_pipeline.set_engine(FallbackMockEngine())
+    analysis_pipeline.load()
     maker = async_sessionmaker(
         bind=test_engine,
         class_=AsyncSession,
@@ -92,6 +96,9 @@ async def client(test_engine) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+    for jid in list(job_manager._jobs.keys()):
+        job_manager.cancel_job(jid)
 
     app.dependency_overrides.clear()
     analysis_pipeline.set_engine(previous_engine)

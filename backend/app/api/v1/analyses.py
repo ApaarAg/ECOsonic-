@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 import uuid
+import numpy as np
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
 
@@ -35,7 +36,35 @@ async def get_analysis_results(
         raise HTTPException(status_code=404, detail="Analysis not found.")
     if analysis.status != "completed":
         raise HTTPException(status_code=409, detail=f"Analysis results are not ready (status: {analysis.status}).")
-    vectors = storage_service.load_embeddings(analysis_id)
+
+    try:
+        vectors = storage_service.load_embeddings(analysis_id)
+    except Exception as e:
+        logger.error("Corrupted embedding artifact for analysis %s: %s", analysis_id, e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Backing embedding artifact is unreadable or corrupted: {e}",
+        )
+
+    if vectors is None:
+        logger.error("Missing embedding artifact for completed analysis %s", analysis_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Backing embedding artifact is missing on disk.",
+        )
+
+    if (
+        vectors.ndim != 2
+        or vectors.shape[1] != 1280
+        or not np.isfinite(vectors).all()
+        or len(vectors) != len(analysis.embedding_segments)
+    ):
+        logger.error("Invalid embedding artifact for analysis %s: shape=%s", analysis_id, getattr(vectors, "shape", None))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Backing embedding artifact is corrupted, non-finite, or inconsistent with database segments.",
+        )
+
     return {
         "analysis_id": analysis.id,
         "status": analysis.status,
@@ -43,8 +72,8 @@ async def get_analysis_results(
         "detections": [DetectionResponse.model_validate(d) for d in analysis.detections],
         "embeddings": {
             "path": analysis.embedding_path,
-            "shape": list(vectors.shape) if vectors is not None else None,
-            "dtype": str(vectors.dtype) if vectors is not None else None,
+            "shape": list(vectors.shape),
+            "dtype": str(vectors.dtype),
             "segments": [
                 {"vector_index": row.vector_index, "start_seconds": row.start_seconds,
                  "end_seconds": row.end_seconds, "segment_id": row.segment_id,
