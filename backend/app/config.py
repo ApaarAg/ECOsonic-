@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     STORAGE_BASE_DIR: Path = Path(__file__).resolve().parent.parent / "storage"
 
     # Ingestion constraints
-    MAX_UPLOAD_SIZE_BYTES: int = 256 * 1024 * 1024  # 256 MB
+    MAX_UPLOAD_SIZE_BYTES: int = 50 * 1024 * 1024  # 50 MB
     ALLOWED_AUDIO_EXTENSIONS: Set[str] = {"wav", "mp3", "flac", "ogg", "m4a"}
     ALLOWED_MIME_TYPES: Set[str] = {
         "audio/wav",
@@ -50,6 +50,7 @@ class Settings(BaseSettings):
 
     # Model & Pipeline settings
     MODEL_VERSION: str = "BirdNET+ V3.0"
+    MODEL_PREFER_GPU: bool = True
     DEFAULT_CONFIDENCE_THRESHOLD: float = 0.25
     NUM_WORKER_THREADS: int = 4
 

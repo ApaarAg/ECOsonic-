@@ -1,5 +1,12 @@
 # EcoSonic 2.0 — Backend Foundation & Model Integration Guide
 
+> **Phase 2 update:** The current integrated implementation, verified API results,
+> test commands, current branch audit, and frontend handoff are documented in
+> [docs/PHASE_2_INTEGRATION_REPORT.md](../docs/PHASE_2_INTEGRATION_REPORT.md).
+> This guide records the earlier backend-foundation snapshot; its original branch,
+> test count, 256 MB limit, and 48 kHz storage example are historical and have
+> been superseded by the Phase 2 report and the code.
+
 ## 1. Executive Summary
 
 This document serves as the formal architectural and interface contract between the **Backend Infrastructure** (Task 02) and the **BirdNET+ Model Integration** (Task 01).

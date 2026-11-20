@@ -98,8 +98,8 @@ export const AudioIntelligence: React.FC = () => {
       setError(`Unsupported audio format '.${ext}'. Supported formats are: ${ALLOWED_EXTENSIONS.join(', ')}`);
       return;
     }
-    if (file.size > 256 * 1024 * 1024) {
-      setError(`File size exceeds 256 MB maximum threshold.`);
+    if (file.size > 50 * 1024 * 1024) {
+      setError(`File size exceeds 50 MB maximum threshold.`);
       return;
     }
     setSelectedFile(file);
@@ -319,7 +319,7 @@ export const AudioIntelligence: React.FC = () => {
                         Drop bioacoustic audio or click to browse
                       </p>
                       <p className="text-[10px] text-forest-400 mt-1 font-mono">
-                        Up to 256 MB • Auto-converted to 32kHz Mono
+                        Up to 50 MB • Auto-converted to 32kHz Mono
                       </p>
                     </div>
                   )}

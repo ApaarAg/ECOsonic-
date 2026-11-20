@@ -1,0 +1,6 @@
+# CUDA 12.8 compatible ONNX Runtime GPU for this workstation.
+# Install the CPU baseline first, then replace its runtime as documented in README.md:
+#   uv pip uninstall --python .venv\Scripts\python.exe --cache-dir .uv-cache onnxruntime
+#   uv pip install --python .venv\Scripts\python.exe --cache-dir .uv-cache -r requirements-gpu.txt
+onnxruntime-gpu[cuda,cudnn]==1.26.0
+

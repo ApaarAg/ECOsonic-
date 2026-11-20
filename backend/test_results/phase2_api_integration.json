@@ -1,0 +1,356 @@
+{
+  "status": "PASS",
+  "recordings": [
+    {
+      "file": "birds_forest.ogg",
+      "analysis_id": "c6e09e9f-5197-49f9-a824-f28fe3624662",
+      "status": "completed",
+      "recording_duration_seconds": 14.65469387755102,
+      "processed_audio": {
+        "sample_rate_hz": 32000,
+        "channels": 1,
+        "duration_seconds": 14.65471875
+      },
+      "prediction_count": 9,
+      "database_detection_count": 9,
+      "top_detections": [
+        {
+          "class_label": "Phylloscopus trochilus_Willow Warbler",
+          "scientific_name": "Phylloscopus trochilus",
+          "common_name": "Willow Warbler",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 12.0,
+          "end_seconds": 14.65625,
+          "confidence_score": 0.9275641441345215,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "63304ba6-15a9-4bef-932c-2c29434d1148",
+          "analysis_id": "c6e09e9f-5197-49f9-a824-f28fe3624662",
+          "reviews": []
+        },
+        {
+          "class_label": "Regulus regulus_Goldcrest",
+          "scientific_name": "Regulus regulus",
+          "common_name": "Goldcrest",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 9.0,
+          "end_seconds": 12.0,
+          "confidence_score": 0.7829364538192749,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "31316d93-6cf5-40ac-9455-938bae2d3bfe",
+          "analysis_id": "c6e09e9f-5197-49f9-a824-f28fe3624662",
+          "reviews": []
+        },
+        {
+          "class_label": "Phylloscopus trochilus_Willow Warbler",
+          "scientific_name": "Phylloscopus trochilus",
+          "common_name": "Willow Warbler",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 0.0,
+          "end_seconds": 3.0,
+          "confidence_score": 0.7508766055107117,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "4854f87a-e1b8-4033-9c87-ed1877d2c375",
+          "analysis_id": "c6e09e9f-5197-49f9-a824-f28fe3624662",
+          "reviews": []
+        },
+        {
+          "class_label": "Anthus trivialis_Tree Pipit",
+          "scientific_name": "Anthus trivialis",
+          "common_name": "Tree Pipit",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 12.0,
+          "end_seconds": 14.65625,
+          "confidence_score": 0.5784634947776794,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "1f0858e5-5cd7-4462-bc2b-0005bad5f8ce",
+          "analysis_id": "c6e09e9f-5197-49f9-a824-f28fe3624662",
+          "reviews": []
+        },
+        {
+          "class_label": "Regulus regulus_Goldcrest",
+          "scientific_name": "Regulus regulus",
+          "common_name": "Goldcrest",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 3.0,
+          "end_seconds": 6.0,
+          "confidence_score": 0.5495466589927673,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "75b7fd33-d4ae-4c6a-b116-4b9b45ba2933",
+          "analysis_id": "c6e09e9f-5197-49f9-a824-f28fe3624662",
+          "reviews": []
+        }
+      ],
+      "embedding_shape": [
+        5,
+        1280
+      ],
+      "embedding_dtype": "float32",
+      "embedding_finite": true,
+      "embedding_segments": 5,
+      "execution_provider": "GPU",
+      "stage_history": [
+        "queued",
+        "validating_audio",
+        "preprocessing",
+        "birdnet_inference",
+        "saving_detections",
+        "extracting_embeddings",
+        "saving_embeddings",
+        "completed"
+      ],
+      "timings": {
+        "preprocessing_seconds": 0.04107090000070457,
+        "prediction_seconds": 2.2331958000004306,
+        "encoding_seconds": 2.2762466999993194,
+        "database_insertion_seconds": 0.0038773000005676295,
+        "total_analysis_seconds": 4.635791400000016
+      },
+      "model_initialization_seconds": 0.7248759000003702,
+      "peak_rss_bytes": 382234624
+    },
+    {
+      "file": "frog_mixed.ogg",
+      "analysis_id": "ebb557da-bb2c-4ae0-8499-525bed8b2098",
+      "status": "completed",
+      "recording_duration_seconds": 32.854784580498865,
+      "processed_audio": {
+        "sample_rate_hz": 32000,
+        "channels": 1,
+        "duration_seconds": 32.8548125
+      },
+      "prediction_count": 9,
+      "database_detection_count": 9,
+      "top_detections": [
+        {
+          "class_label": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "scientific_name": "Limnodynastes dumerilii",
+          "common_name": "Eastern Banjo Frog",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 24.0,
+          "end_seconds": 27.0,
+          "confidence_score": 0.6797631978988647,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "a35e7c71-a030-473b-9197-a5c39e3e185a",
+          "analysis_id": "ebb557da-bb2c-4ae0-8499-525bed8b2098",
+          "reviews": []
+        },
+        {
+          "class_label": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "scientific_name": "Limnodynastes dumerilii",
+          "common_name": "Eastern Banjo Frog",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 30.0,
+          "end_seconds": 32.84375,
+          "confidence_score": 0.673704206943512,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "0b6b9ba8-281d-458a-858f-6902be7008ac",
+          "analysis_id": "ebb557da-bb2c-4ae0-8499-525bed8b2098",
+          "reviews": []
+        },
+        {
+          "class_label": "Ranoidea moorei_Motorbike Frog",
+          "scientific_name": "Ranoidea moorei",
+          "common_name": "Motorbike Frog",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 18.0,
+          "end_seconds": 21.0,
+          "confidence_score": 0.3708914518356323,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "22b847bc-9577-4417-b72a-89ed012580b2",
+          "analysis_id": "ebb557da-bb2c-4ae0-8499-525bed8b2098",
+          "reviews": []
+        },
+        {
+          "class_label": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "scientific_name": "Limnodynastes dumerilii",
+          "common_name": "Eastern Banjo Frog",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 0.0,
+          "end_seconds": 3.0,
+          "confidence_score": 0.35138559341430664,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "6a3f8aa6-c68c-4ada-b33f-4ede077e8e6c",
+          "analysis_id": "ebb557da-bb2c-4ae0-8499-525bed8b2098",
+          "reviews": []
+        },
+        {
+          "class_label": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "scientific_name": "Limnodynastes dumerilii",
+          "common_name": "Eastern Banjo Frog",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 21.0,
+          "end_seconds": 24.0,
+          "confidence_score": 0.3112563490867615,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "bc60aea0-3cf2-4dc9-8c56-ca45a21b8705",
+          "analysis_id": "ebb557da-bb2c-4ae0-8499-525bed8b2098",
+          "reviews": []
+        }
+      ],
+      "embedding_shape": [
+        11,
+        1280
+      ],
+      "embedding_dtype": "float32",
+      "embedding_finite": true,
+      "embedding_segments": 11,
+      "execution_provider": "GPU",
+      "stage_history": [
+        "queued",
+        "validating_audio",
+        "preprocessing",
+        "birdnet_inference",
+        "saving_detections",
+        "extracting_embeddings",
+        "saving_embeddings",
+        "completed"
+      ],
+      "timings": {
+        "preprocessing_seconds": 0.05014089999986027,
+        "prediction_seconds": 2.3635688999993363,
+        "encoding_seconds": 2.571046500000193,
+        "database_insertion_seconds": 0.004256199999872479,
+        "total_analysis_seconds": 5.0759651999997
+      },
+      "model_initialization_seconds": 0.7248759000003702,
+      "peak_rss_bytes": 385511424
+    },
+    {
+      "file": "cicada_orni.ogg",
+      "analysis_id": "afa4f451-471d-4fe2-9043-052201bdf086",
+      "status": "completed",
+      "recording_duration_seconds": 28.841,
+      "processed_audio": {
+        "sample_rate_hz": 32000,
+        "channels": 1,
+        "duration_seconds": 28.841
+      },
+      "prediction_count": 9,
+      "database_detection_count": 9,
+      "top_detections": [
+        {
+          "class_label": "Cicada orni_Ash Cicada",
+          "scientific_name": "Cicada orni",
+          "common_name": "Ash Cicada",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 6.0,
+          "end_seconds": 9.0,
+          "confidence_score": 0.9139165878295898,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "d28b517b-a194-4a7b-bd82-f0ae1028227d",
+          "analysis_id": "afa4f451-471d-4fe2-9043-052201bdf086",
+          "reviews": []
+        },
+        {
+          "class_label": "Cicada orni_Ash Cicada",
+          "scientific_name": "Cicada orni",
+          "common_name": "Ash Cicada",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 0.0,
+          "end_seconds": 3.0,
+          "confidence_score": 0.9040298461914062,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "4b769d07-7eda-4f33-afff-814de8e8a980",
+          "analysis_id": "afa4f451-471d-4fe2-9043-052201bdf086",
+          "reviews": []
+        },
+        {
+          "class_label": "Cicada orni_Ash Cicada",
+          "scientific_name": "Cicada orni",
+          "common_name": "Ash Cicada",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 18.0,
+          "end_seconds": 21.0,
+          "confidence_score": 0.8855564594268799,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "77ae8e6c-53c6-4af0-9988-42bf26fbd532",
+          "analysis_id": "afa4f451-471d-4fe2-9043-052201bdf086",
+          "reviews": []
+        },
+        {
+          "class_label": "Cicada orni_Ash Cicada",
+          "scientific_name": "Cicada orni",
+          "common_name": "Ash Cicada",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 27.0,
+          "end_seconds": 28.84375,
+          "confidence_score": 0.8816275000572205,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "c120b8e2-9dc4-4c35-80fa-78f2b1ee4c0a",
+          "analysis_id": "afa4f451-471d-4fe2-9043-052201bdf086",
+          "reviews": []
+        },
+        {
+          "class_label": "Cicada orni_Ash Cicada",
+          "scientific_name": "Cicada orni",
+          "common_name": "Ash Cicada",
+          "taxon_group": "Unknown",
+          "record_type": "animal",
+          "start_seconds": 24.0,
+          "end_seconds": 27.0,
+          "confidence_score": 0.8577947020530701,
+          "geo_score": null,
+          "review_status": "unreviewed",
+          "id": "4f5765c5-0464-4f81-8a41-07e6588c09e6",
+          "analysis_id": "afa4f451-471d-4fe2-9043-052201bdf086",
+          "reviews": []
+        }
+      ],
+      "embedding_shape": [
+        10,
+        1280
+      ],
+      "embedding_dtype": "float32",
+      "embedding_finite": true,
+      "embedding_segments": 10,
+      "execution_provider": "GPU",
+      "stage_history": [
+        "queued",
+        "validating_audio",
+        "preprocessing",
+        "birdnet_inference",
+        "saving_detections",
+        "extracting_embeddings",
+        "saving_embeddings",
+        "completed"
+      ],
+      "timings": {
+        "preprocessing_seconds": 0.06535569999959989,
+        "prediction_seconds": 3.4972235999994155,
+        "encoding_seconds": 2.948886400000447,
+        "database_insertion_seconds": 0.004873099999713304,
+        "total_analysis_seconds": 6.604429099999834
+      },
+      "model_initialization_seconds": 0.7248759000003702,
+      "peak_rss_bytes": 385511424
+    }
+  ]
+}

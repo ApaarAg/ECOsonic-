@@ -54,9 +54,7 @@ def test_corrupted_file_detection():
 
 
 def test_smoke_audio_inspection():
-    smoke_file = Path("backend/data/smoke_audio/birds_forest.ogg")
-    if not smoke_file.exists():
-        smoke_file = Path("backend/data/smoke_audio/cicada_orni.ogg")
+    smoke_file = Path(__file__).resolve().parents[1] / "data" / "smoke_audio" / "cicada_orni.ogg"
 
     assert smoke_file.exists(), "Smoke audio file not found"
 

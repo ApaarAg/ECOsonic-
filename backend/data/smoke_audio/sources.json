@@ -1,0 +1,49 @@
+{
+  "excluded_existing_recordings": [
+    {
+      "file": "birds_garden.ogg",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Birds_singing_in_garden.ogg",
+      "license": "Public domain, dedicated by the copyright holder",
+      "reason": "SoundFile 0.14.0 (libsndfile 1.2.2) cannot decode this Ogg Skeleton stream; the file is retained unchanged."
+    }
+  ],
+  "recordings": [
+    {
+      "recording_id": "birds_forest",
+      "file": "birds_forest.ogg",
+      "title": "Birds forest",
+      "creator": "barracuda1983",
+      "original_source": "Own field recording in the forest of Fontainebleau, France",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Birds_forest.ogg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Birds_forest.ogg",
+      "license": "Public domain, dedicated by the copyright holder",
+      "license_url": "https://commons.wikimedia.org/wiki/File:Birds_forest.ogg",
+      "known_content": "Bird songs recorded in Fontainebleau forest; the uploader notes that wrens are audible. Predictions are not ground truth."
+    },
+    {
+      "recording_id": "frog_mixed",
+      "file": "frog_mixed.ogg",
+      "title": "Frog sounds",
+      "creator": "Hughesdarren",
+      "original_source": "Own field recording at Lake Seppings",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Frog_sounds.ogg",
+      "download_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Frog_sounds.ogg",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "known_content": "Pobblebonk and motorbike frogs after dark, per the uploader description; predictions are not ground truth."
+    },
+    {
+      "recording_id": "cicada_orni",
+      "file": "cicada_orni.ogg",
+      "title": "Cicada orni (Singing)",
+      "creator": "Travus",
+      "original_source": "Own field recording in southern France",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Cicada_orni_%28Singing%29.ogg",
+      "download_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cicada_orni_%28Singing%29.ogg",
+      "license": "CC BY-SA 2.5 Generic",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "known_content": "Singing of Cicada orni (Manna cicada), per the uploader description; predictions are not ground truth."
+    }
+  ]
+}
+

@@ -16,12 +16,56 @@ from app.schemas.analysis import (
     AnalysisResponse,
     AnalysisStatusResponse,
 )
+from app.schemas.detection import DetectionResponse
 from app.schemas.common import MessageResponse, PaginatedResponse
 from app.services.audio_processor import audio_processor
 from app.services.storage_service import storage_service
 from app.workers.analysis_worker import run_analysis_task
 
 router = APIRouter(prefix="/analyses", tags=["Analyses"])
+
+
+@router.get("/{analysis_id}/results", summary="Retrieve persisted analysis results")
+async def get_analysis_results(
+    analysis_id: str,
+    repo: AnalysisRepository = Depends(get_analysis_repository),
+):
+    analysis = await repo.get_by_id(analysis_id, load_relations=True)
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found.")
+    if analysis.status != "completed":
+        raise HTTPException(status_code=409, detail=f"Analysis results are not ready (status: {analysis.status}).")
+    vectors = storage_service.load_embeddings(analysis_id)
+    return {
+        "analysis_id": analysis.id,
+        "status": analysis.status,
+        "metrics": analysis.metrics_json,
+        "detections": [DetectionResponse.model_validate(d) for d in analysis.detections],
+        "embeddings": {
+            "path": analysis.embedding_path,
+            "shape": list(vectors.shape) if vectors is not None else None,
+            "dtype": str(vectors.dtype) if vectors is not None else None,
+            "segments": [
+                {"vector_index": row.vector_index, "start_seconds": row.start_seconds,
+                 "end_seconds": row.end_seconds, "segment_id": row.segment_id,
+                 "detection_id": row.detection_id}
+                for row in sorted(analysis.embedding_segments, key=lambda x: x.vector_index)
+            ],
+        },
+    }
+
+
+@router.get("/{analysis_id}/detections", summary="List persisted detections for an analysis")
+async def get_analysis_detections(
+    analysis_id: str,
+    repo: AnalysisRepository = Depends(get_analysis_repository),
+):
+    analysis = await repo.get_by_id(analysis_id, load_relations=True)
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found.")
+    if analysis.status != "completed":
+        raise HTTPException(status_code=409, detail=f"Analysis results are not ready (status: {analysis.status}).")
+    return [DetectionResponse.model_validate(d) for d in analysis.detections]
 
 
 @router.post(

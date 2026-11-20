@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from typing import BinaryIO, Optional
 import numpy as np
@@ -31,10 +32,10 @@ class StorageService:
         return target_dir / safe_name
 
     def get_processed_path(self, analysis_id: str) -> Path:
-        """Returns the canonical path for normalized mono 48kHz WAV audio."""
+        """Returns the canonical path for normalized mono 32kHz WAV audio."""
         target_dir = self.processed_dir / analysis_id
         target_dir.mkdir(parents=True, exist_ok=True)
-        return target_dir / "audio_mono_48k.wav"
+        return target_dir / "audio_mono_32k.wav"
 
     def get_embedding_path(self, analysis_id: str) -> Path:
         """Returns the path for saved NumPy embedding array (.npy)."""
@@ -67,8 +68,19 @@ class StorageService:
 
     def save_embeddings(self, analysis_id: str, embeddings: np.ndarray) -> Path:
         """Saves a float NumPy array of embeddings to the embeddings directory."""
+        vectors = np.asarray(embeddings)
+        if vectors.ndim != 2 or vectors.shape[1] != 1280:
+            raise ValueError(f"Expected embedding shape (N, 1280); got {vectors.shape}.")
+        if vectors.dtype != np.float32 or not np.isfinite(vectors).all():
+            raise ValueError("Embeddings must be finite float32 values.")
         path = self.get_embedding_path(analysis_id)
-        np.save(str(path), embeddings.astype(np.float32))
+        with tempfile.NamedTemporaryFile(dir=path.parent, suffix=".npy", delete=False) as tmp:
+            temp_path = Path(tmp.name)
+        try:
+            np.save(str(temp_path), vectors, allow_pickle=False)
+            os.replace(temp_path, path)
+        finally:
+            temp_path.unlink(missing_ok=True)
         logger.info(
             "Saved embedding array of shape %s to %s",
             embeddings.shape,
@@ -81,7 +93,7 @@ class StorageService:
         path = self.get_embedding_path(analysis_id)
         if not path.exists():
             return None
-        return np.load(str(path))
+        return np.load(str(path), allow_pickle=False)
 
     def delete_analysis_files(self, analysis_id: str) -> None:
         """Deletes raw audio, processed audio, and embeddings associated with an analysis."""

@@ -1,14 +1,31 @@
+"""Audio preprocessing and real BirdNET inference orchestration."""
+
+from __future__ import annotations
+
 import asyncio
+import threading
+import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
+from typing import Any, Callable, Optional
+
 import numpy as np
 
 from app.config import settings
 from app.core.exceptions import AudioProcessingError
 from app.core.logging import logger
-from app.services.audio_processor import audio_processor, AudioMetadata
+from app.services.audio_processor import AudioMetadata, audio_processor
 from app.services.storage_service import storage_service
+
+
+NON_ANIMAL_SOUND_CLASSES = {
+    "Gun_Gun", "Chainsaw_Chainsaw", "Aircraft_Aircraft", "Boat_Boat",
+    "Explosion_Explosion", "Engine_Engine", "Fire_Fire", "Fireworks_Fireworks",
+    "Hammer_Hammer", "Motor vehicle_Motor vehicle", "Music_Music",
+    "Power tool_Power tool", "Train_Train", "Sawing_Sawing", "Siren_Siren",
+    "Vehicle horn_Vehicle horn",
+}
 
 
 @dataclass
@@ -16,7 +33,7 @@ class ModelDetectionOutput:
     class_label: str
     scientific_name: str
     common_name: str
-    taxon_group: str
+    taxon_group: Optional[str]
     record_type: str
     start_seconds: float
     end_seconds: float
@@ -24,161 +41,105 @@ class ModelDetectionOutput:
     geo_score: Optional[float] = None
 
 
-@runtime_checkable
-class BirdNetEngineProtocol(Protocol):
-    """
-    Interface contract for the BirdNET+ engine being developed by the parallel agent.
-    Any engine conforming to this protocol can be injected into the analysis pipeline.
-    """
-    def analyze_audio(
-        self,
-        audio_path: str,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-        min_confidence: float = 0.25,
-    ) -> List[Dict[str, Any]]:
-        ...
-
-    def extract_embeddings(
-        self,
-        audio_path: str,
-    ) -> Tuple[np.ndarray, List[Tuple[float, float]]]:
-        ...
-
-
 class BirdNetEngineAdapter:
-    """
-    Production adapter that bridges the official BirdNetEngine class
-    (developed in app/services/birdnet_engine.py) to the EcoSonic analysis pipeline.
-    """
+    """Normalize the existing BirdNetEngine API to backend detection records."""
 
     def __init__(self, engine: Any):
         self._engine = engine
-        try:
-            self._engine.load()
-            logger.info("BirdNetEngine loaded successfully into adapter.")
-        except Exception as e:
-            logger.warning("Could not pre-load BirdNetEngine in adapter: %s", e)
+        self._engine.load()
 
-    def analyze_audio(
-        self,
-        audio_path: str,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-        min_confidence: float = 0.25,
-    ) -> List[Dict[str, Any]]:
-        if hasattr(self._engine, "predict"):
-            df = self._engine.predict(audio_path)
-            # Filter by confidence threshold
-            filtered = df[df["confidence"] >= min_confidence]
-            results = []
-            for _, row in filtered.iterrows():
-                species_name = str(row["species_name"])
-                parts = species_name.split("_", 1)
-                sci = parts[0].strip()
-                com = parts[1].strip() if len(parts) > 1 else sci
-                results.append({
-                    "class_label": species_name,
-                    "scientific_name": sci,
-                    "common_name": com,
-                    "taxon_group": "Aves",
-                    "record_type": "vocalization",
-                    "start_seconds": float(row["start_time"]),
-                    "end_seconds": float(row["end_time"]),
-                    "confidence_score": float(row["confidence"]),
-                    "geo_score": None,
-                })
-            return results
-        elif hasattr(self._engine, "analyze_audio"):
-            return self._engine.analyze_audio(audio_path, latitude, longitude, min_confidence)
-        return []
+    @property
+    def provider(self) -> str:
+        return getattr(self._engine, "device", "TEST")
 
-    def extract_embeddings(
-        self,
-        audio_path: str,
-    ) -> Tuple[np.ndarray, List[Tuple[float, float]]]:
-        if hasattr(self._engine, "encode"):
-            batch = self._engine.encode(audio_path)
-            vectors = batch.vectors
-            segments = [
-                (float(row["start_time"]), float(row["end_time"]))
-                for _, row in batch.segments.iterrows()
-            ]
-            return vectors, segments
-        elif hasattr(self._engine, "extract_embeddings"):
-            return self._engine.extract_embeddings(audio_path)
-        return np.empty((0, 1024), dtype=np.float32), []
+    @property
+    def model_version(self) -> str:
+        return str(self._engine.model.get_version())
+
+    def analyze_audio(self, audio_path: str, min_confidence: float) -> list[ModelDetectionOutput]:
+        frame = self._engine.predict(audio_path)
+        detections: list[ModelDetectionOutput] = []
+        for row in frame.itertuples(index=False):
+            label = str(row.species_name)
+            score = float(row.confidence)
+            if score < min_confidence:
+                continue
+            if label in NON_ANIMAL_SOUND_CLASSES:
+                scientific, common, group, record_type = "Unknown", label.split("_", 1)[-1], None, "sound_class"
+            elif "_" in label:
+                scientific, common = (part.strip() for part in label.split("_", 1))
+                if not scientific or not common:
+                    scientific, common, group, record_type = "Unknown", label, "Unknown", "animal"
+                else:
+                    group, record_type = "Unknown", "animal"
+            else:
+                scientific, common, group, record_type = "Unknown", label, "Unknown", "animal"
+            detections.append(ModelDetectionOutput(
+                class_label=label,
+                scientific_name=scientific,
+                common_name=common,
+                taxon_group=group,
+                record_type=record_type,
+                start_seconds=float(row.start_time),
+                end_seconds=float(row.end_time),
+                confidence_score=score,
+            ))
+        return detections
+
+    def extract_embeddings(self, audio_path: str):
+        batch = self._engine.encode(audio_path)
+        return batch.vectors, batch.segments
 
 
 class FallbackMockEngine:
-    """
-    Fallback mock engine providing realistic outputs if the neural model is offline.
-    """
+    """Deterministic test double. Production never selects this engine implicitly."""
 
-    def analyze_audio(
-        self,
-        audio_path: str,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-        min_confidence: float = 0.25,
-    ) -> List[Dict[str, Any]]:
-        logger.info("Using FallbackMockEngine for detection analysis.")
-        return [
-            {
-                "class_label": "Passer domesticus_House Sparrow",
-                "scientific_name": "Passer domesticus",
-                "common_name": "House Sparrow",
-                "taxon_group": "Aves",
-                "record_type": "song",
-                "start_seconds": 0.0,
-                "end_seconds": 3.0,
-                "confidence_score": 0.88,
-                "geo_score": 0.95 if (latitude and longitude) else None,
-            },
-            {
-                "class_label": "Turdus merula_Eurasian Blackbird",
-                "scientific_name": "Turdus merula",
-                "common_name": "Eurasian Blackbird",
-                "taxon_group": "Aves",
-                "record_type": "call",
-                "start_seconds": 3.0,
-                "end_seconds": 6.0,
-                "confidence_score": 0.76,
-                "geo_score": 0.90 if (latitude and longitude) else None,
-            },
-        ]
+    def load(self) -> None:
+        return None
 
-    def extract_embeddings(
-        self,
-        audio_path: str,
-    ) -> Tuple[np.ndarray, List[Tuple[float, float]]]:
-        logger.info("Using FallbackMockEngine for embedding extraction.")
-        embeddings = np.random.randn(2, 1024).astype(np.float32)
-        segments = [(0.0, 3.0), (3.0, 6.0)]
-        return embeddings, segments
+    def analyze_audio(self, audio_path: str, min_confidence: float = 0.0, **_: Any):
+        return [ModelDetectionOutput(
+            class_label="Passer domesticus_House Sparrow",
+            scientific_name="Passer domesticus", common_name="House Sparrow",
+            taxon_group="Unknown", record_type="animal", start_seconds=0.0,
+            end_seconds=3.0, confidence_score=0.88,
+        )]
+
+    def extract_embeddings(self, audio_path: str):
+        return np.zeros((1, 1280), dtype=np.float32), [(0.0, 3.0)]
 
 
 class AnalysisPipeline:
-    """
-    Coordinates audio ingestion, normalization, model inference,
-    and embedding extraction.
-    """
+    """Loads one real model instance and runs preprocessing, prediction, and encoding."""
 
-    def __init__(self):
-        self.engine = self._load_birdnet_engine()
+    def __init__(self, engine: Any = None):
+        self._provided_engine = engine
+        self.engine: Any = None
+        self._load_lock = threading.Lock()
+        self._model_load_seconds: Optional[float] = None
 
-    def _load_birdnet_engine(self) -> Any:
-        """
-        Dynamically imports the BirdNET engine from `app.services.birdnet_engine` if present,
-        otherwise falls back to FallbackMockEngine.
-        """
-        try:
-            from app.services.birdnet_engine import BirdNetEngine
-            engine = BirdNetEngine(precision="fp32", prefer_gpu=False)
-            return BirdNetEngineAdapter(engine)
-        except Exception as e:
-            logger.info("Could not initialize BirdNetEngine (%s). Using FallbackMockEngine.", e)
-            return FallbackMockEngine()
+    def set_engine(self, engine: Any) -> None:
+        """Explicit injection point for tests; production startup uses BirdNET."""
+        with self._load_lock:
+            self._provided_engine = engine
+            self.engine = None
+
+    def load(self) -> None:
+        if self.engine is not None:
+            return
+        with self._load_lock:
+            if self.engine is not None:
+                return
+            started = time.perf_counter()
+            if self._provided_engine is not None:
+                self.engine = BirdNetEngineAdapter(self._provided_engine)
+            else:
+                from app.services.birdnet_engine import BirdNetEngine
+                self.engine = BirdNetEngineAdapter(BirdNetEngine(
+                    precision="fp32", prefer_gpu=settings.MODEL_PREFER_GPU
+                ))
+            self._model_load_seconds = time.perf_counter() - started
+            logger.info("Real BirdNET model ready in %.3fs on %s", self._model_load_seconds, self.engine.provider)
 
     async def run_pipeline(
         self,
@@ -186,79 +147,64 @@ class AnalysisPipeline:
         raw_audio_path: Path,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
-        progress_callback: Optional[Any] = None,
-    ) -> Tuple[AudioMetadata, List[ModelDetectionOutput], np.ndarray, List[Tuple[float, float]]]:
-        """
-        Executes the multi-stage bioacoustic pipeline:
-        Stage 1: Validation & Audio Inspection
-        Stage 2: Audio Normalization (Mono 48kHz WAV conversion)
-        Stage 3: Acoustic Model Inference
-        Stage 4: Embedding Extraction
-        """
-        async def report(prog: float, stage: str):
-            if progress_callback:
-                if asyncio.iscoroutinefunction(progress_callback):
-                    await progress_callback(prog, stage)
-                else:
-                    progress_callback(prog, stage)
+        progress_callback: Optional[Callable[[str, float], Any]] = None,
+    ):
+        del latitude, longitude
+        if self.engine is None:
+            raise RuntimeError("Real BirdNET engine is not initialized.")
 
-        # Stage 1: Validation & Probe
-        await report(10.0, "Validating audio structure")
+        timings: dict[str, float] = {}
+
+        async def report(stage: str, progress: float) -> None:
+            if progress_callback:
+                result = progress_callback(stage, progress)
+                if asyncio.iscoroutine(result):
+                    await result
+
+        await report("validating_audio", 5)
         raw_meta = audio_processor.inspect_audio(raw_audio_path)
         if raw_meta.is_empty:
-            raise AudioProcessingError("Uploaded audio file is silent or empty.")
+            raise AudioProcessingError("Uploaded audio is silent or empty.")
 
-        # Stage 2: Normalization
-        await report(30.0, "Normalizing audio to 48kHz Mono WAV")
+        await report("preprocessing", 15)
         processed_path = storage_service.get_processed_path(analysis_id)
+        started = time.perf_counter()
         processed_meta = audio_processor.convert_to_mono_wav(
-            raw_audio_path,
-            processed_path,
-            target_sr=settings.TARGET_SAMPLE_RATE,
+            raw_audio_path, processed_path, target_sr=32000
         )
+        timings["preprocessing_seconds"] = time.perf_counter() - started
+        if processed_meta.sample_rate != 32000 or processed_meta.channels != 1:
+            raise AudioProcessingError("Normalized audio must be mono at 32,000 Hz.")
 
-        # Stage 3: Inference
-        await report(60.0, "Running bioacoustic classification")
         loop = asyncio.get_running_loop()
-
-        raw_detections = await loop.run_in_executor(
-            None,
-            lambda: self.engine.analyze_audio(
-                str(processed_path),
-                latitude=latitude,
-                longitude=longitude,
-                min_confidence=settings.DEFAULT_CONFIDENCE_THRESHOLD,
+        await report("birdnet_inference", 35)
+        started = time.perf_counter()
+        detections = await loop.run_in_executor(
+            None, lambda: self.engine.analyze_audio(
+                str(processed_path), settings.DEFAULT_CONFIDENCE_THRESHOLD
             )
         )
+        timings["prediction_seconds"] = time.perf_counter() - started
 
-        detections: List[ModelDetectionOutput] = []
-        for d in raw_detections:
-            detections.append(
-                ModelDetectionOutput(
-                    class_label=d.get("class_label", "Unknown"),
-                    scientific_name=d.get("scientific_name", "Unknown"),
-                    common_name=d.get("common_name", "Unknown"),
-                    taxon_group=d.get("taxon_group", "Aves"),
-                    record_type=d.get("record_type", "vocalization"),
-                    start_seconds=float(d.get("start_seconds", 0.0)),
-                    end_seconds=float(d.get("end_seconds", 0.0)),
-                    confidence_score=float(d.get("confidence_score", 0.0)),
-                    geo_score=d.get("geo_score"),
-                )
-            )
+        return (processed_meta, detections, processed_path, timings,
+                self.engine.provider, self._model_load_seconds)
 
-        # Stage 4: Embedding extraction
-        await report(85.0, "Extracting vector embeddings")
-        embeddings, segments = await loop.run_in_executor(
-            None,
-            lambda: self.engine.extract_embeddings(str(processed_path))
-        )
+    def extract_embeddings(self, processed_path: Path, duration_seconds: float):
+        started = time.perf_counter()
+        vectors, segments_frame = self.engine.extract_embeddings(str(processed_path))
+        vectors = np.asarray(vectors)
+        if vectors.dtype != np.float32 or vectors.ndim != 2 or vectors.shape[1] != 1280:
+            raise ValueError(f"BirdNET embeddings must be float32 (N, 1280), got {vectors.shape} {vectors.dtype}.")
+        if not np.isfinite(vectors).all():
+            raise ValueError("BirdNET embeddings contain non-finite values.")
 
-        await report(95.0, "Persisting embeddings to storage")
-        storage_service.save_embeddings(analysis_id, embeddings)
-
-        await report(100.0, "Pipeline completed")
-        return processed_meta, detections, embeddings, segments
+        if hasattr(segments_frame, "itertuples"):
+            segments = [(float(row.start_time), float(row.end_time)) for row in segments_frame.itertuples(index=False)]
+        else:
+            segments = [(float(start), float(end)) for start, end in segments_frame]
+        if any(start < 0 or end <= start or start > duration_seconds + 0.1 for start, end in segments):
+            raise ValueError("BirdNET returned embedding timestamps outside the recording.")
+        return vectors, segments, time.perf_counter() - started
 
 
 analysis_pipeline = AnalysisPipeline()

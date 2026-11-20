@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import math
+import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -13,16 +15,35 @@ import numpy as np
 import pandas as pd
 import soundfile as sf
 
+
+def _prepare_windows_cuda_dll_path() -> None:
+    """Expose NVIDIA wheel DLL folders to BirdNET's spawned worker processes."""
+    if os.name != "nt":
+        return
+    nvidia_root = Path(sys.prefix) / "Lib" / "site-packages" / "nvidia"
+    if not nvidia_root.is_dir():
+        return
+    dll_dirs = [str(path) for path in sorted(nvidia_root.glob("*/bin")) if path.is_dir()]
+    existing = os.environ.get("PATH", "").split(os.pathsep)
+    existing_norm = {os.path.normcase(path) for path in existing if path}
+    additions = [path for path in dll_dirs if os.path.normcase(path) not in existing_norm]
+    if additions:
+        # BirdNET runs ONNX inference in spawned processes. AddDllDirectory handles
+        # loaded in this process are not inherited on Windows, while PATH is.
+        os.environ["PATH"] = os.pathsep.join([*additions, *existing])
+
 try:
     import onnxruntime as ort
 except ImportError:  # pragma: no cover - reported by load() with a useful message
     ort = None  # type: ignore[assignment]
 else:
     # CUDA/cuDNN supplied as NVIDIA Python packages are not necessarily on PATH
-    # on Windows. ORT's documented loader makes them available to this process.
+    # on Windows. Keep the wheel DLL directories available to spawned workers,
+    # then use ORT's loader for this process too.
+    _prepare_windows_cuda_dll_path()
     preload_dlls = getattr(ort, "preload_dlls", None)
     if preload_dlls is not None:
-        preload_dlls()
+        preload_dlls(directory="")
 
 import birdnet
 

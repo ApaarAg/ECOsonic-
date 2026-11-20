@@ -1,11 +1,15 @@
 from contextlib import asynccontextmanager
+import asyncio
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import update
 
 from app.api.v1.router import api_v1_router
 from app.config import settings
-from app.core.database import close_db, init_db
+from app.core.database import async_session_factory, close_db, init_db
+from app.models.analysis import Analysis
+from app.services.analysis_pipeline import analysis_pipeline
 from app.core.exceptions import (
     AudioProcessingError,
     AudioValidationError,
@@ -21,6 +25,16 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up %s (version: %s)...", settings.PROJECT_NAME, settings.PROJECT_VERSION)
     # Initialize SQLite database tables
     await init_db()
+    async with async_session_factory() as session:
+        await session.execute(
+            update(Analysis)
+            .where(Analysis.status.in_(["queued", "processing"]))
+            .values(status="failed", progress=0.0,
+                    current_stage="failed:process_restart",
+                    error_message="Worker process restarted before completion.")
+        )
+        await session.commit()
+    await asyncio.to_thread(analysis_pipeline.load)
     yield
     # Graceful shutdown
     logger.info("Shutting down %s...", settings.PROJECT_NAME)

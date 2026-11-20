@@ -1,0 +1,433 @@
+{
+  "started_at": "2026-11-20T07:26:56Z",
+  "python_version": "3.11.15",
+  "python_executable": "C:\\Users\\apaar\\Desktop\\ECOBIRDS\\.venv\\Scripts\\python.exe",
+  "package_versions": {
+    "birdnet": "1.5.0",
+    "onnxruntime": null,
+    "onnxruntime-gpu": "1.26.0",
+    "numpy": "2.4.6",
+    "pandas": "3.1.1",
+    "scipy": "1.17.1",
+    "soundfile": "0.14.0",
+    "librosa": "0.11.0",
+    "psutil": "7.2.2"
+  },
+  "hardware": {
+    "operating_system": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu_count_logical": 20,
+    "cpu_count_physical": 14,
+    "system_ram_total_bytes": 25551560704,
+    "system_ram_available_bytes": 5852569600,
+    "gpu_from_nvidia_smi": "NVIDIA GeForce RTX 4060 Laptop GPU, 572.61, 8188 MiB",
+    "workspace_disk_free_bytes": 76023128064
+  },
+  "model": {
+    "model_family": "BirdNET acoustic",
+    "model_version": "3.0",
+    "model_path": "C:\\Users\\apaar\\Desktop\\ECOBIRDS\\.model_cache\\acoustic-models\\v3.0\\onnx\\model-fp32-e78c3b50e224.onnx",
+    "model_filename": "model-fp32-e78c3b50e224.onnx",
+    "model_precision": "fp32",
+    "model_backend": "onnx",
+    "model_sha256": "e78c3b50e224cd79d549d3c3b5efde2436acd1d3fbd72694f2a0b8547fa18685",
+    "model_download_url": "https://zenodo.org/records/24162518/files/BirdNET+_V3.0_Global_12K_FP32.onnx",
+    "model_catalog_sha256": "e78c3b50e224cd79d549d3c3b5efde2436acd1d3fbd72694f2a0b8547fa18685",
+    "model_catalog_filename": "BirdNET+_V3.0_Global_12K_FP32.onnx",
+    "class_count": 11725,
+    "embedding_dimensions": 1280,
+    "sample_rate_hz": 32000,
+    "segment_size_s": 3.0,
+    "first_labels": [
+      "Abeillia abeillei_Emerald-chinned Hummingbird",
+      "Abroscopus albogularis_Rufous-faced Warbler",
+      "Abroscopus schisticeps_Black-faced Warbler",
+      "Abroscopus superciliaris_Yellow-bellied Warbler",
+      "Aburria aburri_Wattled Guan"
+    ],
+    "runtime_version": "1.26.0",
+    "execution_providers": [
+      "TensorrtExecutionProvider",
+      "CUDAExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "requested_device": "GPU",
+    "provider_fallback_reason": null,
+    "load_duration_s": 0.011212100000193459,
+    "release_status": "official final V3.0 model family",
+    "artifact_release": "3.0.0 (Zenodo record 24162518)",
+    "newer_artifact_note": "3.0.1 was published 2026-11-19 with unchanged weights/classes/labels and ONNX export fixes; BirdNET 1.5.0 pins the 3.0.0 file.",
+    "model_license": "Apache-2.0",
+    "acceptable_use_policy": "BirdNET model acceptable-use policy applies separately.",
+    "library_license": "MIT"
+  },
+  "recordings": [
+    {
+      "recording_id": "birds_forest",
+      "file": "birds_forest.ogg",
+      "title": "Birds forest",
+      "creator": "barracuda1983",
+      "original_source": "Own field recording in the forest of Fontainebleau, France",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Birds_forest.ogg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Birds_forest.ogg",
+      "license": "Public domain, dedicated by the copyright holder",
+      "license_url": "https://commons.wikimedia.org/wiki/File:Birds_forest.ogg",
+      "known_content": "Bird songs recorded in Fontainebleau forest; the uploader notes that wrens are audible. Predictions are not ground truth.",
+      "local_file": "backend\\data\\smoke_audio\\birds_forest.ogg",
+      "status": "PASS",
+      "audio": {
+        "duration_s": 14.65469387755102,
+        "sample_rate_hz": 44100,
+        "channels": 2,
+        "frames": 646272,
+        "subtype": "VORBIS",
+        "format": "OGG",
+        "sha256": "60d77abf548030e85abec22053a6392df91320718e26b93180f562b1bf7989ac"
+      },
+      "requested_inference_device": "GPU",
+      "adapter_provider_fallback_reason": null,
+      "prediction_output_schema": {
+        "prediction_rows": 25,
+        "birdnet_raw_output_schema": {
+          "columns": [
+            "input",
+            "start_time",
+            "end_time",
+            "species_name",
+            "confidence"
+          ],
+          "dtypes": {
+            "input": "str",
+            "start_time": "float32",
+            "end_time": "float32",
+            "species_name": "str",
+            "confidence": "float32"
+          }
+        },
+        "prediction_columns": [
+          "input",
+          "start_time",
+          "end_time",
+          "species_name",
+          "confidence"
+        ],
+        "prediction_dtypes": {
+          "input": "str",
+          "start_time": "float32",
+          "end_time": "float32",
+          "species_name": "str",
+          "confidence": "float32"
+        },
+        "segment_count": 5,
+        "embedding_shape": [
+          5,
+          1280
+        ],
+        "embedding_dtype": "float32",
+        "embedding_non_finite_count": 0,
+        "segment_times_aligned": true
+      },
+      "prediction_time_range_s": {
+        "first_start": 0.0,
+        "last_end": 14.65625
+      },
+      "embedding_segment_time_range_s": {
+        "first_start": 0.0,
+        "last_end": 14.65625
+      },
+      "inference_duration_s": {
+        "predict": 4.0606903999996575,
+        "encode": 3.8055622000001676,
+        "combined": 7.866252599999825
+      },
+      "top_detections": [
+        {
+          "class": "Phylloscopus trochilus_Willow Warbler",
+          "score": 0.9298245906829834,
+          "start_time_s": 12.0,
+          "end_time_s": 14.65625
+        },
+        {
+          "class": "Regulus regulus_Goldcrest",
+          "score": 0.7003113627433777,
+          "start_time_s": 9.0,
+          "end_time_s": 12.0
+        },
+        {
+          "class": "Anthus trivialis_Tree Pipit",
+          "score": 0.5339356660842896,
+          "start_time_s": 12.0,
+          "end_time_s": 14.65625
+        },
+        {
+          "class": "Spinus spinus_Eurasian Siskin",
+          "score": 0.36734700202941895,
+          "start_time_s": 6.0,
+          "end_time_s": 9.0
+        },
+        {
+          "class": "Turdus merula_Common Blackbird",
+          "score": 0.34581679105758667,
+          "start_time_s": 12.0,
+          "end_time_s": 14.65625
+        }
+      ]
+    },
+    {
+      "recording_id": "frog_mixed",
+      "file": "frog_mixed.ogg",
+      "title": "Frog sounds",
+      "creator": "Hughesdarren",
+      "original_source": "Own field recording at Lake Seppings",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Frog_sounds.ogg",
+      "download_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Frog_sounds.ogg",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "known_content": "Pobblebonk and motorbike frogs after dark, per the uploader description; predictions are not ground truth.",
+      "local_file": "backend\\data\\smoke_audio\\frog_mixed.ogg",
+      "status": "PASS",
+      "audio": {
+        "duration_s": 32.854784580498865,
+        "sample_rate_hz": 44100,
+        "channels": 1,
+        "frames": 1448896,
+        "subtype": "VORBIS",
+        "format": "OGG",
+        "sha256": "fa4751ebba9b3cf87f13aac1640a653bdbacacdcbf4ce91c16152f83c861ee44"
+      },
+      "requested_inference_device": "GPU",
+      "adapter_provider_fallback_reason": null,
+      "prediction_output_schema": {
+        "prediction_rows": 55,
+        "birdnet_raw_output_schema": {
+          "columns": [
+            "input",
+            "start_time",
+            "end_time",
+            "species_name",
+            "confidence"
+          ],
+          "dtypes": {
+            "input": "str",
+            "start_time": "float32",
+            "end_time": "float32",
+            "species_name": "str",
+            "confidence": "float32"
+          }
+        },
+        "prediction_columns": [
+          "input",
+          "start_time",
+          "end_time",
+          "species_name",
+          "confidence"
+        ],
+        "prediction_dtypes": {
+          "input": "str",
+          "start_time": "float32",
+          "end_time": "float32",
+          "species_name": "str",
+          "confidence": "float32"
+        },
+        "segment_count": 11,
+        "embedding_shape": [
+          11,
+          1280
+        ],
+        "embedding_dtype": "float32",
+        "embedding_non_finite_count": 0,
+        "segment_times_aligned": true
+      },
+      "prediction_time_range_s": {
+        "first_start": 0.0,
+        "last_end": 32.84375
+      },
+      "embedding_segment_time_range_s": {
+        "first_start": 0.0,
+        "last_end": 32.84375
+      },
+      "inference_duration_s": {
+        "predict": 3.7050232000001415,
+        "encode": 3.4451486999996632,
+        "combined": 7.150171899999805
+      },
+      "top_detections": [
+        {
+          "class": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "score": 0.700433075428009,
+          "start_time_s": 24.0,
+          "end_time_s": 27.0
+        },
+        {
+          "class": "Ranoidea moorei_Motorbike Frog",
+          "score": 0.3673480153083801,
+          "start_time_s": 18.0,
+          "end_time_s": 21.0
+        },
+        {
+          "class": "Coggerdonia adelaidensis_Slender Tree Frog",
+          "score": 0.27678215503692627,
+          "start_time_s": 15.0,
+          "end_time_s": 18.0
+        },
+        {
+          "class": "Chenonetta jubata_Maned Duck",
+          "score": 0.16050326824188232,
+          "start_time_s": 0.0,
+          "end_time_s": 3.0
+        },
+        {
+          "class": "Ranoidea aurea_Green-and-Golden Bell Frog",
+          "score": 0.1543636918067932,
+          "start_time_s": 18.0,
+          "end_time_s": 21.0
+        }
+      ]
+    },
+    {
+      "recording_id": "cicada_orni",
+      "file": "cicada_orni.ogg",
+      "title": "Cicada orni (Singing)",
+      "creator": "Travus",
+      "original_source": "Own field recording in southern France",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Cicada_orni_%28Singing%29.ogg",
+      "download_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cicada_orni_%28Singing%29.ogg",
+      "license": "CC BY-SA 2.5 Generic",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.5/",
+      "known_content": "Singing of Cicada orni (Manna cicada), per the uploader description; predictions are not ground truth.",
+      "local_file": "backend\\data\\smoke_audio\\cicada_orni.ogg",
+      "status": "PASS",
+      "audio": {
+        "duration_s": 28.841,
+        "sample_rate_hz": 16000,
+        "channels": 1,
+        "frames": 461456,
+        "subtype": "VORBIS",
+        "format": "OGG",
+        "sha256": "38a6dc31bae1de0dcf0dfa50439fcb4daa1655fb57afeccaf539c4d7aaf0d848"
+      },
+      "requested_inference_device": "GPU",
+      "adapter_provider_fallback_reason": null,
+      "prediction_output_schema": {
+        "prediction_rows": 50,
+        "birdnet_raw_output_schema": {
+          "columns": [
+            "input",
+            "start_time",
+            "end_time",
+            "species_name",
+            "confidence"
+          ],
+          "dtypes": {
+            "input": "str",
+            "start_time": "float32",
+            "end_time": "float32",
+            "species_name": "str",
+            "confidence": "float32"
+          }
+        },
+        "prediction_columns": [
+          "input",
+          "start_time",
+          "end_time",
+          "species_name",
+          "confidence"
+        ],
+        "prediction_dtypes": {
+          "input": "str",
+          "start_time": "float32",
+          "end_time": "float32",
+          "species_name": "str",
+          "confidence": "float32"
+        },
+        "segment_count": 10,
+        "embedding_shape": [
+          10,
+          1280
+        ],
+        "embedding_dtype": "float32",
+        "embedding_non_finite_count": 0,
+        "segment_times_aligned": true
+      },
+      "prediction_time_range_s": {
+        "first_start": 0.0,
+        "last_end": 28.84375
+      },
+      "embedding_segment_time_range_s": {
+        "first_start": 0.0,
+        "last_end": 28.84375
+      },
+      "inference_duration_s": {
+        "predict": 3.3512165000001914,
+        "encode": 3.3155593999999837,
+        "combined": 6.666775900000175
+      },
+      "top_detections": [
+        {
+          "class": "Cicada orni_Ash Cicada",
+          "score": 0.9534254670143127,
+          "start_time_s": 18.0,
+          "end_time_s": 21.0
+        },
+        {
+          "class": "Crinia signifera_Common Eastern Froglet",
+          "score": 0.03755080699920654,
+          "start_time_s": 21.0,
+          "end_time_s": 24.0
+        },
+        {
+          "class": "Music_Music",
+          "score": 0.034244537353515625,
+          "start_time_s": 0.0,
+          "end_time_s": 3.0
+        },
+        {
+          "class": "Dendropsophus minutus_Lesser Tree Frog",
+          "score": 0.025336027145385742,
+          "start_time_s": 3.0,
+          "end_time_s": 6.0
+        },
+        {
+          "class": "Smilisca baudinii_Mexican Treefrog",
+          "score": 0.022399306297302246,
+          "start_time_s": 3.0,
+          "end_time_s": 6.0
+        }
+      ]
+    }
+  ],
+  "edge_case_tests": [
+    {
+      "case": "normal_environmental_audio",
+      "status": "PASS",
+      "actual_model_inference": true,
+      "prediction_finite": true,
+      "embedding_finite": true,
+      "recording_id": "birds_forest"
+    },
+    {
+      "case": "digital_silence",
+      "status": "PASS",
+      "handled_before_inference": true,
+      "message": "Audio has zero variance (digital silence or constant-valued input): C:\\Users\\apaar\\AppData\\Local\\Temp\\ecosonic-birdnet-hmf054ic\\digital_silence.wav"
+    },
+    {
+      "case": "constant_valued_input",
+      "status": "PASS",
+      "handled_before_inference": true,
+      "message": "Audio has zero variance (digital silence or constant-valued input): C:\\Users\\apaar\\AppData\\Local\\Temp\\ecosonic-birdnet-hmf054ic\\constant_value.wav"
+    },
+    {
+      "case": "extremely_short_input",
+      "status": "PASS",
+      "handled_before_inference": true,
+      "message": "Audio is too short (0.010000s); minimum is 0.100s."
+    }
+  ],
+  "results_files": {
+    "predictions_csv": "backend\\test_results\\predictions.csv",
+    "embeddings_npz": "backend\\test_results\\embeddings.npz"
+  },
+  "overall_status": "PASS",
+  "finished_at": "2026-11-20T07:27:19Z"
+}

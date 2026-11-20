@@ -18,12 +18,13 @@ RUN pip install --no-cache-dir -r requirements-backend.txt
 COPY app/ ./app/
 
 # Create persistent storage directories
-RUN mkdir -p /app/storage/raw /app/storage/processed /app/storage/embeddings /app/storage/db
+RUN mkdir -p /app/storage/raw /app/storage/processed /app/storage/embeddings /app/storage/db /app/storage/model_cache
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 ENV STORAGE_BASE_DIR=/app/storage
 ENV DATABASE_URL=sqlite+aiosqlite:////app/storage/db/ecosonic.db
+ENV BIRDNET_APP_DATA=/app/storage/model_cache
 
 EXPOSE 8000
 

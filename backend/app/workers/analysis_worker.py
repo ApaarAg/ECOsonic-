@@ -1,8 +1,16 @@
+"""Background analysis lifecycle with transactional result publication."""
+
+from __future__ import annotations
+
 import asyncio
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import List, Optional
+import sys
+import time
 import uuid
+from pathlib import Path
+from typing import List
+
+import numpy as np
+import psutil
 
 from app.config import settings
 from app.core.database import async_session_factory
@@ -16,141 +24,149 @@ from app.services.analysis_pipeline import analysis_pipeline
 from app.services.storage_service import storage_service
 
 
-async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
-    """
-    Background worker task that drives the complete end-to-end analysis lifecycle:
-    audio validation, normalization, model inference, embedding extraction,
-    and database persistence.
-    """
-    logger.info("Worker started processing analysis [%s]", analysis_id)
+def _peak_rss_bytes(process: psutil.Process) -> int:
+    """Return OS high-water RSS when available, otherwise current RSS."""
+    memory = process.memory_info()
+    windows_peak = getattr(memory, "peak_wset", None)
+    if windows_peak is not None:
+        return int(windows_peak)
+    try:
+        import resource
+        high_water = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        # macOS reports bytes; Linux and other supported Unix targets report KiB.
+        return int(high_water if sys.platform == "darwin" else high_water * 1024)
+    except (ImportError, AttributeError, OSError):
+        return int(memory.rss)
 
+
+async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
+    started = time.perf_counter()
+    process = psutil.Process()
+    failed_stage = "queued"
+    stage_history: list[str] = ["queued"]
+    embedding_path: Path | None = None
     async with async_session_factory() as session:
         analysis_repo = AnalysisRepository(session)
         detection_repo = DetectionRepository(session)
-
         analysis = await analysis_repo.get_by_id(analysis_id)
-        if not analysis:
-            logger.error("Analysis [%s] not found in database.", analysis_id)
+        if analysis is None:
+            logger.error("Analysis %s disappeared before processing", analysis_id)
             return
 
-        raw_path = Path(analysis.audio_path)
-        lat = analysis.latitude
-        lon = analysis.longitude
-
-        # Progress reporting hook
-        async def progress_hook(prog: float, stage: str):
-            manager.update_progress(analysis_id, prog, stage)
+        async def progress(stage: str, percent: float) -> None:
+            nonlocal failed_stage
+            failed_stage = stage
+            if not stage_history or stage_history[-1] != stage:
+                stage_history.append(stage)
+            manager.update_progress(analysis_id, percent, stage)
             await analysis_repo.update_status(
-                analysis_id,
-                status="processing",
-                progress=prog,
-                current_stage=stage,
+                analysis_id, status="processing", progress=percent, current_stage=stage
             )
             await session.commit()
 
         try:
-            # Execute pipeline
-            (
-                processed_meta,
-                model_detections,
-                embeddings,
-                segments,
-            ) = await analysis_pipeline.run_pipeline(
-                analysis_id=analysis_id,
-                raw_audio_path=raw_path,
-                latitude=lat,
-                longitude=lon,
-                progress_callback=progress_hook,
+            if analysis_pipeline.engine is None:
+                raise RuntimeError("Real BirdNET model is unavailable; analysis cannot run.")
+            (processed_meta, detections, processed_path, timings,
+             provider, model_load_seconds) = await analysis_pipeline.run_pipeline(
+                analysis_id, Path(analysis.audio_path), analysis.latitude,
+                analysis.longitude, progress
             )
 
-            # Stage: Persist detections in DB
+            failed_stage = "saving_detections"
+            await progress(failed_stage, 75)
             db_detections: List[Detection] = []
-            for d in model_detections:
-                det = Detection(
-                    id=str(uuid.uuid4()),
-                    analysis_id=analysis_id,
-                    class_label=d.class_label,
-                    scientific_name=d.scientific_name,
-                    common_name=d.common_name,
-                    taxon_group=d.taxon_group,
-                    record_type=d.record_type,
-                    start_seconds=d.start_seconds,
-                    end_seconds=d.end_seconds,
-                    confidence_score=d.confidence_score,
-                    geo_score=d.geo_score,
-                    review_status="unreviewed",
-                )
-                db_detections.append(det)
-
-            await detection_repo.create_batch(db_detections)
-
-            # Stage: Create embedding segment records
-            db_segments: List[EmbeddingSegment] = []
-            for idx, (start_s, end_s) in enumerate(segments):
-                # Associate with matching detection in the same time window if available
-                matching_det_id = None
-                for det in db_detections:
-                    if not (det.end_seconds <= start_s or det.start_seconds >= end_s):
-                        matching_det_id = det.id
-                        break
-
-                seg = EmbeddingSegment(
-                    segment_id=str(uuid.uuid4()),
-                    analysis_id=analysis_id,
-                    vector_index=idx,
-                    start_seconds=start_s,
-                    end_seconds=end_s,
-                    detection_id=matching_det_id,
-                )
-                db_segments.append(seg)
-
-            await analysis_repo.add_embedding_segments(db_segments)
-
-            # Compute summary metrics
-            unique_species = list({d.scientific_name for d in db_detections})
-            avg_conf = (
-                sum(d.confidence_score for d in db_detections) / len(db_detections)
-                if db_detections
-                else 0.0
+            for item in detections:
+                db_detections.append(Detection(
+                    id=str(uuid.uuid4()), analysis_id=analysis_id,
+                    class_label=item.class_label, scientific_name=item.scientific_name,
+                    common_name=item.common_name, taxon_group=item.taxon_group,
+                    record_type=item.record_type, start_seconds=item.start_seconds,
+                    end_seconds=item.end_seconds, confidence_score=item.confidence_score,
+                    geo_score=None, review_status="unreviewed",
+                ))
+            failed_stage = "extracting_embeddings"
+            await progress(failed_stage, 82)
+            vectors, segments, encoding_seconds = await asyncio.to_thread(
+                analysis_pipeline.extract_embeddings, processed_path,
+                processed_meta.duration_seconds,
             )
+            prediction_windows = {
+                (round(d.start_seconds, 6), round(d.end_seconds, 6)) for d in detections
+            }
+            embedding_windows = {(round(start, 6), round(end, 6)) for start, end in segments}
+            if not embedding_windows or not embedding_windows.issuperset(prediction_windows):
+                raise ValueError("Prediction timestamps do not align with embedding segments.")
+            timings["encoding_seconds"] = encoding_seconds
+
+            failed_stage = "saving_embeddings"
+            await progress("saving_embeddings", 90)
+            db_segments = []
+            detection_windows = [
+                (d.start_seconds, d.end_seconds, d.id) for d in db_detections
+            ]
+            for index, (start_s, end_s) in enumerate(segments):
+                if index >= len(vectors) or start_s < 0 or end_s <= start_s:
+                    raise ValueError("Embedding segment metadata is invalid.")
+                match_id = next((det_id for det_start, det_end, det_id in detection_windows
+                                 if det_start < end_s and det_end > start_s), None)
+                db_segments.append(EmbeddingSegment(
+                    segment_id=str(uuid.uuid4()), analysis_id=analysis_id,
+                    vector_index=index, start_seconds=start_s, end_seconds=end_s,
+                    detection_id=match_id,
+                ))
+            if len(db_segments) != len(vectors):
+                raise ValueError("Embedding vector count does not match segment metadata.")
+            embedding_path = await asyncio.to_thread(
+                storage_service.save_embeddings, analysis_id, vectors
+            )
+
+            # Publish all database result rows in the same transaction as the
+            # final completed state. If inference, encoding, or persistence
+            # fails, users never see a partial set of detections/segments.
+            db_started = time.perf_counter()
+            await detection_repo.create_batch(db_detections)
+            await analysis_repo.add_embedding_segments(db_segments)
+            timings["database_insertion_seconds"] = time.perf_counter() - db_started
+            timings["total_analysis_seconds"] = time.perf_counter() - started
             metrics = {
                 "total_detections": len(db_detections),
-                "unique_species_count": len(unique_species),
-                "species_detected": unique_species,
-                "average_confidence": round(avg_conf, 4),
-                "embedding_vectors_count": len(segments),
-                "rms_amplitude": processed_meta.rms_amplitude,
+                "unique_classes": len({d.class_label for d in db_detections}),
+                "average_confidence": round(float(np.mean([d.confidence_score for d in db_detections])) if db_detections else 0.0, 4),
+                "embedding_vectors_count": len(vectors),
+                "embedding_shape": list(vectors.shape),
+                "embedding_dtype": str(vectors.dtype),
                 "sample_rate": processed_meta.sample_rate,
                 "channels": processed_meta.channels,
+                "execution_provider": provider,
+                "stage_history": [*stage_history, "completed"],
+                "model_initialization_seconds": model_load_seconds,
+                "timings": timings,
+                "peak_rss_bytes": _peak_rss_bytes(process),
             }
-
-            processed_path_str = str(storage_service.get_processed_path(analysis_id))
-            embedding_path_str = str(storage_service.get_embedding_path(analysis_id))
-
-            # Finalize analysis record
             await analysis_repo.update(
-                analysis_id,
-                status="completed",
-                progress=100.0,
-                current_stage="Completed",
-                processed_path=processed_path_str,
-                embedding_path=embedding_path_str,
+                analysis_id, status="completed", progress=100.0,
+                current_stage="completed",
+                processed_path=str(storage_service.get_processed_path(analysis_id)),
+                embedding_path=str(embedding_path),
                 duration_seconds=processed_meta.duration_seconds,
-                model_version=settings.MODEL_VERSION,
-                metrics_json=metrics,
+                model_version=settings.MODEL_VERSION, metrics_json=metrics,
                 error_message=None,
             )
             await session.commit()
-            logger.info("Analysis [%s] completed successfully with %d detections.", analysis_id, len(db_detections))
-
-        except Exception as e:
-            logger.exception("Analysis [%s] processing failed: %s", analysis_id, e)
+            manager.update_progress(analysis_id, 100.0, "completed")
+            logger.info("Analysis %s completed with %s detections", analysis_id, len(db_detections))
+        except Exception as exc:
+            logger.exception("Analysis %s failed during %s", analysis_id, failed_stage)
+            await session.rollback()
+            if embedding_path is not None:
+                embedding_path.unlink(missing_ok=True)
+            safe_message = f"{type(exc).__name__} during {failed_stage}"[:240]
             await analysis_repo.update_status(
-                analysis_id,
-                status="failed",
-                progress=0.0,
-                current_stage="Failed",
-                error_message=str(e),
+                analysis_id, status="failed", progress=0.0,
+                current_stage=f"failed:{failed_stage}"[:100],
+                error_message=safe_message,
             )
             await session.commit()
+            manager.update_progress(analysis_id, 0.0, f"failed:{failed_stage}")
             raise

@@ -1,0 +1,131 @@
+recording_id,input,start_time,end_time,species_name,confidence
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,0.0,3.0,Phylloscopus trochilus_Willow Warbler,0.7364335
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,0.0,3.0,Turdus philomelos_Song Thrush,0.24538654
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,0.0,3.0,Turdus merula_Common Blackbird,0.079218686
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,0.0,3.0,Fringilla coelebs_Eurasian Chaffinch,0.034404933
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,0.0,3.0,Phylloscopus collybita_Common Chiffchaff,0.023073971
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,3.0,6.0,Regulus regulus_Goldcrest,0.45477206
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,3.0,6.0,Turdus merula_Common Blackbird,0.1940133
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,3.0,6.0,Fringilla coelebs_Eurasian Chaffinch,0.08128965
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,3.0,6.0,Turdus iliacus_Redwing,0.058951914
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,3.0,6.0,Fringilla montifringilla_Brambling,0.05311954
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,6.0,9.0,Spinus spinus_Eurasian Siskin,0.367347
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,6.0,9.0,Turdus merula_Common Blackbird,0.12965709
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,6.0,9.0,Spinus psaltria_Lesser Goldfinch,0.06301266
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,6.0,9.0,Fringilla coelebs_Eurasian Chaffinch,0.047032952
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,6.0,9.0,Turdus philomelos_Song Thrush,0.032087505
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,9.0,12.0,Regulus regulus_Goldcrest,0.70031136
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,9.0,12.0,Turdus merula_Common Blackbird,0.3344782
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,9.0,12.0,Anthus trivialis_Tree Pipit,0.27495003
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,9.0,12.0,Fringilla coelebs_Eurasian Chaffinch,0.1607092
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,9.0,12.0,Spinus spinus_Eurasian Siskin,0.05607307
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,12.0,14.65625,Phylloscopus trochilus_Willow Warbler,0.9298246
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,12.0,14.65625,Anthus trivialis_Tree Pipit,0.53393567
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,12.0,14.65625,Turdus merula_Common Blackbird,0.3458168
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,12.0,14.65625,Fringilla coelebs_Eurasian Chaffinch,0.054030478
+birds_forest,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\birds_forest.ogg,12.0,14.65625,Nannus troglodytes_Eurasian Wren,0.033908308
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,0.0,3.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.3527357
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,0.0,3.0,Chenonetta jubata_Maned Duck,0.16050327
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,0.0,3.0,Ranoidea raniformis_Southern Bell Frog,0.092113316
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,0.0,3.0,Ranoidea moorei_Motorbike Frog,0.0710026
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,0.0,3.0,Limnodynastes dorsalis_Western Banjo Frog,0.032335937
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,3.0,6.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.18274575
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,3.0,6.0,Coggerdonia adelaidensis_Slender Tree Frog,0.08000046
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,3.0,6.0,Limnodynastes dorsalis_Western Banjo Frog,0.0681591
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,3.0,6.0,Ranoidea moorei_Motorbike Frog,0.057382047
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,3.0,6.0,Pseudacris regilla_Pacific Chorus Frog,0.04053855
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,6.0,9.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.27822012
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,6.0,9.0,Limnodynastes dorsalis_Western Banjo Frog,0.073260605
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,6.0,9.0,Coggerdonia adelaidensis_Slender Tree Frog,0.061081886
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,6.0,9.0,Ranoidea moorei_Motorbike Frog,0.039757967
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,6.0,9.0,Limnodynastes tasmaniensis_Spotted Marsh Frog,0.02935344
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,9.0,12.0,Ranoidea moorei_Motorbike Frog,0.27623034
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,9.0,12.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.16366637
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,9.0,12.0,Limnodynastes dorsalis_Western Banjo Frog,0.069116294
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,9.0,12.0,Certhiaxis cinnamomeus_Yellow-chinned Spinetail,0.06669748
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,9.0,12.0,Pelodryas caerulea_Australian Green Tree Frog,0.06339157
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,12.0,15.0,Coggerdonia adelaidensis_Slender Tree Frog,0.25897062
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,12.0,15.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.1732282
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,12.0,15.0,Limnodynastes dorsalis_Western Banjo Frog,0.13155675
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,12.0,15.0,Ranoidea moorei_Motorbike Frog,0.028184772
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,12.0,15.0,Cygnus buccinator_Trumpeter Swan,0.020134151
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,15.0,18.0,Coggerdonia adelaidensis_Slender Tree Frog,0.27678216
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,15.0,18.0,Ranoidea moorei_Motorbike Frog,0.18723112
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,15.0,18.0,Limnodynastes dorsalis_Western Banjo Frog,0.0756588
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,15.0,18.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.07139057
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,15.0,18.0,Ranoidea aurea_Green-and-Golden Bell Frog,0.03148091
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,18.0,21.0,Ranoidea moorei_Motorbike Frog,0.36734802
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,18.0,21.0,Ranoidea aurea_Green-and-Golden Bell Frog,0.15436369
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,18.0,21.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.12847811
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,18.0,21.0,Ranoidea raniformis_Southern Bell Frog,0.1224159
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,18.0,21.0,Coggerdonia adelaidensis_Slender Tree Frog,0.08321965
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,21.0,24.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.31169808
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,21.0,24.0,Coggerdonia adelaidensis_Slender Tree Frog,0.093224525
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,21.0,24.0,Limnodynastes dorsalis_Western Banjo Frog,0.09284711
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,21.0,24.0,Cygnus buccinator_Trumpeter Swan,0.023697138
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,21.0,24.0,Crinia glauerti_Rattling Froglet,0.018894732
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,24.0,27.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.7004331
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,24.0,27.0,Limnodynastes dorsalis_Western Banjo Frog,0.08504993
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,24.0,27.0,Ranoidea moorei_Motorbike Frog,0.053889453
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,24.0,27.0,Crinia signifera_Common Eastern Froglet,0.053193092
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,24.0,27.0,Ranoidea raniformis_Southern Bell Frog,0.03691542
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,27.0,30.0,Limnodynastes dumerilii_Eastern Banjo Frog,0.2214517
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,27.0,30.0,Coggerdonia adelaidensis_Slender Tree Frog,0.17787874
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,27.0,30.0,Limnodynastes dorsalis_Western Banjo Frog,0.10956532
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,27.0,30.0,Ranoidea moorei_Motorbike Frog,0.045707285
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,27.0,30.0,Crinia signifera_Common Eastern Froglet,0.015290201
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,30.0,32.84375,Limnodynastes dumerilii_Eastern Banjo Frog,0.6729724
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,30.0,32.84375,Limnodynastes dorsalis_Western Banjo Frog,0.1048888
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,30.0,32.84375,Crinia signifera_Common Eastern Froglet,0.032730937
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,30.0,32.84375,Buceros bicornis_Great Hornbill,0.014102995
+frog_mixed,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\frog_mixed.ogg,30.0,32.84375,Limnodynastes tasmaniensis_Spotted Marsh Frog,0.01226294
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,0.0,3.0,Cicada orni_Ash Cicada,0.86295736
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,0.0,3.0,Music_Music,0.034244537
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,0.0,3.0,Pterophylla camellifolia_Common True Katydid,0.0151462555
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,0.0,3.0,Turdus merula_Common Blackbird,0.014962971
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,0.0,3.0,Emberiza citrinella_Yellowhammer,0.012836754
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,3.0,6.0,Cicada orni_Ash Cicada,0.40481883
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,3.0,6.0,Dendropsophus minutus_Lesser Tree Frog,0.025336027
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,3.0,6.0,Smilisca baudinii_Mexican Treefrog,0.022399306
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,3.0,6.0,Music_Music,0.020792842
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,3.0,6.0,Dendropsophus robertmertensi_Mertens's Yellow Tree Frog,0.020238638
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,6.0,9.0,Cicada orni_Ash Cicada,0.93986964
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,6.0,9.0,Pterophylla camellifolia_Common True Katydid,0.008220971
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,6.0,9.0,Crinia signifera_Common Eastern Froglet,0.00810039
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,6.0,9.0,Hyla arborea_European Tree Frog,0.005493343
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,6.0,9.0,Crex crex_Corn Crake,0.004497826
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,9.0,12.0,Cicada orni_Ash Cicada,0.6983786
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,9.0,12.0,Pterophylla camellifolia_Common True Katydid,0.021434367
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,9.0,12.0,Eumodicogryllus bordigalensis_Verge Cricket,0.019047558
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,9.0,12.0,Crinia signifera_Common Eastern Froglet,0.012216389
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,9.0,12.0,Crex crex_Corn Crake,0.008353114
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,12.0,15.0,Cicada orni_Ash Cicada,0.81821066
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,12.0,15.0,Pterophylla camellifolia_Common True Katydid,0.010701776
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,12.0,15.0,Eumodicogryllus bordigalensis_Verge Cricket,0.00883913
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,12.0,15.0,Crex crex_Corn Crake,0.00554806
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,12.0,15.0,Metrioptera brachyptera_Bog Bush-cricket,0.005358577
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,15.0,18.0,Cicada orni_Ash Cicada,0.7782413
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,15.0,18.0,Eumodicogryllus bordigalensis_Verge Cricket,0.0061193705
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,15.0,18.0,Yezoterpnosia obscura_Yezoterpnosia obscura,0.00562948
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,15.0,18.0,Dryophytes femoralis_Pine Woods Tree Frog,0.005505383
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,15.0,18.0,Crinia signifera_Common Eastern Froglet,0.0044600368
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,18.0,21.0,Cicada orni_Ash Cicada,0.95342547
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,18.0,21.0,Music_Music,0.02270782
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,18.0,21.0,Homo sapiens_Human,0.0067746043
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,18.0,21.0,Cyanocorax yncas_Green Jay,0.005227864
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,18.0,21.0,Crinia signifera_Common Eastern Froglet,0.004712224
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,21.0,24.0,Cicada orni_Ash Cicada,0.5283628
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,21.0,24.0,Crinia signifera_Common Eastern Froglet,0.037550807
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,21.0,24.0,Corvus pusillus_Palawan Crow,0.019738972
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,21.0,24.0,Cyanocorax yncas_Green Jay,0.0150639415
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,21.0,24.0,Crex crex_Corn Crake,0.013730347
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,24.0,27.0,Cicada orni_Ash Cicada,0.851192
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,24.0,27.0,Pterophylla camellifolia_Common True Katydid,0.005746305
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,24.0,27.0,Eumodicogryllus bordigalensis_Verge Cricket,0.005457163
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,24.0,27.0,Turdus merula_Common Blackbird,0.0042779446
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,24.0,27.0,Cyanocorax yncas_Green Jay,0.003861487
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,27.0,28.84375,Cicada orni_Ash Cicada,0.8889259
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,27.0,28.84375,Pica pica_Eurasian Magpie,0.009711981
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,27.0,28.84375,Pterophylla camellifolia_Common True Katydid,0.0072293878
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,27.0,28.84375,Rostrhamus sociabilis_Snail Kite,0.006246388
+cicada_orni,C:\Users\apaar\Desktop\ECOBIRDS\backend\data\smoke_audio\cicada_orni.ogg,27.0,28.84375,Tityra semifasciata_Masked Tityra,0.005538285
