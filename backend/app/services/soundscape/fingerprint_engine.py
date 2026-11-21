@@ -40,12 +40,22 @@ logger = logging.getLogger(__name__)
 
 
 # Default standard 5-band ecological partition (0 Hz to Nyquist at 32 kHz = 16 kHz)
+# Standardized, scientifically neutral labels replacing legacy inaccurate designations.
 DEFAULT_ECOLOGICAL_BANDS: Dict[str, Tuple[float, float]] = {
-    "infrasound_low_anthro_pct": (0.0, 1000.0),
-    "mid_anthro_low_bio_pct": (1000.0, 2000.0),
-    "core_biophony_pct": (2000.0, 8000.0),
-    "high_biophony_insects_pct": (8000.0, 14000.0),
-    "ultrasonic_high_pct": (14000.0, 16000.0),
+    "low_frequency_0_1k_pct": (0.0, 1000.0),
+    "mid_frequency_1_2k_pct": (1000.0, 2000.0),
+    "biophony_band_2_8k_pct": (2000.0, 8000.0),
+    "high_frequency_8_14k_pct": (8000.0, 14000.0),
+    "upper_frequency_14_16k_pct": (14000.0, 16000.0),
+}
+
+# Backward-compatible aliases for legacy tests and client schemas
+LEGACY_BAND_ALIASES: Dict[str, str] = {
+    "infrasound_low_anthro_pct": "low_frequency_0_1k_pct",
+    "mid_anthro_low_bio_pct": "mid_frequency_1_2k_pct",
+    "core_biophony_pct": "biophony_band_2_8k_pct",
+    "high_biophony_insects_pct": "high_frequency_8_14k_pct",
+    "ultrasonic_high_pct": "upper_frequency_14_16k_pct",
 }
 
 
@@ -197,6 +207,10 @@ class SoundscapeFingerprintEngine:
             "duration_seconds": round(duration_s, 2),
             "target_analysis_duration_s": self.config.analysis_duration_s,
             "is_partial_window": duration_s < self.config.analysis_duration_s,
+            "temporal_activity_threshold_note": (
+                "dB_threshold (3.0 dB) is relative to the median background noise envelope floor, "
+                "not an absolute SPL threshold."
+            ),
             "ndsi_assumptions": {
                 "bio_band_hz": list(self.config.flim_bio),
                 "anthro_band_hz": list(self.config.flim_anthro),
@@ -232,6 +246,9 @@ class SoundscapeFingerprintEngine:
 
         # Empty bands template for early exit
         empty_bands = {name: 0.0 for name in (self.config.custom_frequency_bands or DEFAULT_ECOLOGICAL_BANDS)}
+        if self.config.custom_frequency_bands is None:
+            for leg_alias in LEGACY_BAND_ALIASES:
+                empty_bands[leg_alias] = 0.0
 
         # If audio is silent, dead flatline (zero variance), or insufficient duration, return quality-flagged response
         if (
@@ -239,6 +256,12 @@ class SoundscapeFingerprintEngine:
             or "zero_variance_detected" in quality_flags
             or "insufficient_duration" in quality_flags
         ):
+            if "silent_window" in quality_flags or "zero_variance_detected" in quality_flags:
+                if "insufficient_energy_for_ndsi" not in quality_flags:
+                    quality_flags.append("insufficient_energy_for_ndsi")
+                if "ndsi_energy_too_low" not in quality_flags:
+                    quality_flags.append("ndsi_energy_too_low")
+
             return SoundscapeFingerprintResponse(
                 session_id=session_id,
                 window_start_seconds=start_seconds,
@@ -354,6 +377,7 @@ class SoundscapeFingerprintEngine:
             # If total biophony + anthropophony energy is negligible, NDSI assumption is violated
             if (anthro_e + bio_e) < 1e-12 or not np.isfinite(ndsi_val):
                 ndsi_val = None
+                quality_flags.append("insufficient_energy_for_ndsi")
                 quality_flags.append("ndsi_energy_too_low")
             else:
                 ndsi_val = max(-1.0, min(1.0, ndsi_val))
@@ -424,14 +448,23 @@ class SoundscapeFingerprintEngine:
     def _compute_frequency_bands(
         self, Sxx_power: np.ndarray, fn: np.ndarray
     ) -> Dict[str, float]:
-        """Compute percentage energy distribution across configured ecological frequency bands."""
+        """Compute percentage energy distribution across configured ecological frequency bands.
+
+        Standardized primary bands sum to approximately 100%. Legacy aliases are provided
+        for backward compatibility with earlier client schemas and tests.
+        """
+        is_default = self.config.custom_frequency_bands is None
         bands = self.config.custom_frequency_bands or DEFAULT_ECOLOGICAL_BANDS
 
         band_energies: Dict[str, float] = {}
         total_energy = float(np.sum(Sxx_power))
 
         if total_energy <= 0 or not np.isfinite(total_energy):
-            return {name: 0.0 for name in bands}
+            res = {name: 0.0 for name in bands}
+            if is_default:
+                for leg_alias in LEGACY_BAND_ALIASES:
+                    res[leg_alias] = 0.0
+            return res
 
         for name, (fmin, fmax) in bands.items():
             mask = (fn >= fmin) & (fn < fmax)
@@ -440,6 +473,12 @@ class SoundscapeFingerprintEngine:
                 band_energies[name] = round((e / total_energy) * 100.0, 2)
             else:
                 band_energies[name] = 0.0
+
+        # Populate backward-compatible legacy aliases when using standard default bands
+        if is_default:
+            for leg_alias, std_name in LEGACY_BAND_ALIASES.items():
+                if std_name in band_energies:
+                    band_energies[leg_alias] = band_energies[std_name]
 
         return band_energies
 

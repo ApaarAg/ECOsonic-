@@ -81,6 +81,23 @@ async def init_db() -> None:
         from app.models import analysis, detection, live_session, soundscape, site, review  # noqa: F401
         logger.info("Initializing database schema from metadata...")
         await conn.run_sync(Base.metadata.create_all)
+
+        # Ensure backward-compatible column upgrades for existing SQLite tables
+        def _ensure_sqlite_columns(sync_conn):
+            cursor = sync_conn.connection.cursor()
+            try:
+                cursor.execute("PRAGMA table_info(disturbance_events)")
+                cols = {row[1] for row in cursor.fetchall()}
+                if cols and "category" not in cols:
+                    cursor.execute("ALTER TABLE disturbance_events ADD COLUMN category VARCHAR(100)")
+                if cols and "hazard_classification" not in cols:
+                    cursor.execute("ALTER TABLE disturbance_events ADD COLUMN hazard_classification VARCHAR(50)")
+            except Exception as e:
+                logger.warning("Auto column migration check failed: %s", e)
+            finally:
+                cursor.close()
+
+        await conn.run_sync(_ensure_sqlite_columns)
         logger.info("Database schema initialized successfully.")
 
 

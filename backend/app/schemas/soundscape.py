@@ -73,6 +73,8 @@ class DisturbanceEventResponse(BaseModel):
     session_id: str
     event_type: str
     class_label: str
+    category: Optional[str] = None
+    hazard_classification: Optional[str] = None
     start_seconds: float
     end_seconds: float
     confidence_score: float

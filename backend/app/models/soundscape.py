@@ -100,6 +100,8 @@ class DisturbanceEvent(Base):
     )
     class_label: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
+    hazard_classification: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
     start_seconds: Mapped[float] = mapped_column(Float, nullable=False, index=True)
     end_seconds: Mapped[float] = mapped_column(Float, nullable=False)
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, index=True)

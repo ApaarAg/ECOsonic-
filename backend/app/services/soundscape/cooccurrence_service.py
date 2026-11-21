@@ -8,11 +8,11 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable, Coroutine, Dict, List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.core.database import async_session_factory
 from app.core.logging import logger
-from app.models.live_session import LiveEvent
+from app.models.live_session import LiveEvent, LiveSegment, LiveSession
 from app.models.soundscape import CoOccurrenceObservation, DisturbanceEvent
 from app.services.soundscape.disturbance_service import (
     BIRDNET_V3_DISTURBANCE_CLASSES,
@@ -20,6 +20,39 @@ from app.services.soundscape.disturbance_service import (
 )
 
 BroadcastCallback = Callable[[Dict[str, Any]], Coroutine[Any, Any, None]]
+
+MIN_EVAL_DURATION_S = 5.0  # Minimum valid audio window to avoid small-sample distortion
+
+
+def deduplicate_vocalization_bouts(
+    events: List[LiveEvent], max_bout_gap_s: float = 1.5
+) -> List[Dict[str, Any]]:
+    """Cluster overlapping or contiguous detection frames of the same taxon into single vocalization bouts.
+
+    Prevents rate inflation caused by 50% overlapping 3-second inference windows.
+    """
+    if not events:
+        return []
+    sorted_events = sorted(events, key=lambda e: (e.class_label, e.start_seconds))
+    bouts: List[Dict[str, Any]] = []
+    for e in sorted_events:
+        if not bouts:
+            bouts.append({
+                "class_label": e.class_label,
+                "start_seconds": e.start_seconds,
+                "end_seconds": e.end_seconds,
+            })
+        else:
+            prev = bouts[-1]
+            if prev["class_label"] == e.class_label and e.start_seconds <= prev["end_seconds"] + max_bout_gap_s:
+                prev["end_seconds"] = max(prev["end_seconds"], e.end_seconds)
+            else:
+                bouts.append({
+                    "class_label": e.class_label,
+                    "start_seconds": e.start_seconds,
+                    "end_seconds": e.end_seconds,
+                })
+    return bouts
 
 
 class CoOccurrenceService:
@@ -54,20 +87,41 @@ class CoOccurrenceService:
         # Pre-event range: [max(0, start_s - window_s), start_s]
         pre_start = max(0.0, start_s - window_s)
         pre_end = start_s
-        pre_dur = max(0.1, pre_end - pre_start)
+        pre_dur = pre_end - pre_start
 
         # Post-event range: [end_s, end_s + window_s]
         post_start = end_s
         post_end = end_s + window_s
-        post_dur = max(0.1, post_end - post_start)
 
         try:
             async with async_session_factory() as session:
-                # Query all biological detections in session
+                sess_res = await session.execute(select(LiveSession).where(LiveSession.id == session_id))
+                live_sess = sess_res.scalar_one_or_none()
+
+                # Account for incomplete post-event window when session ends early
+                if live_sess and live_sess.total_audio_seconds > 0 and live_sess.total_audio_seconds < post_end:
+                    actual_post_end = max(post_start, float(live_sess.total_audio_seconds))
+                    post_dur = actual_post_end - post_start
+                elif live_sess and live_sess.status == "stopped":
+                    max_seg_res = await session.execute(
+                        select(func.max(LiveSegment.end_seconds)).where(LiveSegment.session_id == session_id)
+                    )
+                    max_seg_time = max_seg_res.scalar_one_or_none()
+                    if max_seg_time is not None and float(max_seg_time) < post_end:
+                        actual_post_end = max(post_start, float(max_seg_time))
+                        post_dur = actual_post_end - post_start
+                    else:
+                        actual_post_end = post_end
+                        post_dur = window_s
+                else:
+                    actual_post_end = post_end
+                    post_dur = window_s
+
+                # Query all detections in the observation window
                 query = select(LiveEvent).where(
                     LiveEvent.session_id == session_id,
                     LiveEvent.start_seconds >= pre_start,
-                    LiveEvent.start_seconds <= post_end,
+                    LiveEvent.start_seconds <= actual_post_end,
                 )
                 res = await session.execute(query)
                 events = res.scalars().all()
@@ -84,27 +138,42 @@ class CoOccurrenceService:
                 bio_post = [
                     e
                     for e in events
-                    if post_start <= e.start_seconds <= post_end
+                    if post_start <= e.start_seconds <= actual_post_end
                     and e.class_label not in BIRDNET_V3_DISTURBANCE_CLASSES
                     and (e.taxon_group or "").lower() != "sound_class"
                 ]
 
-                # Calculate activity rate in events per minute
-                rate_before = round(len(bio_pre) / (pre_dur / 60.0), 2)
-                rate_after = round(len(bio_post) / (post_dur / 60.0), 2)
-                diff = round(rate_after - rate_before, 2)
+                # Deduplicate overlapping 3s inference windows into discrete bouts
+                bio_pre_bouts = deduplicate_vocalization_bouts(bio_pre)
+                bio_post_bouts = deduplicate_vocalization_bouts(bio_post)
 
-                # Formulate scientifically defensible, conservative interpretation (NO causal claims)
-                if abs(diff) > 0.05:
+                # Check data sufficiency requirements
+                if pre_dur < MIN_EVAL_DURATION_S or post_dur < MIN_EVAL_DURATION_S:
+                    rate_before = round(len(bio_pre_bouts) / (max(0.1, pre_dur) / 60.0), 2) if pre_dur > 0 else 0.0
+                    rate_after = round(len(bio_post_bouts) / (max(0.1, post_dur) / 60.0), 2) if post_dur > 0 else 0.0
+                    diff = 0.0
                     interpretation = (
-                        f"Temporal co-occurrence observed: biological detection rate changed from "
-                        f"{rate_before:.1f} to {rate_after:.1f} events/min following {class_label}."
+                        f"Temporal co-occurrence observed: insufficient observation window duration "
+                        f"(pre: {pre_dur:.1f}s, post: {post_dur:.1f}s, required: {MIN_EVAL_DURATION_S:.1f}s). "
+                        f"No comparative inference can be drawn."
                     )
                 else:
-                    interpretation = (
-                        f"Temporal co-occurrence observed: biological detection rate remained steady at "
-                        f"{rate_before:.1f} events/min following {class_label}."
-                    )
+                    # Calculate activity rate in discrete vocalization bouts per minute
+                    rate_before = round(len(bio_pre_bouts) / (pre_dur / 60.0), 2)
+                    rate_after = round(len(bio_post_bouts) / (post_dur / 60.0), 2)
+                    diff = round(rate_after - rate_before, 2)
+
+                    # Strictly conservative observational interpretation (NO causal claims)
+                    if abs(diff) > 0.05:
+                        interpretation = (
+                            f"Temporal co-occurrence observed: biological detection rate changed from "
+                            f"{rate_before:.1f} to {rate_after:.1f} events/min following {class_label}."
+                        )
+                    else:
+                        interpretation = (
+                            f"Temporal co-occurrence observed: biological detection rate remained steady at "
+                            f"{rate_before:.1f} events/min following {class_label}."
+                        )
 
                 obs_id = str(uuid.uuid4())
                 observation = CoOccurrenceObservation(

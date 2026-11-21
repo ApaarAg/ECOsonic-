@@ -359,6 +359,8 @@ async def get_session_timeline(
                 confidence_score=d.confidence_score,
                 details={
                     "event_type": d.event_type,
+                    "category": getattr(d, "category", None),
+                    "hazard_classification": getattr(d, "hazard_classification", None),
                     "model_version": d.model_version,
                     "review_status": d.review_status,
                 },
