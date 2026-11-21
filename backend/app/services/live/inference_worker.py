@@ -20,6 +20,7 @@ from app.schemas.live_session import WSDetectionEvent
 from app.services.analysis_pipeline import analysis_pipeline
 from app.services.live.embedding_worker import EmbeddingTask, embedding_worker
 from app.services.live.ring_buffer import AudioWindow
+from app.services.soundscape.disturbance_service import disturbance_service
 from app.services.storage_service import storage_service
 
 
@@ -251,6 +252,15 @@ class LiveInferenceWorker:
         self._total_lag_time_s += (time.perf_counter() - window.created_at)
         self._last_inference_duration_ms = inference_duration_s * 1000.0
         self._last_window_lag_ms = lag_ms
+
+        # Process Disturbance Radar events (extract non-animal classes, merge, persist, broadcast)
+        await disturbance_service.process_window_detections(
+            session_id=self.session_id,
+            window_start=window.start_seconds,
+            window_end=window.end_seconds,
+            detections=raw_detections,
+            broadcast_cb=self.event_callback,
+        )
 
         # Persist segment and detections in DB
         db_events: List[LiveEvent] = []

@@ -138,5 +138,64 @@ class JobManager:
         task = asyncio.create_task(_wrapper())
         job._task = task
 
+    async def wait_for_job(self, job_id: str, timeout: Optional[float] = None) -> Optional[JobInfo]:
+        """Waits for a job's background task to finish executing."""
+        job = self._jobs.get(job_id)
+        if not job:
+            return None
+        if job._task and not job._task.done():
+            try:
+                if timeout is not None:
+                    await asyncio.wait_for(asyncio.shield(job._task), timeout=timeout)
+                else:
+                    await job._task
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
+        return job
+
+    async def cancel_job_and_wait(self, job_id: str, timeout: Optional[float] = 5.0) -> bool:
+        """Cancels a job and awaits its task termination so resources/DB sessions are released."""
+        job = self._jobs.get(job_id)
+        if not job:
+            return False
+        self.cancel_job(job_id)
+        if job._task and not job._task.done():
+            try:
+                if timeout is not None:
+                    await asyncio.wait_for(job._task, timeout=timeout)
+                else:
+                    await job._task
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
+        return True
+
+    async def cancel_and_wait_all(self, timeout: Optional[float] = 5.0) -> None:
+        """Cancels all active jobs and awaits their completion to ensure DB sessions are closed."""
+        tasks = []
+        for jid, job in list(self._jobs.items()):
+            self.cancel_job(jid)
+            if job._task and not job._task.done():
+                tasks.append(job._task)
+        if tasks:
+            try:
+                if timeout is not None:
+                    await asyncio.wait_for(
+                        asyncio.gather(*tasks, return_exceptions=True),
+                        timeout=timeout,
+                    )
+                else:
+                    await asyncio.gather(*tasks, return_exceptions=True)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
+
+    async def wait_all(self, timeout: Optional[float] = None) -> None:
+        """Waits for all active tasks to complete."""
+        tasks = [job._task for job in self._jobs.values() if job._task and not job._task.done()]
+        if tasks:
+            if timeout is not None:
+                await asyncio.wait_for(asyncio.gather(*tasks, return_exceptions=True), timeout=timeout)
+            else:
+                await asyncio.gather(*tasks, return_exceptions=True)
+
 
 job_manager = JobManager()

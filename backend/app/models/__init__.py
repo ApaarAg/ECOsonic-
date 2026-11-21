@@ -3,6 +3,11 @@ from app.models.detection import Detection
 from app.models.live_session import LiveEvent, LiveSegment, LiveSession
 from app.models.review import Review
 from app.models.site import Site
+from app.models.soundscape import (
+    CoOccurrenceObservation,
+    DisturbanceEvent,
+    SoundscapeMeasurement,
+)
 
 __all__ = [
     "Analysis",
@@ -11,6 +16,9 @@ __all__ = [
     "LiveEvent",
     "LiveSegment",
     "LiveSession",
+    "SoundscapeMeasurement",
+    "DisturbanceEvent",
+    "CoOccurrenceObservation",
     "Review",
     "Site",
 ]

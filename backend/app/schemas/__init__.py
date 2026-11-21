@@ -24,6 +24,14 @@ from app.schemas.live_session import (
     WSDetectionEvent,
     WSSessionControlEvent,
 )
+from app.schemas.soundscape import (
+    CoOccurrenceObservationResponse,
+    DisturbanceEventResponse,
+    SoundscapeFingerprintResponse,
+    SoundscapeMeasurementResponse,
+    SoundscapeMetrics,
+    TimelineItemResponse,
+)
 from app.schemas.site import SiteBase, SiteCreate, SiteResponse, SiteUpdate
 
 __all__ = [
@@ -44,6 +52,12 @@ __all__ = [
     "LiveSessionStats",
     "WSDetectionEvent",
     "WSSessionControlEvent",
+    "SoundscapeMetrics",
+    "SoundscapeFingerprintResponse",
+    "SoundscapeMeasurementResponse",
+    "DisturbanceEventResponse",
+    "CoOccurrenceObservationResponse",
+    "TimelineItemResponse",
     "ReviewCreate",
     "ReviewResponse",
     "SiteBase",

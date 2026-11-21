@@ -23,7 +23,7 @@ from app.core import database
 from app.core.database import Base, get_db
 from app.core.job_manager import job_manager
 from app.main import app
-from app.models import analysis, detection, live_session, site, review  # noqa: F401
+from app.models import analysis, detection, live_session, soundscape, site, review  # noqa: F401
 from app.services.analysis_pipeline import analysis_pipeline, FallbackMockEngine
 from app.services.live import embedding_worker, inference_worker, session_manager
 from app.workers import analysis_worker
@@ -107,8 +107,8 @@ async def client(test_engine) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
-    for jid in list(job_manager._jobs.keys()):
-        job_manager.cancel_job(jid)
+    await job_manager.cancel_and_wait_all(timeout=5.0)
+    await session_manager.live_session_manager.shutdown(timeout=5.0)
 
     app.dependency_overrides.clear()
     analysis_pipeline.set_engine(previous_engine)

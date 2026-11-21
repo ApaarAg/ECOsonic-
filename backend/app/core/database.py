@@ -78,7 +78,7 @@ async def init_db() -> None:
     """Initializes tables in the database."""
     async with engine.begin() as conn:
         # Import models inside to ensure all models are registered on Base.metadata
-        from app.models import analysis, detection, live_session, site, review  # noqa: F401
+        from app.models import analysis, detection, live_session, soundscape, site, review  # noqa: F401
         logger.info("Initializing database schema from metadata...")
         await conn.run_sync(Base.metadata.create_all)
         logger.info("Database schema initialized successfully.")

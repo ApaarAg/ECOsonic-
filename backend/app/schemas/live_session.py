@@ -85,6 +85,7 @@ class LiveSessionStats(BaseModel):
     dropped_windows: int = Field(default=0, description="Number of dropped audio windows due to backpressure")
     inference_queue_size: int = Field(default=0, description="Current depth of pending inference queue")
     embedding_queue_size: int = Field(default=0, description="Current depth of pending embedding queue")
+    soundscape_queue_size: int = Field(default=0, description="Current depth of pending soundscape queue")
     gpu_utilization_pct: Optional[float] = Field(default=None, description="GPU compute utilization percentage")
     cpu_utilization_pct: float = Field(default=0.0, description="Host CPU utilization percentage")
     peak_memory_mb: float = Field(default=0.0, description="Peak host RSS memory in MB")

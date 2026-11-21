@@ -9,6 +9,7 @@ from sqlalchemy import update
 from app.api.v1.router import api_v1_router
 from app.config import settings
 from app.core.database import async_session_factory, close_db, init_db
+from app.core.job_manager import job_manager
 from app.models.analysis import Analysis
 from app.models.live_session import LiveSession
 from app.services.analysis_pipeline import analysis_pipeline
@@ -48,7 +49,10 @@ async def lifespan(app: FastAPI):
     yield
     # Graceful shutdown
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    await job_manager.cancel_and_wait_all(timeout=5.0)
+    await live_session_manager.shutdown(timeout=5.0)
     await embedding_worker.stop()
+    await soundscape_worker.stop()
     await close_db()
 
 
@@ -101,11 +105,22 @@ async def handle_not_found_error(request: Request, exc: ResourceNotFoundError):
 # Health & Metadata Endpoints
 @app.get("/health", tags=["System"])
 async def health_check():
+    model_ready = (
+        analysis_pipeline.engine is not None
+        and getattr(analysis_pipeline.engine, "model", None) is not None
+    )
+    device = (
+        getattr(analysis_pipeline.engine, "device", "unknown")
+        if analysis_pipeline.engine
+        else "none"
+    )
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.PROJECT_VERSION,
         "model_version": settings.MODEL_VERSION,
+        "model_ready": model_ready,
+        "model_device": device,
     }
 
 

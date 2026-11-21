@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import psutil
+import numpy as np
 from fastapi import WebSocket
 from sqlalchemy import func, select, update
 
@@ -23,6 +24,8 @@ from app.schemas.live_session import LiveSessionStats
 from app.services.live.embedding_worker import embedding_worker
 from app.services.live.inference_worker import LiveInferenceWorker
 from app.services.live.ring_buffer import AudioRingBuffer
+from app.services.soundscape.disturbance_service import disturbance_service
+from app.services.soundscape.soundscape_worker import SoundscapeTask, soundscape_worker
 
 
 def get_hardware_metrics() -> Dict[str, Any]:
@@ -89,6 +92,13 @@ class LiveSessionState:
             event_callback=self.broadcast_event,
         )
 
+        # Soundscape accumulation buffer (configurable long-window analysis)
+        self.soundscape_window_s: float = 30.0
+        self.soundscape_interval_s: float = 30.0
+        self._soundscape_samples: List[np.ndarray] = []
+        self._soundscape_sample_count: int = 0
+        self._last_soundscape_eval_s: float = 0.0
+
         self.expected_seq = 0
         self.received_frames = 0
         self.dropped_frames = 0
@@ -117,6 +127,72 @@ class LiveSessionState:
         for dead in dead_sockets:
             self.remove_websocket(dead)
 
+    def accumulate_soundscape_audio(self, raw_samples: np.ndarray) -> Optional[SoundscapeTask]:
+        """Accumulate samples for long-window soundscape analysis and trigger tasks when interval elapsed."""
+        if len(raw_samples) == 0:
+            return None
+
+        self._soundscape_samples.append(raw_samples)
+        self._soundscape_sample_count += len(raw_samples)
+
+        total_audio_s = self.ring_buffer.total_seconds_written
+        target_samples = int(self.soundscape_window_s * self.sample_rate)
+
+        # Trigger if minimum required window is accumulated and interval elapsed
+        if (
+            self._soundscape_sample_count >= target_samples
+            and (total_audio_s - self._last_soundscape_eval_s) >= self.soundscape_interval_s
+        ):
+            all_samples = np.concatenate(self._soundscape_samples)
+            window_samples = all_samples[-target_samples:]
+            start_s = max(0.0, total_audio_s - self.soundscape_window_s)
+            end_s = total_audio_s
+            self._last_soundscape_eval_s = total_audio_s
+
+            # Prune buffer to avoid unbounded memory growth (keep max 90s)
+            max_keep = int(90.0 * self.sample_rate)
+            if len(all_samples) > max_keep:
+                self._soundscape_samples = [all_samples[-max_keep:]]
+                self._soundscape_sample_count = max_keep
+
+            return SoundscapeTask(
+                session_id=self.session_id,
+                start_seconds=round(start_s, 2),
+                end_seconds=round(end_s, 2),
+                samples=window_samples,
+                created_at=time.perf_counter(),
+            )
+
+        return None
+
+    def finalize_soundscape_audio(self) -> Optional[SoundscapeTask]:
+        """Extract a final soundscape analysis window when the session terminates."""
+        if not self._soundscape_samples or self._soundscape_sample_count == 0:
+            return None
+
+        total_audio_s = self.ring_buffer.total_seconds_written
+
+        # Require at least 10s of audio for meaningful ecological indices
+        if total_audio_s < 10.0:
+            return None
+
+        target_samples = min(
+            self._soundscape_sample_count,
+            int(self.soundscape_window_s * self.sample_rate),
+        )
+        all_samples = np.concatenate(self._soundscape_samples)
+        window_samples = all_samples[-target_samples:]
+        start_s = max(0.0, total_audio_s - (target_samples / self.sample_rate))
+        end_s = total_audio_s
+
+        return SoundscapeTask(
+            session_id=self.session_id,
+            start_seconds=round(start_s, 2),
+            end_seconds=round(end_s, 2),
+            samples=window_samples,
+            created_at=time.perf_counter(),
+        )
+
     def get_stats(self) -> LiveSessionStats:
         elapsed = max(0.001, time.perf_counter() - self.started_at_time)
         capture_rate = self.total_bytes_received / elapsed
@@ -144,6 +220,7 @@ class LiveSessionState:
             dropped_windows=self.inference_worker.dropped_windows + self.ring_buffer.dropped_windows,
             inference_queue_size=self.inference_worker.queue_size,
             embedding_queue_size=embedding_worker.queue_size,
+            soundscape_queue_size=soundscape_worker.queue_size,
             gpu_utilization_pct=hw["gpu_utilization_pct"],
             cpu_utilization_pct=hw["cpu_utilization_pct"],
             peak_memory_mb=hw["peak_memory_mb"],
@@ -158,8 +235,26 @@ class LiveSessionManager:
         self._lock = asyncio.Lock()
 
     async def initialize(self) -> None:
-        """Ensure global workers (such as embedding worker) are started."""
+        """Ensure global workers (such as embedding worker and soundscape worker) are started."""
         await embedding_worker.start()
+        await soundscape_worker.start()
+        soundscape_worker.set_broadcast_callback(self._broadcast_to_session)
+
+    async def shutdown(self, timeout: float = 5.0) -> None:
+        """Stop all active sessions and background workers."""
+        async with self._lock:
+            for session_id in list(self._sessions.keys()):
+                try:
+                    await self.stop_session(session_id)
+                except Exception as exc:
+                    logger.warning("Error stopping session %s during shutdown: %s", session_id, exc)
+            self._sessions.clear()
+        await soundscape_worker.stop()
+
+    async def _broadcast_to_session(self, session_id: str, payload: Dict[str, Any]) -> None:
+        state = self.get_session(session_id)
+        if state:
+            await state.broadcast_event(payload)
 
     async def create_session(
         self,
@@ -261,6 +356,17 @@ class LiveSessionManager:
         state.status = "stopped"
         # Stop worker
         await state.inference_worker.stop()
+
+        # Enqueue final soundscape window if eligible (>= 10s audio)
+        final_task = state.finalize_soundscape_audio()
+        if final_task:
+            await soundscape_worker.enqueue(final_task)
+
+        # Close all active disturbances and run co-occurrence evaluation
+        await disturbance_service.close_session_disturbances(
+            session_id, broadcast_cb=state.broadcast_event
+        )
+
         stats = state.get_stats()
 
         await state.broadcast_event(
@@ -338,6 +444,13 @@ class LiveSessionManager:
                 }
             )
 
+        if samples_written > 0:
+            samples_i16 = np.frombuffer(pcm_bytes, dtype="<i2")
+            samples_f32 = samples_i16.astype(np.float32) / 32768.0
+            soundscape_task = state.accumulate_soundscape_audio(samples_f32)
+            if soundscape_task:
+                await soundscape_worker.enqueue(soundscape_task)
+
         # Extract complete windows and submit to inference worker
         windows = state.ring_buffer.extract_available_windows()
         for win in windows:
@@ -357,6 +470,27 @@ class LiveSessionManager:
                 await session.commit()
 
         return True, None
+
+    async def shutdown(self, timeout: Optional[float] = 5.0) -> None:
+        """Gracefully shuts down all active live sessions, stopping workers and closing resources."""
+        stop_coros = []
+        for sid, state in list(self._sessions.items()):
+            if state.status != "stopped":
+                stop_coros.append(self.stop_session(sid))
+            else:
+                stop_coros.append(state.inference_worker.stop())
+        if stop_coros:
+            try:
+                if timeout is not None:
+                    await asyncio.wait_for(
+                        asyncio.gather(*stop_coros, return_exceptions=True),
+                        timeout=timeout,
+                    )
+                else:
+                    await asyncio.gather(*stop_coros, return_exceptions=True)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
+        self._sessions.clear()
 
 
 live_session_manager = LiveSessionManager()
