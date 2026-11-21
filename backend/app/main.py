@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import asyncio
+from datetime import datetime, timezone
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,7 +10,10 @@ from app.api.v1.router import api_v1_router
 from app.config import settings
 from app.core.database import async_session_factory, close_db, init_db
 from app.models.analysis import Analysis
+from app.models.live_session import LiveSession
 from app.services.analysis_pipeline import analysis_pipeline
+from app.services.live.session_manager import live_session_manager
+from app.services.live.embedding_worker import embedding_worker
 from app.core.exceptions import (
     AudioProcessingError,
     AudioValidationError,
@@ -33,11 +37,18 @@ async def lifespan(app: FastAPI):
                     current_stage="failed:process_restart",
                     error_message="Worker process restarted before completion.")
         )
+        await session.execute(
+            update(LiveSession)
+            .where(LiveSession.status.in_(["active", "created"]))
+            .values(status="stopped", stopped_at=datetime.now(timezone.utc))
+        )
         await session.commit()
+    await live_session_manager.initialize()
     await asyncio.to_thread(analysis_pipeline.load)
     yield
     # Graceful shutdown
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    await embedding_worker.stop()
     await close_db()
 
 

@@ -32,6 +32,20 @@ def _prepare_windows_cuda_dll_path() -> None:
         # loaded in this process are not inherited on Windows, while PATH is.
         os.environ["PATH"] = os.pathsep.join([*additions, *existing])
 
+def _ensure_model_cache_env() -> None:
+    """Ensure BIRDNET_APP_DATA points to project .model_cache if not explicitly set."""
+    if os.environ.get("BIRDNET_APP_DATA"):
+        return
+    for candidate in [
+        Path(__file__).resolve().parents[3] / ".model_cache",
+        Path.cwd() / ".model_cache",
+    ]:
+        if candidate.is_dir():
+            os.environ["BIRDNET_APP_DATA"] = str(candidate.resolve())
+            break
+
+_ensure_model_cache_env()
+
 try:
     import onnxruntime as ort
 except ImportError:  # pragma: no cover - reported by load() with a useful message

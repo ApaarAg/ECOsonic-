@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 from app.core.logging import logger
@@ -31,6 +32,7 @@ engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     future=True,
+    poolclass=NullPool if "sqlite" in settings.DATABASE_URL else None,
     connect_args={"check_same_thread": False, "timeout": 30} if "sqlite" in settings.DATABASE_URL else {},
 )
 
@@ -76,7 +78,7 @@ async def init_db() -> None:
     """Initializes tables in the database."""
     async with engine.begin() as conn:
         # Import models inside to ensure all models are registered on Base.metadata
-        from app.models import analysis, detection, site, review  # noqa: F401
+        from app.models import analysis, detection, live_session, site, review  # noqa: F401
         logger.info("Initializing database schema from metadata...")
         await conn.run_sync(Base.metadata.create_all)
         logger.info("Database schema initialized successfully.")
