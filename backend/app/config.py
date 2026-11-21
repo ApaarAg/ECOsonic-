@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     DEFAULT_CONFIDENCE_THRESHOLD: float = 0.25
     NUM_WORKER_THREADS: int = 4
 
+    # Feature Flags
+    ENABLE_ACOUSTIC_MEMORY: bool = False
+
     @property
     def raw_audio_dir(self) -> Path:
         path = self.STORAGE_BASE_DIR / "raw"

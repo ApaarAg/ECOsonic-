@@ -16,7 +16,6 @@ from app.services.analysis_pipeline import analysis_pipeline
 from app.services.live.session_manager import live_session_manager
 from app.services.live.embedding_worker import embedding_worker
 from app.services.soundscape.soundscape_worker import soundscape_worker
-from app.services.acoustic_memory.embedding_index import embedding_index_service
 from app.core.exceptions import (
     AudioProcessingError,
     AudioValidationError,
@@ -47,7 +46,9 @@ async def lifespan(app: FastAPI):
         )
         await session.commit()
     await live_session_manager.initialize()
-    await embedding_index_service.rebuild_index()
+    if settings.ENABLE_ACOUSTIC_MEMORY:
+        from app.services.acoustic_memory.embedding_index import embedding_index_service
+        await embedding_index_service.rebuild_index()
     await asyncio.to_thread(analysis_pipeline.load)
     yield
     # Graceful shutdown

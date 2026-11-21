@@ -1,5 +1,48 @@
 {
-  "audit_timestamp": "2026-11-22T02:34:45+0530",
+  "audit_timestamp": "2026-11-22T03:15:57+0530",
+  "hardware_environment": {
+    "os": "Windows 11",
+    "cpu": "Intel Core i7-13620H",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU (8GB VRAM)",
+    "physical_microphone": {
+      "status": "PASS",
+      "available_input_devices_count": 18,
+      "default_input_device_index": 1,
+      "devices": [
+        {
+          "index": 0,
+          "name": "Microsoft Sound Mapper - Input",
+          "channels": 2,
+          "default_samplerate": 44100.0
+        },
+        {
+          "index": 1,
+          "name": "Microphone Array (Realtek(R) Au",
+          "channels": 2,
+          "default_samplerate": 44100.0
+        },
+        {
+          "index": 4,
+          "name": "Primary Sound Capture Driver",
+          "channels": 2,
+          "default_samplerate": 44100.0
+        },
+        {
+          "index": 5,
+          "name": "Microphone Array (Realtek(R) Audio)",
+          "channels": 2,
+          "default_samplerate": 44100.0
+        },
+        {
+          "index": 9,
+          "name": "Microphone Array (Realtek(R) Audio)",
+          "channels": 2,
+          "default_samplerate": 48000.0
+        }
+      ],
+      "notes": "Physical microphone hardware discovered."
+    }
+  },
   "physical_microphone_audit": {
     "status": "PASS",
     "available_input_devices_count": 18,
@@ -66,6 +109,766 @@
       "peak": 57.2
     },
     "queue_depth_max": 15,
+    "graceful_shutdown_success": true
+  },
+  "replay_endurance_results": {
+    "status": "PASS",
+    "duration_seconds": 605.19,
+    "total_frames_sent": 2333,
+    "dropped_frames": 0,
+    "processed_windows": 86,
+    "dropped_windows": 93,
+    "detections_broadcast_count": 348,
+    "warnings_broadcast_count": 93,
+    "db_segments_count": 86,
+    "db_events_count": 348,
+    "db_fingerprints_count": 9,
+    "db_disturbances_count": 0,
+    "avg_inference_latency_ms": 6935.19,
+    "avg_window_lag_ms": 94406.95,
+    "ram_metrics_mb": {
+      "initial_rss": 450.12,
+      "final_rss": 491.39,
+      "peak_rss": 532.37,
+      "growth_delta": 41.27,
+      "is_bounded": true
+    },
+    "vram_metrics_mb": {
+      "initial": 1149.0,
+      "peak": 2463.0
+    },
+    "cpu_metrics_pct": {
+      "mean": 4.26,
+      "peak": 64.1
+    },
+    "queue_depth_max": 15,
+    "dropped_window_reasons": [
+      {
+        "timestamp_s": 86.75,
+        "seq": 335,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 92.98,
+        "seq": 359,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 99.17,
+        "seq": 383,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 102.28,
+        "seq": 395,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 108.53,
+        "seq": 419,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 114.66,
+        "seq": 443,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 120.86,
+        "seq": 467,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 123.97,
+        "seq": 479,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 130.18,
+        "seq": 503,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 133.25,
+        "seq": 515,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 139.43,
+        "seq": 539,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 142.5,
+        "seq": 551,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 148.7,
+        "seq": 575,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 151.81,
+        "seq": 587,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 158.0,
+        "seq": 611,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 161.15,
+        "seq": 623,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 167.51,
+        "seq": 647,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 170.67,
+        "seq": 659,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 176.96,
+        "seq": 683,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 180.06,
+        "seq": 695,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 186.25,
+        "seq": 719,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 192.39,
+        "seq": 743,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 198.6,
+        "seq": 767,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 201.81,
+        "seq": 779,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 208.04,
+        "seq": 803,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 211.19,
+        "seq": 815,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 217.39,
+        "seq": 839,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 220.44,
+        "seq": 851,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 226.61,
+        "seq": 875,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 232.82,
+        "seq": 899,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 235.86,
+        "seq": 911,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 242.04,
+        "seq": 935,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 248.23,
+        "seq": 959,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 251.31,
+        "seq": 971,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 257.52,
+        "seq": 995,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 263.71,
+        "seq": 1019,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 270.08,
+        "seq": 1043,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 273.17,
+        "seq": 1055,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 279.44,
+        "seq": 1079,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 285.57,
+        "seq": 1103,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 291.79,
+        "seq": 1127,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 294.89,
+        "seq": 1139,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 301.09,
+        "seq": 1163,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 307.29,
+        "seq": 1187,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 313.51,
+        "seq": 1211,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 316.58,
+        "seq": 1223,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 322.74,
+        "seq": 1247,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 328.84,
+        "seq": 1271,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 335.04,
+        "seq": 1295,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 341.22,
+        "seq": 1319,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 347.37,
+        "seq": 1343,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 353.5,
+        "seq": 1367,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 356.59,
+        "seq": 1379,
+        "queue_depth": 14,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 362.71,
+        "seq": 1403,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 368.87,
+        "seq": 1427,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 374.99,
+        "seq": 1451,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 381.13,
+        "seq": 1475,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 387.24,
+        "seq": 1499,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 393.33,
+        "seq": 1523,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 399.41,
+        "seq": 1547,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 405.54,
+        "seq": 1571,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 411.65,
+        "seq": 1595,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 417.82,
+        "seq": 1619,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 423.89,
+        "seq": 1643,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 430.04,
+        "seq": 1667,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 436.16,
+        "seq": 1691,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 442.27,
+        "seq": 1715,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 448.43,
+        "seq": 1739,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 454.54,
+        "seq": 1763,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 460.69,
+        "seq": 1787,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 466.79,
+        "seq": 1811,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 472.91,
+        "seq": 1835,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 479.11,
+        "seq": 1859,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 482.14,
+        "seq": 1871,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 488.26,
+        "seq": 1895,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 494.37,
+        "seq": 1919,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 500.45,
+        "seq": 1943,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 506.56,
+        "seq": 1967,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 512.72,
+        "seq": 1991,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 518.95,
+        "seq": 2015,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 525.13,
+        "seq": 2039,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 531.24,
+        "seq": 2063,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 537.4,
+        "seq": 2087,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 543.49,
+        "seq": 2111,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 549.62,
+        "seq": 2135,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 555.75,
+        "seq": 2159,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 561.83,
+        "seq": 2183,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 567.96,
+        "seq": 2207,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 574.07,
+        "seq": 2231,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 580.2,
+        "seq": 2255,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 586.36,
+        "seq": 2279,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 589.44,
+        "seq": 2291,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 595.53,
+        "seq": 2315,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      }
+    ],
+    "graceful_shutdown_success": true
+  },
+  "physical_microphone_endurance_results": {
+    "status": "PASS",
+    "device_configuration": {
+      "name": "Microphone Array (Realtek(R) Au",
+      "device_index": 1,
+      "native_samplerate": 44100,
+      "target_samplerate": 32000
+    },
+    "duration_seconds": 1805.47,
+    "total_frames_sent": 7200,
+    "dropped_frames": 0,
+    "processed_windows": 56,
+    "dropped_windows": 21,
+    "detections_broadcast_count": 53,
+    "warnings_broadcast_count": 544,
+    "db_segments_count": 579,
+    "db_events_count": 53,
+    "db_fingerprints_count": 30,
+    "db_disturbances_count": 7,
+    "avg_inference_latency_ms": 6491.34,
+    "avg_window_lag_ms": 40494.18,
+    "ram_metrics_mb": {
+      "initial_rss": 448.62,
+      "final_rss": 476.54,
+      "peak_rss": 516.9,
+      "growth_delta": 27.92,
+      "is_bounded": true
+    },
+    "vram_metrics_mb": {
+      "initial": 1151.0,
+      "peak": 2465.0
+    },
+    "cpu_metrics_pct": {
+      "mean": 1.2,
+      "peak": 50.0
+    },
+    "queue_depth_max": 15,
+    "dropped_window_reasons": [
+      {
+        "timestamp_s": 324.02,
+        "seq": 1295,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 330.05,
+        "seq": 1319,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 336.02,
+        "seq": 1343,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 342.02,
+        "seq": 1367,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 348.02,
+        "seq": 1391,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 354.02,
+        "seq": 1415,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 360.05,
+        "seq": 1439,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 363.02,
+        "seq": 1451,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 369.02,
+        "seq": 1475,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 375.04,
+        "seq": 1499,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 381.02,
+        "seq": 1523,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 387.02,
+        "seq": 1547,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 390.03,
+        "seq": 1559,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 396.02,
+        "seq": 1583,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 402.02,
+        "seq": 1607,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 408.02,
+        "seq": 1631,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 414.02,
+        "seq": 1655,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 420.05,
+        "seq": 1679,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 423.02,
+        "seq": 1691,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 429.02,
+        "seq": 1715,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      },
+      {
+        "timestamp_s": 435.04,
+        "seq": 1739,
+        "queue_depth": 15,
+        "reason": "QueueFull backpressure: inference worker latency exceeded hop budget"
+      }
+    ],
     "graceful_shutdown_success": true
   }
 }

@@ -14,6 +14,7 @@ temp_dir = tempfile.mkdtemp(prefix="ecosonic_test_")
 test_db_path = Path(temp_dir) / "test_ecosonic.db"
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{test_db_path}"
 os.environ["STORAGE_BASE_DIR"] = temp_dir
+os.environ.setdefault("ENABLE_ACOUSTIC_MEMORY", "true")
 model_cache_path = (Path(__file__).resolve().parents[2] / ".model_cache").resolve()
 if model_cache_path.exists():
     os.environ.setdefault("BIRDNET_APP_DATA", str(model_cache_path))
