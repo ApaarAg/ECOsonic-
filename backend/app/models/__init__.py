@@ -1,3 +1,9 @@
+from app.models.acoustic_memory import (
+    AcousticClusterAssignment,
+    AcousticClusterRun,
+    AcousticProjection,
+    EmbeddingIndex,
+)
 from app.models.analysis import Analysis, EmbeddingSegment
 from app.models.detection import Detection
 from app.models.live_session import LiveEvent, LiveSegment, LiveSession
@@ -21,4 +27,8 @@ __all__ = [
     "CoOccurrenceObservation",
     "Review",
     "Site",
+    "EmbeddingIndex",
+    "AcousticClusterRun",
+    "AcousticClusterAssignment",
+    "AcousticProjection",
 ]

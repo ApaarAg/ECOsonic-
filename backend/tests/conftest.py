@@ -23,7 +23,15 @@ from app.core import database
 from app.core.database import Base, get_db
 from app.core.job_manager import job_manager
 from app.main import app
-from app.models import analysis, detection, live_session, soundscape, site, review  # noqa: F401
+from app.models import (
+    acoustic_memory,
+    analysis,
+    detection,
+    live_session,
+    review,
+    site,
+    soundscape,
+)  # noqa: F401
 from app.services.analysis_pipeline import analysis_pipeline, FallbackMockEngine
 from app.services.live import embedding_worker, inference_worker, session_manager
 from app.workers import analysis_worker
