@@ -28,4 +28,7 @@ ENV BIRDNET_APP_DATA=/app/storage/model_cache
 
 EXPOSE 8000
 
+# EcoSonic 2.0 single-process deployment constraint:
+# Must run with exactly 1 worker. Horizontal multi-worker scaling (--workers > 1)
+# is unsupported due to in-process JobManager and SQLite database locks.
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

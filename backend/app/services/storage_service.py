@@ -69,8 +69,8 @@ class StorageService:
     def save_embeddings(self, analysis_id: str, embeddings: np.ndarray) -> Path:
         """Saves a float NumPy array of embeddings to the embeddings directory."""
         vectors = np.asarray(embeddings)
-        if vectors.ndim != 2 or vectors.shape[1] != 1280:
-            raise ValueError(f"Expected embedding shape (N, 1280); got {vectors.shape}.")
+        if vectors.ndim != 2 or vectors.shape[1] != 1280 or vectors.shape[0] == 0:
+            raise ValueError(f"Expected embedding shape (N, 1280) with N > 0; got {vectors.shape}.")
         if vectors.dtype != np.float32 or not np.isfinite(vectors).all():
             raise ValueError("Embeddings must be finite float32 values.")
         path = self.get_embedding_path(analysis_id)

@@ -40,13 +40,17 @@ def test_storage_service_save_and_load_valid(tmp_path: Path):
 
 
 def test_storage_service_rejects_wrong_dimension(tmp_path: Path):
-    """Verify vectors with shape other than (N, 1280) are rejected."""
+    """Verify vectors with shape other than (N, 1280) or with N=0 are rejected."""
     srv = StorageService(base_dir=tmp_path)
     aid = "test-analysis-dim"
 
     # 1D array
     with pytest.raises(ValueError, match="Expected embedding shape"):
         srv.save_embeddings(aid, np.random.randn(1280).astype(np.float32))
+
+    # Zero-length array (0, 1280)
+    with pytest.raises(ValueError, match="Expected embedding shape"):
+        srv.save_embeddings(aid, np.zeros((0, 1280), dtype=np.float32))
 
     # Wrong column count (e.g. 512 instead of 1280)
     with pytest.raises(ValueError, match="Expected embedding shape"):
