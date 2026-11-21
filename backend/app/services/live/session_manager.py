@@ -93,8 +93,8 @@ class LiveSessionState:
         )
 
         # Soundscape accumulation buffer (configurable long-window analysis)
-        self.soundscape_window_s: float = 30.0
-        self.soundscape_interval_s: float = 30.0
+        self.soundscape_window_s: float = 60.0
+        self.soundscape_interval_s: float = 60.0
         self._soundscape_samples: List[np.ndarray] = []
         self._soundscape_sample_count: int = 0
         self._last_soundscape_eval_s: float = 0.0
@@ -149,8 +149,8 @@ class LiveSessionState:
             end_s = total_audio_s
             self._last_soundscape_eval_s = total_audio_s
 
-            # Prune buffer to avoid unbounded memory growth (keep max 90s)
-            max_keep = int(90.0 * self.sample_rate)
+            # Prune buffer to avoid unbounded memory growth (keep max 2x window or 90s)
+            max_keep = int(max(90.0, 2.0 * self.soundscape_window_s) * self.sample_rate)
             if len(all_samples) > max_keep:
                 self._soundscape_samples = [all_samples[-max_keep:]]
                 self._soundscape_sample_count = max_keep
@@ -239,6 +239,11 @@ class LiveSessionManager:
         await embedding_worker.start()
         await soundscape_worker.start()
         soundscape_worker.set_broadcast_callback(self._broadcast_to_session)
+
+    async def _broadcast_to_session(self, session_id: str, payload: Dict[str, Any]) -> None:
+        state = self.get_session(session_id)
+        if state:
+            await state.broadcast_event(payload)
 
     async def shutdown(self, timeout: float = 5.0) -> None:
         """Stop all active sessions and background workers."""

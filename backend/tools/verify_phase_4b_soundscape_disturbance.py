@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+import uuid
 import psutil
 import soundfile as sf
 import numpy as np
@@ -84,7 +85,7 @@ async def main():
         logger.info("  Verified class '%s' -> %s (threshold=%.2f)", name, taxonomy["classes"][name]["event_type"], taxonomy["classes"][name]["default_threshold"])
 
     radar = DisturbanceRadarService(merge_tolerance_seconds=3.5)
-    sess_id = "bench-radar-sess"
+    sess_id = f"bench-radar-sess-{uuid.uuid4().hex[:8]}"
 
     # Ensure live session exists in DB for foreign key constraint
     async with async_session_factory() as db:

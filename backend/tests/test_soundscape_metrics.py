@@ -7,18 +7,23 @@ import numpy as np
 import pytest
 
 from app.services.soundscape.fingerprint_engine import (
+    SoundscapeConfig,
     SoundscapeFingerprintEngine,
     soundscape_engine,
 )
 
 
-def generate_sine_wave(freq_hz: float, duration_s: float, sample_rate: int = 32000, amplitude: float = 0.5) -> np.ndarray:
+def generate_sine_wave(
+    freq_hz: float, duration_s: float, sample_rate: int = 32000, amplitude: float = 0.5
+) -> np.ndarray:
     """Generate a clean sinusoidal tone."""
     t = np.linspace(0, duration_s, int(sample_rate * duration_s), endpoint=False, dtype=np.float32)
     return amplitude * np.sin(2 * np.pi * freq_hz * t)
 
 
-def generate_white_noise(duration_s: float, sample_rate: int = 32000, amplitude: float = 0.2) -> np.ndarray:
+def generate_white_noise(
+    duration_s: float, sample_rate: int = 32000, amplitude: float = 0.2
+) -> np.ndarray:
     """Generate uniform white noise."""
     rng = np.random.default_rng(42)
     return rng.uniform(-amplitude, amplitude, int(sample_rate * duration_s)).astype(np.float32)
@@ -31,6 +36,10 @@ def test_soundscape_engine_initialization():
     assert engine.anthro_min_hz == 1000.0
     assert engine.anthro_max_hz == 2000.0
     assert engine.n_fft == 1024
+    assert engine.hop_length == 512
+    assert engine.window_function == "hann"
+    assert engine.frequency_resolution_hz == 31.25
+    assert engine.analysis_duration_s == 60.0
 
 
 def test_pure_tone_spectral_entropy():
@@ -122,5 +131,109 @@ def test_calculation_parameters_retention():
     params = res.calculation_parameters
     assert params["sample_rate"] == 32000
     assert params["n_fft"] == 1024
+    assert params["window_function"] == "hann"
+    assert params["frequency_resolution_hz"] == 31.25
     assert params["bio_band_hz"] == [2000.0, 8000.0]
     assert params["anthro_band_hz"] == [1000.0, 2000.0]
+    assert "ndsi_assumptions" in params
+    assert params["ndsi_assumptions"]["scientific_disclaimer"] is not None
+
+
+def test_reject_empty_audio():
+    """Empty audio sample array must raise ValueError."""
+    with pytest.raises(ValueError, match="empty"):
+        soundscape_engine.analyze_audio_segment(np.array([], dtype=np.float32), 32000)
+
+
+def test_reject_nan_inf_audio():
+    """Non-finite audio samples (NaN or Inf) must raise ValueError."""
+    sr = 32000
+    samples_nan = np.zeros(sr, dtype=np.float32)
+    samples_nan[10] = np.nan
+    with pytest.raises(ValueError, match="non-finite"):
+        soundscape_engine.analyze_audio_segment(samples_nan, sr)
+
+    samples_inf = np.zeros(sr, dtype=np.float32)
+    samples_inf[10] = np.inf
+    with pytest.raises(ValueError, match="non-finite"):
+        soundscape_engine.analyze_audio_segment(samples_inf, sr)
+
+
+def test_reject_invalid_sample_rate():
+    """Invalid sample rate (<= 0 or non-integer) must raise ValueError."""
+    samples = np.zeros(1000, dtype=np.float32)
+    with pytest.raises(ValueError, match="sample_rate"):
+        soundscape_engine.analyze_audio_segment(samples, -1)
+    with pytest.raises(ValueError, match="sample_rate"):
+        soundscape_engine.analyze_audio_segment(samples, 0)
+
+
+def test_zero_variance_input():
+    """Constant non-zero DC offset signal has zero variance and must be flagged."""
+    sr = 32000
+    dc_signal = np.full(sr * 10, 0.42, dtype=np.float32)
+    res = soundscape_engine.analyze_audio_segment(dc_signal, sr, start_seconds=0.0)
+
+    assert "zero_variance_detected" in res.quality_flags
+    assert res.metrics.ndsi is None
+    assert res.metrics.temporal_activity == 0.0
+
+
+def test_incomplete_window_flagging():
+    """Audio shorter than default 60s analysis duration must be flagged as incomplete_window but still computed."""
+    sr = 32000
+    samples_15s = generate_white_noise(15.0, sr)
+    res = soundscape_engine.analyze_audio_segment(samples_15s, sr, start_seconds=0.0)
+
+    assert "incomplete_window" in res.quality_flags
+    assert res.calculation_parameters["is_partial_window"] is True
+    assert res.metrics.spectral_entropy is not None
+    assert res.metrics.aci is not None
+
+
+def test_insufficient_duration_flagging():
+    """Audio shorter than minimum 5s duration must be flagged as insufficient_duration and exit safely."""
+    sr = 32000
+    samples_2s = generate_white_noise(2.0, sr)
+    res = soundscape_engine.analyze_audio_segment(samples_2s, sr, start_seconds=0.0)
+
+    assert "insufficient_duration" in res.quality_flags
+    assert res.metrics.aci == 0.0
+    assert res.metrics.ndsi is None
+
+
+def test_configurable_window_function():
+    """Engine must support configurable window functions like hamming and blackman."""
+    sr = 32000
+    noise = generate_white_noise(10.0, sr)
+
+    engine_hamming = SoundscapeFingerprintEngine(SoundscapeConfig(window_function="hamming"))
+    res_hamming = engine_hamming.analyze_audio_segment(noise, sr)
+    assert res_hamming.calculation_parameters["window_function"] == "hamming"
+    assert res_hamming.metrics.aci is not None
+
+    engine_blackman = SoundscapeFingerprintEngine(SoundscapeConfig(window_function="blackman"))
+    res_blackman = engine_blackman.analyze_audio_segment(noise, sr)
+    assert res_blackman.calculation_parameters["window_function"] == "blackman"
+    assert res_blackman.metrics.aci is not None
+
+
+def test_custom_frequency_bands():
+    """Engine must support custom frequency band dictionaries."""
+    sr = 32000
+    custom_bands = {
+        "low_sub_band_pct": (0.0, 3000.0),
+        "mid_sub_band_pct": (3000.0, 9000.0),
+        "high_sub_band_pct": (9000.0, 16000.0),
+    }
+    custom_config = SoundscapeConfig(custom_frequency_bands=custom_bands)
+    engine = SoundscapeFingerprintEngine(custom_config)
+
+    noise = generate_white_noise(10.0, sr)
+    res = engine.analyze_audio_segment(noise, sr)
+
+    assert "low_sub_band_pct" in res.frequency_bands
+    assert "mid_sub_band_pct" in res.frequency_bands
+    assert "high_sub_band_pct" in res.frequency_bands
+    total_pct = sum(res.frequency_bands.values())
+    assert 99.0 <= total_pct <= 101.0  # Percentage distribution sums to ~100%
