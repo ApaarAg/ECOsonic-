@@ -1,0 +1,308 @@
+{
+  "audit_timestamp": "2026-11-22T02:30:31+0530",
+  "hardware_environment": {
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU (8 GB VRAM)",
+    "cpu": "Intel(R) Core(TM) i7-13620H (16 vCPUs, 2.40 GHz)",
+    "os": "Windows 11 (NT)",
+    "python": "3.11.15 (main, Jun  2 2026, 22:29:49) [MSC v.1944 64 bit (AMD64)]",
+    "onnxruntime": "1.26.0"
+  },
+  "raw_onnx_gpu_benchmark": {
+    "requested_provider": "CUDAExecutionProvider",
+    "active_providers": [
+      "CUDAExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "n_warmup": 10,
+    "n_runs": 50,
+    "preprocessing": {
+      "count": 50,
+      "mean_ms": 1.4388220012187958,
+      "std_ms": 0.2687857196862988,
+      "median_ms": 1.3578499929280952,
+      "min_ms": 1.2425000022631139,
+      "max_ms": 2.572500001406297,
+      "p95_ms": 2.0432449993677415,
+      "p99_ms": 2.481899010308552
+    },
+    "model_execution_both_preds_and_embs": {
+      "count": 50,
+      "mean_ms": 26.542065999819897,
+      "std_ms": 2.6094163505608243,
+      "median_ms": 25.798949995078146,
+      "min_ms": 23.063100001309067,
+      "max_ms": 33.458199992310256,
+      "p95_ms": 32.069500007492024,
+      "p99_ms": 33.43712998874253
+    },
+    "postprocessing_top_k": {
+      "count": 50,
+      "mean_ms": 0.37567999970633537,
+      "std_ms": 0.7019965421355869,
+      "median_ms": 0.26124999567400664,
+      "min_ms": 0.21360002574510872,
+      "max_ms": 5.269799992674962,
+      "p95_ms": 0.43951001280220225,
+      "p99_ms": 2.9773350062896404
+    },
+    "total_in_memory_per_window": {
+      "count": 50,
+      "mean_ms": 28.35656800074503,
+      "std_ms": 2.8958658258419407,
+      "median_ms": 27.416699987952597,
+      "min_ms": 24.664800002938136,
+      "max_ms": 36.24420001870021,
+      "p95_ms": 34.82029000442708,
+      "p99_ms": 35.86915401509032
+    }
+  },
+  "raw_onnx_cpu_benchmark": {
+    "requested_provider": "CPUExecutionProvider",
+    "active_providers": [
+      "CPUExecutionProvider"
+    ],
+    "n_warmup": 10,
+    "n_runs": 50,
+    "preprocessing": {
+      "count": 50,
+      "mean_ms": 2.1559259993955493,
+      "std_ms": 0.2692834549241338,
+      "median_ms": 2.08165000367444,
+      "min_ms": 1.59119997988455,
+      "max_ms": 3.374799998709932,
+      "p95_ms": 2.544030002900399,
+      "p99_ms": 3.0604159864014933
+    },
+    "model_execution_both_preds_and_embs": {
+      "count": 50,
+      "mean_ms": 47.65085600200109,
+      "std_ms": 2.767823941835244,
+      "median_ms": 47.03699999663513,
+      "min_ms": 42.75339999003336,
+      "max_ms": 56.40900001162663,
+      "p95_ms": 52.658830014115665,
+      "p99_ms": 54.990548006317105
+    },
+    "postprocessing_top_k": {
+      "count": 50,
+      "mean_ms": 0.38896599784493446,
+      "std_ms": 0.12841920265592774,
+      "median_ms": 0.32539998937863857,
+      "min_ms": 0.26530001196078956,
+      "max_ms": 0.6806000019423664,
+      "p95_ms": 0.636269997630734,
+      "p99_ms": 0.6625679929857141
+    },
+    "total_in_memory_per_window": {
+      "count": 50,
+      "mean_ms": 50.195747999241576,
+      "std_ms": 2.8966440445562482,
+      "median_ms": 49.550599986105226,
+      "min_ms": 44.69290000270121,
+      "max_ms": 58.83480000193231,
+      "p95_ms": 55.63384499255335,
+      "p99_ms": 58.17472100985469
+    }
+  },
+  "cuda_kernel_verification": {
+    "profile_file_generated": "C:\\Users\\apaar\\Desktop\\ECOBIRDS\\ort_profile_gpu_2026-11-22_02-29-50_351.json",
+    "cuda_kernels_detected": true,
+    "sample_cuda_ops": [
+      "Gemm",
+      "Shape",
+      "Softmax",
+      "Pad",
+      "ReduceL2",
+      "ReduceMax",
+      "Slice",
+      "Reshape",
+      "Sub",
+      "MemcpyToHost",
+      "Transpose",
+      "Log",
+      "Clip",
+      "Max",
+      "MatMul"
+    ]
+  },
+  "birdnet_discrepancy_root_cause": {
+    "birdnet_predict_3s_file_1window_ms": {
+      "count": 3,
+      "mean_ms": 2719.5510333306934,
+      "std_ms": 238.68653587184633,
+      "median_ms": 2650.593900005333,
+      "min_ms": 2467.864299978828,
+      "max_ms": 3040.1949000079185,
+      "p95_ms": 3001.23480000766,
+      "p99_ms": 3032.4028800078668
+    },
+    "birdnet_encode_3s_file_1window_ms": {
+      "count": 3,
+      "mean_ms": 2598.4314666614714,
+      "std_ms": 66.8627597969489,
+      "median_ms": 2554.0889000112657,
+      "min_ms": 2548.2753999822307,
+      "max_ms": 2692.9300999909174,
+      "p95_ms": 2679.045979992952,
+      "p99_ms": 2690.1532759913243
+    },
+    "birdnet_predict_20s_file_7windows_ms": {
+      "count": 2,
+      "mean_ms": 6365.614199996344,
+      "std_ms": 2526.024500009953,
+      "median_ms": 6365.614199996344,
+      "min_ms": 3839.5896999863908,
+      "max_ms": 8891.638700006297,
+      "p95_ms": 8639.036250005302,
+      "p99_ms": 8841.118210006098
+    },
+    "birdnet_encode_20s_file_7windows_ms": {
+      "count": 2,
+      "mean_ms": 3711.647999996785,
+      "std_ms": 149.68090000911616,
+      "median_ms": 3711.647999996785,
+      "min_ms": 3561.967099987669,
+      "max_ms": 3861.3289000059012,
+      "p95_ms": 3846.3608100049896,
+      "p99_ms": 3858.335282005719
+    },
+    "birdnet_persistent_session_predict_3s_ms": {
+      "count": 5,
+      "mean_ms": 116.41753999865614,
+      "std_ms": 10.155337792406645,
+      "median_ms": 109.7163999802433,
+      "min_ms": 105.36069999216124,
+      "max_ms": 129.1505999979563,
+      "p95_ms": 128.97056000074372,
+      "p99_ms": 129.1145919985138
+    }
+  },
+  "pipeline_breakdown": {
+    "wav_disk_write_ms": {
+      "count": 10,
+      "mean_ms": 4.557480005314574,
+      "std_ms": 1.580860006884861,
+      "median_ms": 4.128500004298985,
+      "min_ms": 3.259000019170344,
+      "max_ms": 9.110199986025691,
+      "p95_ms": 7.1825799896032505,
+      "p99_ms": 8.724675986741204
+    },
+    "sqlite_wal_insert_commit_ms": {
+      "count": 20,
+      "mean_ms": 1.7497199980425648,
+      "std_ms": 0.5413471224019595,
+      "median_ms": 1.4459999947575852,
+      "min_ms": 1.1780999775510281,
+      "max_ms": 2.5807999772951007,
+      "p95_ms": 2.4813350217300467,
+      "p99_ms": 2.56090698618209
+    },
+    "websocket_json_serialization_ms": {
+      "count": 50,
+      "mean_ms": 0.00393400143366307,
+      "std_ms": 0.005521471231387497,
+      "median_ms": 0.0028999929782003164,
+      "min_ms": 0.0025999906938523054,
+      "max_ms": 0.042100000428035855,
+      "p95_ms": 0.005135009996592993,
+      "p99_ms": 0.02539100154535838
+    }
+  },
+  "latency_decomposition_and_rtf": {
+    "component_latencies_ms": {
+      "audio_accumulation_max_ms": 3000.0,
+      "audio_accumulation_min_at_boundary_ms": 0.0,
+      "wav_disk_save_median_ms": 4.128500004298985,
+      "raw_onnx_inference_gpu_median_ms": 25.798949995078146,
+      "raw_onnx_inference_gpu_p95_ms": 32.069500007492024,
+      "sqlite_wal_insert_median_ms": 1.4459999947575852,
+      "websocket_broadcast_median_ms": 0.0028999929782003164,
+      "total_direct_processing_ms": 28.87,
+      "total_current_disk_processing_ms": 2150.58
+    },
+    "scenarios": {
+      "hop_3.0s": {
+        "window_size_s": 3.0,
+        "hop_size_s": 3.0,
+        "rtf_raw_onnx_gpu": 0.0086,
+        "rtf_current_disk_pipeline": 0.7169,
+        "onset_evaluations": [
+          {
+            "sound_onset_second_in_window": 0.5,
+            "accumulation_latency_ms": 2500.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 2528.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 4650.58
+          },
+          {
+            "sound_onset_second_in_window": 1.5,
+            "accumulation_latency_ms": 1500.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 1528.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 3650.58
+          },
+          {
+            "sound_onset_second_in_window": 2.5,
+            "accumulation_latency_ms": 500.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 528.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 2650.58
+          },
+          {
+            "sound_onset_second_in_window": 2.9,
+            "accumulation_latency_ms": 100.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 128.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 2250.58
+          }
+        ]
+      },
+      "hop_1.5s": {
+        "window_size_s": 3.0,
+        "hop_size_s": 1.5,
+        "rtf_raw_onnx_gpu": 0.0086,
+        "rtf_current_disk_pipeline": 1.4337,
+        "onset_evaluations": [
+          {
+            "sound_onset_second_in_window": 0.5,
+            "accumulation_latency_ms": 2500.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 2528.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 4650.58
+          },
+          {
+            "sound_onset_second_in_window": 1.5,
+            "accumulation_latency_ms": 1500.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 1528.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 3650.58
+          },
+          {
+            "sound_onset_second_in_window": 2.5,
+            "accumulation_latency_ms": 500.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 528.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 2650.58
+          },
+          {
+            "sound_onset_second_in_window": 2.9,
+            "accumulation_latency_ms": 100.0,
+            "processing_latency_raw_onnx_ms": 28.87,
+            "total_e2e_latency_raw_onnx_ms": 128.87,
+            "processing_latency_current_disk_ms": 2150.58,
+            "total_e2e_latency_current_disk_ms": 2250.58
+          }
+        ]
+      }
+    },
+    "rtf_explanation": "Real-Time Factor (RTF = execution time / audio duration) measures computational throughput, not latency. A raw ONNX model with RTF = 0.0087 (26ms / 3000ms) can process audio 115x faster than real time. However, acoustic event detection fundamentally requires accumulating audio in physical time to form the 3.0-second frequency resolution window. Therefore, physical accumulation latency is bounded below by (3.0s - onset_time), making instantaneous (zero-latency) bioacoustic classification physically impossible regardless of compute speed."
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "audit_timestamp": "2026-11-22T02:34:45+0530",
+  "physical_microphone_audit": {
+    "status": "PASS",
+    "available_input_devices_count": 18,
+    "default_input_device_index": 1,
+    "devices": [
+      {
+        "index": 0,
+        "name": "Microsoft Sound Mapper - Input",
+        "channels": 2,
+        "default_samplerate": 44100.0
+      },
+      {
+        "index": 1,
+        "name": "Microphone Array (Realtek(R) Au",
+        "channels": 2,
+        "default_samplerate": 44100.0
+      },
+      {
+        "index": 4,
+        "name": "Primary Sound Capture Driver",
+        "channels": 2,
+        "default_samplerate": 44100.0
+      },
+      {
+        "index": 5,
+        "name": "Microphone Array (Realtek(R) Audio)",
+        "channels": 2,
+        "default_samplerate": 44100.0
+      },
+      {
+        "index": 9,
+        "name": "Microphone Array (Realtek(R) Audio)",
+        "channels": 2,
+        "default_samplerate": 48000.0
+      }
+    ],
+    "notes": "Physical microphone hardware discovered."
+  },
+  "sustained_endurance_results": {
+    "duration_seconds": 122.17,
+    "total_frames_sent": 467,
+    "dropped_frames": 0,
+    "processed_windows": 17,
+    "dropped_windows": 5,
+    "detections_broadcast_count": 65,
+    "warnings_broadcast_count": 5,
+    "db_segments_count": 17,
+    "db_events_count": 65,
+    "avg_inference_latency_ms": 6572.13,
+    "avg_window_lag_ms": 33584.65,
+    "ram_metrics_mb": {
+      "initial_rss": 450.56,
+      "final_rss": 488.32,
+      "peak_rss": 491.21,
+      "growth_delta": 37.76,
+      "is_bounded": true
+    },
+    "vram_metrics_mb": {
+      "initial": 1042.0,
+      "peak": 2351.0
+    },
+    "cpu_metrics_pct": {
+      "mean": 3.62,
+      "peak": 57.2
+    },
+    "queue_depth_max": 15,
+    "graceful_shutdown_success": true
+  }
+}
