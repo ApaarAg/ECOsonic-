@@ -415,13 +415,26 @@ class LiveSessionManager:
         if state.status == "stopped":
             return False, "Session is stopped; audio rejected."
 
-        # Sequence checking
-        if seq_num < state.expected_seq:
-            state.duplicate_frames += 1
-            return False, f"Duplicate frame detected (seq={seq_num}, expected={state.expected_seq}); discarded."
+        # Format & alignment validation
+        if state.channels > 1:
+            bytes_per_sample = 2 * state.channels
+            if len(pcm_bytes) % bytes_per_sample != 0:
+                return (
+                    False,
+                    f"PCM frame length {len(pcm_bytes)} not aligned to {state.channels} channels (requires multiple of {bytes_per_sample} bytes).",
+                )
+        else:
+            if len(pcm_bytes) % 2 != 0:
+                return False, f"Invalid PCM16 frame length: {len(pcm_bytes)} bytes is not a multiple of 2."
 
-        if seq_num > state.expected_seq:
-            missing = seq_num - state.expected_seq
+        # Sequence checking with uint32 modular arithmetic (handles wraparound at 2^32 - 1 -> 0)
+        MAX_UINT32 = 0xFFFFFFFF
+        diff = (seq_num - state.expected_seq) & MAX_UINT32
+
+        if diff == 0:
+            state.expected_seq = (state.expected_seq + 1) & MAX_UINT32
+        elif diff < 0x80000000:
+            missing = diff
             state.dropped_frames += missing
             logger.warning(
                 "Missing audio frames for session %s: expected %d, got %d (%d dropped frames)",
@@ -430,16 +443,26 @@ class LiveSessionManager:
                 seq_num,
                 missing,
             )
-            state.expected_seq = seq_num + 1
+            state.expected_seq = (seq_num + 1) & MAX_UINT32
         else:
-            state.expected_seq += 1
+            state.duplicate_frames += 1
+            return False, f"Duplicate frame detected (seq={seq_num}, expected={state.expected_seq}); discarded."
 
         state.received_frames += 1
         state.total_bytes_received += len(pcm_bytes)
         state.last_audio_received_at = time.perf_counter()
 
-        # Ingest into ring buffer
-        samples_written, warning = state.ring_buffer.write_pcm16_bytes(pcm_bytes)
+        # Multi-channel downmixing or mono ingestion
+        if state.channels > 1:
+            samples_i16 = np.frombuffer(pcm_bytes, dtype="<i2")
+            samples_matrix = samples_i16.reshape(-1, state.channels)
+            samples_f32 = np.mean(samples_matrix, axis=1, dtype=np.float32) / 32768.0
+            samples_written, warning = state.ring_buffer.write_float_samples(samples_f32)
+        else:
+            samples_written, warning = state.ring_buffer.write_pcm16_bytes(pcm_bytes)
+            samples_i16 = np.frombuffer(pcm_bytes, dtype="<i2")
+            samples_f32 = samples_i16.astype(np.float32) / 32768.0
+
         if warning:
             await state.broadcast_event(
                 {
@@ -450,8 +473,6 @@ class LiveSessionManager:
             )
 
         if samples_written > 0:
-            samples_i16 = np.frombuffer(pcm_bytes, dtype="<i2")
-            samples_f32 = samples_i16.astype(np.float32) / 32768.0
             soundscape_task = state.accumulate_soundscape_audio(samples_f32)
             if soundscape_task:
                 await soundscape_worker.enqueue(soundscape_task)

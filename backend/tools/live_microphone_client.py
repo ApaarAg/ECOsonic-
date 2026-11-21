@@ -94,6 +94,7 @@ class AudioStreamer:
         file_path: Optional[Path] = None,
         speed: float = 1.0,
         max_duration_s: Optional[float] = None,
+        loop_file: bool = False,
     ) -> None:
         self.ws_url = ws_url
         self.session_id = session_id
@@ -101,6 +102,7 @@ class AudioStreamer:
         self.file_path = file_path
         self.speed = max(0.1, speed)
         self.max_duration_s = max_duration_s
+        self.loop_file = loop_file
 
         self.audio_queue: asyncio.Queue[bytes] = asyncio.Queue(maxsize=100)
         self.running = False
@@ -175,7 +177,9 @@ class AudioStreamer:
 
         delay_s = CHUNK_DURATION_S / self.speed
 
-        while self.running and pos < total_samples:
+        while self.running and (self.loop_file or pos < total_samples):
+            if pos >= total_samples:
+                pos = 0
             t_chunk_start = time.perf_counter()
             end = min(pos + chunk_samples, total_samples)
             chunk = mono[pos:end]
@@ -354,6 +358,9 @@ def main() -> None:
     parser.add_argument(
         "--duration", type=float, default=None, help="Duration to stream in seconds"
     )
+    parser.add_argument(
+        "--loop", action="store_true", help="Loop audio file continuously for duration tests"
+    )
 
     args = parser.parse_args()
 
@@ -385,6 +392,7 @@ def main() -> None:
         file_path=file_p,
         speed=args.speed,
         max_duration_s=args.duration,
+        loop_file=args.loop,
     )
 
     def handle_sigint(*_: Any) -> None:

@@ -18,6 +18,7 @@ from app.core.logging import logger
 from app.models.live_session import LiveEvent, LiveSegment, LiveSession
 from app.schemas.live_session import WSDetectionEvent
 from app.services.analysis_pipeline import analysis_pipeline
+from app.services.birdnet_engine import AudioValidationError
 from app.services.live.embedding_worker import EmbeddingTask, embedding_worker
 from app.services.live.ring_buffer import AudioWindow
 from app.services.soundscape.disturbance_service import disturbance_service
@@ -241,10 +242,41 @@ class LiveInferenceWorker:
         t_infer_start = time.perf_counter()
 
         model_adapter = analysis_pipeline.engine
-        raw_detections = await loop.run_in_executor(
-            None,
-            lambda: model_adapter.analyze_audio(str(audio_path), self.min_confidence),
-        )
+        try:
+            raw_detections = await loop.run_in_executor(
+                None,
+                lambda: model_adapter.analyze_audio(str(audio_path), self.min_confidence),
+            )
+        except AudioValidationError as ave:
+            logger.warning(
+                "Audio validation rejected window for session %s [%.1f-%.1f]: %s",
+                self.session_id,
+                window.start_seconds,
+                window.end_seconds,
+                ave,
+            )
+            if self.event_callback:
+                await self.event_callback(
+                    {
+                        "type": "audio_quality_warning",
+                        "session_id": self.session_id,
+                        "reason": str(ave),
+                        "start_seconds": window.start_seconds,
+                        "end_seconds": window.end_seconds,
+                    }
+                )
+            async with async_session_factory() as session:
+                seg = LiveSegment(
+                    id=segment_id,
+                    session_id=self.session_id,
+                    start_seconds=window.start_seconds,
+                    end_seconds=window.end_seconds,
+                    audio_path=str(audio_path),
+                    processing_status="rejected_audio_validation",
+                )
+                session.add(seg)
+                await session.commit()
+            return
 
         inference_duration_s = time.perf_counter() - t_infer_start
         self._processed_windows += 1

@@ -24,11 +24,12 @@ class AudioWindow:
     rms_energy: float
     is_silent: bool
     is_clipped: bool
-    created_at: float  # time.perf_counter() timestamp
+    is_zero_variance: bool = False
+    created_at: float = 0.0  # time.perf_counter() timestamp
 
 
 class AudioRingBuffer:
-    """Fixed-capacity circular audio buffer with rolling window extraction and backpressure tracking."""
+    """Thread-safe synchronized circular audio ring buffer with bounded storage and rolling window extraction."""
 
     def __init__(
         self,
@@ -189,8 +190,10 @@ class AudioRingBuffer:
                 end_sec = (start_sample + self.window_samples) / self.sample_rate
 
                 rms = float(np.sqrt(np.mean(window_data**2)))
+                var = float(np.var(window_data))
                 is_silent = bool(rms < self.silence_threshold_rms)
                 is_clipped = bool(np.mean(np.abs(window_data) >= self.clipping_threshold) > 0.05)
+                is_zero_variance = bool(var < 1e-12)
 
                 windows.append(
                     AudioWindow(
@@ -201,6 +204,7 @@ class AudioRingBuffer:
                         rms_energy=round(rms, 6),
                         is_silent=is_silent,
                         is_clipped=is_clipped,
+                        is_zero_variance=is_zero_variance,
                         created_at=now,
                     )
                 )

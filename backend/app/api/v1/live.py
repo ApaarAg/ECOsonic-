@@ -575,12 +575,13 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
                 seq_num = struct.unpack(">I", raw_bytes[:4])[0]
                 pcm_payload = raw_bytes[4:]
 
-                if len(pcm_payload) % 2 != 0:
+                req_align = 2 * (state.channels if state else 1)
+                if len(pcm_payload) % req_align != 0:
                     await websocket.send_json(
                         {
                             "type": "error",
                             "code": "INVALID_PCM_ALIGNMENT",
-                            "message": f"PCM payload length {len(pcm_payload)} is not 16-bit aligned (must be even).",
+                            "message": f"PCM payload length {len(pcm_payload)} is not {req_align}-byte aligned for {state.channels if state else 1} channel(s).",
                         }
                     )
                     continue
