@@ -1,0 +1,40 @@
+{
+  "suite": "EcoSonic 3.0 Stage D Storage & Data Integrity",
+  "timestamp": "2026-11-22T10:22:14Z",
+  "sqlite_pragmas": {
+    "journal_mode": "WAL",
+    "synchronous": 1,
+    "busy_timeout_ms": 30000,
+    "foreign_keys_enabled": true,
+    "is_wal": true
+  },
+  "atomic_storage_evidence": {
+    "test_session_id": "test-storage-2ddff85f",
+    "test_site_id": "test-site-1132dbe5",
+    "saved_wav_path": "C:\\Users\\apaar\\Desktop\\ECOBIRDS\\backend\\storage\\live_audio\\test-storage-2ddff85f\\segment_0.0_3.0.wav",
+    "wav_duration_s": 3.0,
+    "wav_samplerate": 32000,
+    "physical_file_verified": true
+  },
+  "online_hot_backup": {
+    "backup_duration_s": 0.0448,
+    "backup_file_size_bytes": 4435968,
+    "integrity_check": "ok",
+    "table_row_counts": {
+      "sites": 3,
+      "live_sessions": 41,
+      "live_segments": 2335,
+      "live_events": 4262,
+      "disturbance_events": 16,
+      "soundscape_measurements": 97
+    },
+    "backup_verified": true
+  },
+  "restart_persistence": {
+    "session_found": true,
+    "segments_retrieved": 1,
+    "events_retrieved": 1,
+    "disturbances_retrieved": 1,
+    "restart_fidelity_verified": true
+  }
+}

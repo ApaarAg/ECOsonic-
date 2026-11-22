@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  ecosonic-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ecosonic-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - STORAGE_BASE_DIR=/app/storage
+      - DATABASE_URL=sqlite+aiosqlite:////app/storage/db/ecosonic.db
+      - BIRDNET_APP_DATA=/app/storage/model_cache
+      - LOG_LEVEL=INFO
+      - ENABLE_ACOUSTIC_MEMORY=true
+    volumes:
+      # Persistent application storage for SQLite DB, audio segments, and embeddings
+      - ecosonic_storage:/app/storage
+      # Mount host model cache into container to enable offline inference without downloads
+      - ./.model_cache:/app/storage/model_cache:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "4.0"
+        reservations:
+          memory: 1G
+
+volumes:
+  ecosonic_storage:
+    name: ecosonic_storage

@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-11-22T10:12:07.671257+00:00",
+  "birdnet_acoustic_total_classes": 11725,
+  "birdnet_geo_total_species": 14082,
+  "reconciled_exact_matches_count": 10874,
+  "reconciled_exact_matches_pct": 92.74,
+  "non_taxonomic_disturbance_classes_count": 16,
+  "non_taxonomic_disturbance_classes": [
+    "Aircraft_Aircraft",
+    "Boat_Boat",
+    "Chainsaw_Chainsaw",
+    "Engine_Engine",
+    "Explosion_Explosion",
+    "Fire_Fire",
+    "Fireworks_Fireworks",
+    "Gun_Gun",
+    "Hammer_Hammer",
+    "Motor vehicle_Motor vehicle",
+    "Music_Music",
+    "Power tool_Power tool",
+    "Sawing_Sawing",
+    "Siren_Siren",
+    "Train_Train",
+    "Vehicle horn_Vehicle horn"
+  ],
+  "unmodeled_species_count": 835,
+  "unmodeled_species_sample": [
+    "Acanthoventris drewseni_Acanthoventris drewseni",
+    "Acrocephalus aequinoctialis_Bokikokiko",
+    "Acrocephalus atyphus_Tuamotu Reed Warbler",
+    "Acrocephalus hiwae_Saipan Reed Warbler",
+    "Acrocephalus kerearako_Cook Reed Warbler",
+    "Acrocephalus mendanae_Southern Marquesan Reed Warbler",
+    "Acrocephalus rehsei_Nauru Reed Warbler",
+    "Acrocephalus rimitarae_Rimatara Reed Warbler",
+    "Acrometopa cretensis_Cretan Long-legged Bush-Cricket",
+    "Actenoides bougainvillei_Moustached Kingfisher"
+  ],
+  "handling_policy": {
+    "reconciled": "predict_species_probabilities provides modeled occurrence [0.0, 1.0]",
+    "non_taxonomic": "occurrence_score = None, status = 'not_applicable'",
+    "unmodeled": "occurrence_score = None, status = 'unmodeled'"
+  }
+}

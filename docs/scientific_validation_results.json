@@ -1,0 +1,676 @@
+{
+  "suite": "EcoSonic 3.0 Stage B Scientific Validation",
+  "timestamp": "2026-11-22T10:12:23.619555+00:00",
+  "device": "GPU",
+  "active_providers": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "module1_acoustic_model": {
+    "multi_taxa_detections": {
+      "aves": {
+        "file": "birds_forest.ogg",
+        "inference_duration_ms": 45.85,
+        "embedding_norm": 1.282684326171875,
+        "top_detections": [
+          {
+            "scientific_name": "Phylloscopus trochilus",
+            "common_name": "Willow Warbler",
+            "confidence": 0.7116,
+            "taxa": "aves"
+          },
+          {
+            "scientific_name": "Turdus philomelos",
+            "common_name": "Song Thrush",
+            "confidence": 0.2463,
+            "taxa": "aves"
+          }
+        ]
+      },
+      "amphibia": {
+        "file": "frog_mixed.ogg",
+        "inference_duration_ms": 38.13,
+        "embedding_norm": 1.849346399307251,
+        "top_detections": [
+          {
+            "scientific_name": "Limnodynastes dumerilii",
+            "common_name": "Eastern Banjo Frog",
+            "confidence": 0.3523,
+            "taxa": "amphibia"
+          },
+          {
+            "scientific_name": "Chenonetta jubata",
+            "common_name": "Maned Duck",
+            "confidence": 0.1609,
+            "taxa": "amphibia"
+          }
+        ]
+      },
+      "insecta": {
+        "file": "cicada_orni.ogg",
+        "inference_duration_ms": 34.58,
+        "embedding_norm": 1.6448276042938232,
+        "top_detections": [
+          {
+            "scientific_name": "Cicada orni",
+            "common_name": "Ash Cicada",
+            "confidence": 0.8926,
+            "taxa": "insecta"
+          }
+        ]
+      }
+    },
+    "threshold_sensitivity": [
+      {
+        "threshold": 0.1,
+        "detections_count": 1,
+        "top_species": [
+          "Turdus merula_Common Blackbird"
+        ]
+      },
+      {
+        "threshold": 0.2,
+        "detections_count": 1,
+        "top_species": [
+          "Turdus merula_Common Blackbird"
+        ]
+      },
+      {
+        "threshold": 0.3,
+        "detections_count": 0,
+        "top_species": []
+      },
+      {
+        "threshold": 0.4,
+        "detections_count": 0,
+        "top_species": []
+      },
+      {
+        "threshold": 0.5,
+        "detections_count": 0,
+        "top_species": []
+      },
+      {
+        "threshold": 0.6,
+        "detections_count": 0,
+        "top_species": []
+      },
+      {
+        "threshold": 0.7,
+        "detections_count": 0,
+        "top_species": []
+      },
+      {
+        "threshold": 0.8,
+        "detections_count": 0,
+        "top_species": []
+      }
+    ],
+    "temporal_window_stability": [
+      {
+        "shift_s": 0.0,
+        "top_species": "Turdus merula (Common Blackbird)",
+        "top_confidence": 0.2659,
+        "embedding_shift_cosine_sim": 1.0
+      },
+      {
+        "shift_s": 0.5,
+        "top_species": "Pachycephala rufiventris (Rufous Whistler)",
+        "top_confidence": 0.4267,
+        "embedding_shift_cosine_sim": 0.6584
+      },
+      {
+        "shift_s": 1.0,
+        "top_species": "Phylloscopus trochilus (Willow Warbler)",
+        "top_confidence": 0.2069,
+        "embedding_shift_cosine_sim": 0.768
+      },
+      {
+        "shift_s": 1.5,
+        "top_species": "Icterus graduacauda (Audubon's Oriole)",
+        "top_confidence": 0.158,
+        "embedding_shift_cosine_sim": 0.7022
+      }
+    ]
+  },
+  "module2_geo_occurrence": {
+    "reconciliation": {
+      "timestamp": "2026-11-22T10:12:07.671257+00:00",
+      "birdnet_acoustic_total_classes": 11725,
+      "birdnet_geo_total_species": 14082,
+      "reconciled_exact_matches_count": 10874,
+      "reconciled_exact_matches_pct": 92.74,
+      "non_taxonomic_disturbance_classes_count": 16,
+      "non_taxonomic_disturbance_classes": [
+        "Aircraft_Aircraft",
+        "Boat_Boat",
+        "Chainsaw_Chainsaw",
+        "Engine_Engine",
+        "Explosion_Explosion",
+        "Fire_Fire",
+        "Fireworks_Fireworks",
+        "Gun_Gun",
+        "Hammer_Hammer",
+        "Motor vehicle_Motor vehicle",
+        "Music_Music",
+        "Power tool_Power tool",
+        "Sawing_Sawing",
+        "Siren_Siren",
+        "Train_Train",
+        "Vehicle horn_Vehicle horn"
+      ],
+      "unmodeled_species_count": 835,
+      "unmodeled_species_sample": [
+        "Acanthoventris drewseni_Acanthoventris drewseni",
+        "Acrocephalus aequinoctialis_Bokikokiko",
+        "Acrocephalus atyphus_Tuamotu Reed Warbler",
+        "Acrocephalus hiwae_Saipan Reed Warbler",
+        "Acrocephalus kerearako_Cook Reed Warbler",
+        "Acrocephalus mendanae_Southern Marquesan Reed Warbler",
+        "Acrocephalus rehsei_Nauru Reed Warbler",
+        "Acrocephalus rimitarae_Rimatara Reed Warbler",
+        "Acrometopa cretensis_Cretan Long-legged Bush-Cricket",
+        "Actenoides bougainvillei_Moustached Kingfisher"
+      ],
+      "handling_policy": {
+        "reconciled": "predict_species_probabilities provides modeled occurrence [0.0, 1.0]",
+        "non_taxonomic": "occurrence_score = None, status = 'not_applicable'",
+        "unmodeled": "occurrence_score = None, status = 'unmodeled'"
+      }
+    },
+    "boundary_coordinate_eval": [
+      {
+        "point": "Equator / Prime Meridian",
+        "lat": 0.0,
+        "lon": 0.0,
+        "week": 20,
+        "top_species": "Homo sapiens_Human",
+        "top_occurrence_prob": 0.5618,
+        "mean_prob": 0.00032,
+        "max_prob": 0.5618,
+        "latency_ms": 72.17
+      },
+      {
+        "point": "North Pole Extreme",
+        "lat": 89.9,
+        "lon": 0.0,
+        "week": 24,
+        "top_species": "Felis catus_Domestic Cat",
+        "top_occurrence_prob": 0.5745,
+        "mean_prob": 0.00033,
+        "max_prob": 0.5745,
+        "latency_ms": 91.68
+      },
+      {
+        "point": "South Pole Extreme",
+        "lat": -89.9,
+        "lon": 0.0,
+        "week": 48,
+        "top_species": "Canis familiaris_Domestic Dog",
+        "top_occurrence_prob": 0.5737,
+        "mean_prob": 0.000331,
+        "max_prob": 0.5737,
+        "latency_ms": 104.49
+      },
+      {
+        "point": "Date Line East",
+        "lat": 0.0,
+        "lon": 179.9,
+        "week": 1,
+        "top_species": "Homo sapiens_Human",
+        "top_occurrence_prob": 0.5607,
+        "mean_prob": 0.000326,
+        "max_prob": 0.5607,
+        "latency_ms": 91.02
+      },
+      {
+        "point": "Date Line West",
+        "lat": 0.0,
+        "lon": -179.9,
+        "week": 1,
+        "top_species": "Homo sapiens_Human",
+        "top_occurrence_prob": 0.5607,
+        "mean_prob": 0.000326,
+        "max_prob": 0.5607,
+        "latency_ms": 75.19
+      },
+      {
+        "point": "Mid-Atlantic Ocean",
+        "lat": 30.0,
+        "lon": -40.0,
+        "week": 15,
+        "top_species": "Homo sapiens_Human",
+        "top_occurrence_prob": 0.5609,
+        "mean_prob": 0.000327,
+        "max_prob": 0.5609,
+        "latency_ms": 161.75
+      },
+      {
+        "point": "Fontainebleau Forest (France)",
+        "lat": 48.4,
+        "lon": 2.7,
+        "week": 20,
+        "top_species": "Columba palumbus_Common Wood Pigeon",
+        "top_occurrence_prob": 0.9995,
+        "mean_prob": 0.009881,
+        "max_prob": 0.9995,
+        "latency_ms": 133.47
+      },
+      {
+        "point": "Ithaca NY (Cornell Lab)",
+        "lat": 42.48,
+        "lon": -76.45,
+        "week": 20,
+        "top_species": "Spinus tristis_American Goldfinch",
+        "top_occurrence_prob": 0.9999,
+        "mean_prob": 0.017022,
+        "max_prob": 0.9999,
+        "latency_ms": 137.51
+      }
+    ],
+    "seasonal_week_eval": [
+      {
+        "input": "2026-01-01T00:00:00Z",
+        "expected_week": 1,
+        "computed_week": 1,
+        "match": true
+      },
+      {
+        "input": "2026-01-08T00:00:00Z",
+        "expected_week": 2,
+        "computed_week": 1,
+        "match": false
+      },
+      {
+        "input": "2026-02-28T12:00:00Z",
+        "expected_week": 8,
+        "computed_week": 8,
+        "match": true
+      },
+      {
+        "input": "2024-02-29T12:00:00Z",
+        "expected_week": 8,
+        "computed_week": 8,
+        "match": true
+      },
+      {
+        "input": "2026-07-15T00:00:00Z",
+        "expected_week": 26,
+        "computed_week": 26,
+        "match": true
+      },
+      {
+        "input": "2026-12-31T23:59:59Z",
+        "expected_week": 48,
+        "computed_week": 48,
+        "match": true
+      }
+    ],
+    "clamping_eval": {
+      "week_0_clamped": 1,
+      "week_52_clamped": 48
+    },
+    "input_validation_guards_passed": true,
+    "scientific_disclaimer": "Geographic occurrence probabilities represent modeled regional and seasonal suitability from BirdNET Geo V3.0. They do NOT establish empirical presence or absence. Vagrant species, range expansions, and migratory individuals may occur in areas with low baseline suitability."
+  },
+  "module3_soundscape_fingerprint": {
+    "duration_sensitivity": [
+      {
+        "duration_s": 1.0,
+        "compute_time_ms": 20.15,
+        "aci": 320.85,
+        "adi": 1.5753,
+        "aei": 0.8413,
+        "ndsi": 0.2618,
+        "spectral_entropy": 0.6171,
+        "biophony_band_pct": 82.84
+      },
+      {
+        "duration_s": 3.0,
+        "compute_time_ms": 23.45,
+        "aci": 371.96,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "biophony_band_pct": 75.2
+      },
+      {
+        "duration_s": 5.0,
+        "compute_time_ms": 61.8,
+        "aci": 365.81,
+        "adi": 1.4758,
+        "aei": 0.8313,
+        "ndsi": 0.1123,
+        "spectral_entropy": 0.739,
+        "biophony_band_pct": 65.22
+      },
+      {
+        "duration_s": 10.0,
+        "compute_time_ms": 105.63,
+        "aci": 371.08,
+        "adi": 1.5728,
+        "aei": 0.8159,
+        "ndsi": 0.126,
+        "spectral_entropy": 0.76,
+        "biophony_band_pct": 63.83
+      },
+      {
+        "duration_s": 30.0,
+        "compute_time_ms": 309.8,
+        "aci": 383.62,
+        "adi": 1.5814,
+        "aei": 0.8016,
+        "ndsi": 0.4165,
+        "spectral_entropy": 0.761,
+        "biophony_band_pct": 82.49
+      }
+    ],
+    "gain_offset_invariance": [
+      {
+        "gain_db": -12.0,
+        "gain_multiplier": 0.2512,
+        "aci": 372.21,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302
+      },
+      {
+        "gain_db": -6.0,
+        "gain_multiplier": 0.5012,
+        "aci": 372.69,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302
+      },
+      {
+        "gain_db": 0.0,
+        "gain_multiplier": 1.0,
+        "aci": 371.96,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302
+      },
+      {
+        "gain_db": 6.0,
+        "gain_multiplier": 1.9953,
+        "aci": 371.84,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302
+      },
+      {
+        "gain_db": 12.0,
+        "gain_multiplier": 3.9811,
+        "aci": 372.05,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302
+      }
+    ],
+    "noise_floor_robustness": [
+      {
+        "condition": "Clean (No noise)",
+        "snr_db": null,
+        "aci": 371.96,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302
+      },
+      {
+        "condition": "SNR +30 dB",
+        "snr_db": 30.0,
+        "aci": 313.9,
+        "adi": 1.5105,
+        "aei": 0.823,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7312
+      },
+      {
+        "condition": "SNR +20 dB",
+        "snr_db": 20.0,
+        "aci": 313.75,
+        "adi": 1.5068,
+        "aei": 0.8234,
+        "ndsi": 0.2094,
+        "spectral_entropy": 0.7382
+      },
+      {
+        "condition": "SNR +10 dB",
+        "snr_db": 10.0,
+        "aci": 308.12,
+        "adi": 1.5056,
+        "aei": 0.8244,
+        "ndsi": 0.2254,
+        "spectral_entropy": 0.7838
+      }
+    ]
+  },
+  "module4_disturbance_radar": {
+    "total_disturbance_classes": 16,
+    "non_taxonomic_classes_count": 16,
+    "classes_sample": [
+      "Aircraft",
+      "Boat",
+      "Chainsaw",
+      "Engine",
+      "Explosion",
+      "Fire",
+      "Fireworks",
+      "Gun",
+      "Hammer",
+      "Motor vehicle"
+    ],
+    "bout_deduplication_eval": {
+      "simulated_raw_detections": 4,
+      "consolidated_incident_bouts": 2,
+      "deduplication_ratio": 2.0,
+      "bouts": [
+        {
+          "bout_id": "9ebb59f1",
+          "class_name": "Chainsaw",
+          "start_time": 0.0,
+          "end_time": 9.0,
+          "last_seen": 6.0,
+          "max_score": 0.92,
+          "detection_count": 3
+        },
+        {
+          "bout_id": "21a40165",
+          "class_name": "Gunshot, gunfire",
+          "start_time": 35.0,
+          "end_time": 38.0,
+          "last_seen": 35.0,
+          "max_score": 0.88,
+          "detection_count": 1
+        }
+      ]
+    }
+  },
+  "module5_acoustic_memory": {
+    "corpus_vectors_evaluated": 500,
+    "embedding_dimensions": 1280,
+    "faiss_vs_numpy_max_abs_diff": 2.384185791015625e-07,
+    "retrieval_recall": {
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0
+    },
+    "hdbscan_clustering_stability": [
+      {
+        "min_cluster_size": 5,
+        "n_clusters_found": 22,
+        "noise_points": 274,
+        "noise_ratio": 0.548
+      },
+      {
+        "min_cluster_size": 10,
+        "n_clusters_found": 2,
+        "noise_points": 363,
+        "noise_ratio": 0.726
+      },
+      {
+        "min_cluster_size": 15,
+        "n_clusters_found": 0,
+        "noise_points": 500,
+        "noise_ratio": 1.0
+      }
+    ],
+    "umap_seed_reproducibility": {
+      "random_state": 42,
+      "points_tested": 100,
+      "max_coordinate_difference": 0.0,
+      "is_strictly_deterministic": true
+    }
+  },
+  "module6_acoustic_anomaly": {
+    "scientific_disclaimer": "Acoustic anomaly candidates denote mathematical deviations from indexed baseline soundscapes. They do NOT establish taxonomic discovery, novel biological species, or ecological hazards.",
+    "weight_configurations": [
+      {
+        "name": "Standard Balanced (Default)",
+        "w_dist": 0.4,
+        "w_entropy": 0.3,
+        "w_ambiguity": 0.3
+      },
+      {
+        "name": "Distance Dominated",
+        "w_dist": 0.7,
+        "w_entropy": 0.15,
+        "w_ambiguity": 0.15
+      },
+      {
+        "name": "Entropy Dominated",
+        "w_dist": 0.2,
+        "w_entropy": 0.6,
+        "w_ambiguity": 0.2
+      },
+      {
+        "name": "Ambiguity Dominated",
+        "w_dist": 0.2,
+        "w_entropy": 0.2,
+        "w_ambiguity": 0.6
+      }
+    ],
+    "signal_evaluations": [
+      {
+        "signal": "Typical Known Biophony",
+        "features": {
+          "d_knn": 0.15,
+          "H_spec": 0.45,
+          "A_model": 0.1
+        },
+        "composite_scores": {
+          "Standard Balanced (Default)": 0.225,
+          "Distance Dominated": 0.1875,
+          "Entropy Dominated": 0.32,
+          "Ambiguity Dominated": 0.18
+        }
+      },
+      {
+        "signal": "Severe Sensor Glitch",
+        "features": {
+          "d_knn": 0.85,
+          "H_spec": 0.95,
+          "A_model": 0.9
+        },
+        "composite_scores": {
+          "Standard Balanced (Default)": 0.895,
+          "Distance Dominated": 0.8725,
+          "Entropy Dominated": 0.92,
+          "Ambiguity Dominated": 0.9
+        }
+      },
+      {
+        "signal": "Atypical Biological Call",
+        "features": {
+          "d_knn": 0.8,
+          "H_spec": 0.5,
+          "A_model": 0.2
+        },
+        "composite_scores": {
+          "Standard Balanced (Default)": 0.53,
+          "Distance Dominated": 0.665,
+          "Entropy Dominated": 0.5,
+          "Ambiguity Dominated": 0.38
+        }
+      }
+    ]
+  },
+  "module7_habitat_drift": {
+    "scientific_disclaimer": "Habitat drift metrics report statistical differences in observed soundscape features and detection rates. They represent acoustic screening observations and never establish biological population trends, habitat degradation, or local extinction.",
+    "robust_statistics_comparison": {
+      "clean_baseline": {
+        "values": [
+          10.0,
+          12.0,
+          11.0,
+          10.5,
+          11.5
+        ],
+        "median": 11.0,
+        "mad": 0.5,
+        "std": 0.7071,
+        "robust_z_of_15": 5.3959,
+        "std_z_of_15": 5.6569
+      },
+      "outlier_contaminated_baseline": {
+        "values": [
+          10.0,
+          12.0,
+          11.0,
+          10.5,
+          100.0
+        ],
+        "median": 11.0,
+        "mad": 1.0,
+        "std": 35.6561,
+        "robust_z_of_15": 2.698,
+        "std_z_of_15": -0.3842,
+        "explanation": "Standard Z dropped from 5.6569 to -0.3842 due to outlier distortion, while Robust Z remained stable (5.3959 vs 2.698)."
+      }
+    },
+    "minimum_baseline_sessions_guardrail": {
+      "minimum_required_sessions": 3,
+      "test_cases": [
+        {
+          "sessions_count": 0,
+          "allowed": false,
+          "status": "insufficient_baseline"
+        },
+        {
+          "sessions_count": 1,
+          "allowed": false,
+          "status": "insufficient_baseline"
+        },
+        {
+          "sessions_count": 2,
+          "allowed": false,
+          "status": "insufficient_baseline"
+        },
+        {
+          "sessions_count": 3,
+          "allowed": true,
+          "status": "sufficient_baseline"
+        },
+        {
+          "sessions_count": 5,
+          "allowed": true,
+          "status": "sufficient_baseline"
+        }
+      ],
+      "enforcement_verified": true
+    },
+    "diurnal_regime_matching": [
+      "dawn_chorus",
+      "midday",
+      "dusk",
+      "night"
+    ]
+  }
+}
