@@ -522,6 +522,125 @@ Returns a unified, chronologically sorted timeline merging biological detections
 - **Endpoint:** `GET /api/v1/live/disturbances/taxonomy`
 - **Response Format:** Dictionary of verified sound classes, categories, and thresholds.
 
+### 5.6 Acoustic Anomaly Screening
+Scans indexed segments of an active or completed live session for acoustic novelty (kNN embedding distance, soundscape deviation, and model ambiguity).
+
+- **Endpoint:** `GET /api/v1/live/sessions/{session_id}/anomalies`
+- **Query Parameters:**
+  - `threshold` (float, optional, default `0.65`): Minimum anomaly score to return.
+  - `limit` (integer, optional, default `20`): Maximum candidates.
+- **Success Status:** `200 OK`
+- **Response Format:** Array of `AnomalyCandidateResponse` objects with evidence breakdown:
+```json
+[
+  {
+    "candidate_id": "a984f1b2-c07a-4ec6-89d4-1a982937be10",
+    "segment_id": "e0377e8a-b851-4606-ba7b-6c4ca15f5c3a",
+    "session_id": "e4468f78-a28a-40a2-b9e7-ea157d6ef622",
+    "analysis_id": null,
+    "start_seconds": 24.0,
+    "end_seconds": 27.0,
+    "duration_seconds": 3.0,
+    "anomaly_score": 0.742,
+    "heuristic_breakdown": {
+      "composite_score": 0.742,
+      "embedding_novelty": 0.810,
+      "soundscape_deviation": 0.650,
+      "model_ambiguity": 0.300,
+      "top1_distance": 0.785,
+      "mean_knn_distance": 0.842,
+      "corpus_support": 1.0
+    },
+    "primary_reasons": [
+      "High geometric distance from all known acoustic representations",
+      "No recognizable biological or disturbance vocalization identified"
+    ],
+    "top_similar_matches": [
+      {
+        "segment_id": "seg_hist_42",
+        "similarity": 0.215,
+        "label": "Corvus corax",
+        "session_id": "sess_prior_1"
+      }
+    ],
+    "model_predictions": [],
+    "embedding_storage_path": "storage/embeddings/e0377e8a.npy",
+    "audio_path": "storage/segments/e0377e8a.wav",
+    "soundscape_context": {
+      "aci": 128.5,
+      "ndsi": -0.15
+    },
+    "review_status": "unreviewed",
+    "created_at": "2026-11-22T11:30:27.000000Z",
+    "disclaimer": "Acoustic anomaly candidates denote mathematical deviations from indexed baseline soundscapes. They do NOT establish taxonomic discovery, novel biological species, or ecological hazards."
+  }
+]
+```
+
+### 5.7 Comprehensive Session Intelligence Summary
+Provides a consolidated operational dashboard combining multi-window soundscape trends, active disturbance events, biological co-occurrence patterns, prioritized anomaly candidates, and unified event feeds.
+
+- **Endpoint:** `GET /api/v1/live/sessions/{session_id}/intelligence`
+- **Success Status:** `200 OK`
+- **Response Format (`SessionIntelligenceResponse`):**
+```json
+{
+  "session_id": "e4468f78-a28a-40a2-b9e7-ea157d6ef622",
+  "soundscape_trends": {
+    "window_count": 40,
+    "total_duration_seconds": 120.0,
+    "mean_metrics": {
+      "aci": 142.15,
+      "adi": 2.10,
+      "aei": 0.45,
+      "ndsi": 0.35,
+      "spectral_entropy": 0.72,
+      "temporal_activity": 0.58
+    },
+    "variance_metrics": {
+      "aci": 12.4,
+      "ndsi": 0.04
+    },
+    "trend_deltas": {
+      "ndsi": -0.12
+    },
+    "dominant_frequency_band": "biophony_3_6khz",
+    "temporal_stability_index": 0.885
+  },
+  "active_disturbances": [
+    {
+      "id": "314f3312-d85c-4eb6-b4cf-5fa624d78810",
+      "session_id": "e4468f78-a28a-40a2-b9e7-ea157d6ef622",
+      "class_label": "Chainsaw",
+      "event_type": "chainsaw",
+      "category": "anthropogenic_mechanical",
+      "hazard_tier": "critical",
+      "priority_level": "CRITICAL",
+      "priority_score": 0.885,
+      "start_seconds": 45.0,
+      "end_seconds": 54.0,
+      "duration_seconds": 9.0,
+      "peak_confidence": 0.7842,
+      "mean_confidence": 0.7215,
+      "repetition_count": 3
+    }
+  ],
+  "cooccurrence_observations": [
+    {
+      "observation_id": "902d8471-f921-4f1d-bb34-92731888a76e",
+      "disturbance_class": "Chainsaw",
+      "pre_disturbance_activity_rate": 8.0,
+      "post_disturbance_activity_rate": 1.5,
+      "activity_delta": -6.5,
+      "interpretation": "Acoustic activity rate change around disturbance is purely observational; non-causal."
+    }
+  ],
+  "anomaly_candidates": [],
+  "recent_unified_events": [],
+  "disclaimer": "EcoSonic intelligence observations represent statistical aggregations of machine learning inferences and signal processing indices. They do not constitute certified ecological determinations or legal evidence."
+}
+```
+
 ---
 
 ## 6. ACOUSTIC MEMORY & VECTOR SEARCH APIS
@@ -554,10 +673,38 @@ Executes exact cosine similarity search across indexed 1,280-dimensional acousti
 - **Response:** `audio/wav` file stream.
 
 ### 6.4 Acoustic Memory Index Status & Management
-- **`GET /api/v1/acoustic-memory/index/status`:** Returns vector count, embedding dimension (1280), and last updated timestamp.
+- **`GET /api/v1/acoustic-memory/index/status`:** Returns vector count, embedding dimension (1280), FAISS availability, index status, and last updated timestamp.
 - **`POST /api/v1/acoustic-memory/index/rebuild`:** Re-indexes filesystem embeddings.
-- **`POST /api/v1/acoustic-memory/clusters/run`:** Executes HDBSCAN unsupervised cluster discovery.
-- **`GET /api/v1/acoustic-memory/visualization/projection`:** Generates or retrieves 2D UMAP projection coordinates for vector scatter plots.
+- **`GET /api/v1/acoustic-memory/clusters` & `POST /api/v1/acoustic-memory/clusters/run`:** Executes or retrieves HDBSCAN unsupervised cluster discovery across indexed 1,280-D embeddings (`min_cluster_size`, `min_samples`).
+- **`GET /api/v1/acoustic-memory/projection` & `GET /api/v1/acoustic-memory/visualization/projection`:** Generates or retrieves 2D UMAP projection coordinates (`n_neighbors`, `min_dist`) for interactive vector scatter visualization.
+
+### 6.5 Vector Retrieval Parity & Engine Benchmarking
+Benchmarks and validates numerical parity between the exact NumPy BLAS dot-product baseline and scalable `faiss.IndexFlatIP` across 1,280-dimensional vectors.
+
+- **Endpoint:** `POST /api/v1/acoustic-memory/benchmark/compare`
+- **Request Body (`EngineComparisonRequest`):**
+```json
+{
+  "query_vector": null,
+  "k": 10
+}
+```
+- **Success Status:** `200 OK`
+- **Response Format (`EngineComparisonResponse`):**
+```json
+{
+  "k": 10,
+  "dataset_size": 1000,
+  "numpy_duration_ms": 0.398,
+  "faiss_duration_ms": 0.188,
+  "speedup_factor": 2.12,
+  "indices_match": true,
+  "max_score_difference": 0.000047,
+  "is_numerically_identical": true,
+  "model_version": "BirdNET+ V3.0",
+  "disclaimer": "Numerical comparison validates that FAISS IndexFlatIP reproduces exact NumPy BLAS cosine rankings within float32 precision limits."
+}
+```
 
 ---
 

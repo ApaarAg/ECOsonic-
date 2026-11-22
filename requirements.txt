@@ -9,3 +9,5 @@ soundfile==0.14.0
 librosa==0.11.0
 psutil==7.2.2
 umap-learn==0.6.0
+faiss-cpu==1.16.0
+

@@ -102,10 +102,53 @@ class TimelineItemResponse(BaseModel):
 
     id: str
     session_id: str
-    item_type: Literal["biological_detection", "disturbance_event", "soundscape_measurement"]
+    item_type: Literal["biological_detection", "disturbance_event", "soundscape_measurement", "acoustic_anomaly"]
     start_seconds: float
     end_seconds: float
     label: str
     confidence_score: Optional[float] = None
     details: Dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
+
+
+class AnomalyCandidateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    candidate_id: str
+    segment_id: str
+    session_id: Optional[str] = None
+    start_seconds: float
+    end_seconds: float
+    duration_seconds: float
+    anomaly_score: float
+    heuristic_breakdown: Dict[str, float] = Field(default_factory=dict)
+    primary_reasons: List[str] = Field(default_factory=list)
+    top_similar_matches: List[Dict[str, Any]] = Field(default_factory=list)
+    model_predictions: List[Dict[str, Any]] = Field(default_factory=list)
+    embedding_storage_path: Optional[str] = None
+    audio_path: Optional[str] = None
+    soundscape_context: Dict[str, Any] = Field(default_factory=dict)
+    review_status: str = "unreviewed"
+    created_at: str
+    disclaimer: str
+
+
+class SessionIntelligenceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    session_id: str
+    status: str
+    total_audio_seconds: float
+    processed_audio_seconds: float
+    detections_count: int
+    species_richness: int
+    top_detected_species: List[Dict[str, Any]] = Field(default_factory=list)
+    disturbances: List[DisturbanceEventResponse] = Field(default_factory=list)
+    disturbances_count: int = 0
+    critical_disturbances_count: int = 0
+    anomalies: List[AnomalyCandidateResponse] = Field(default_factory=list)
+    anomalies_count: int = 0
+    soundscape_fingerprint: Optional[SoundscapeFingerprintResponse] = None
+    co_occurrences: List[CoOccurrenceObservationResponse] = Field(default_factory=list)
+    timeline_events_count: int = 0
+

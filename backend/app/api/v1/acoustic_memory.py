@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.database import get_db
+from app.models.acoustic_memory import AcousticClusterRun
 from app.models.live_session import LiveSegment, LiveSession
 from app.schemas.acoustic_memory import (
     ClusteringRunRequest,
@@ -30,6 +31,7 @@ from app.services.acoustic_memory.clustering_service import clustering_service
 from app.services.acoustic_memory.embedding_index import embedding_index_service
 from app.services.acoustic_memory.similarity_service import similarity_service
 from app.services.acoustic_memory.visualization_service import visualization_service
+from app.services.acoustic_memory_engine import acoustic_memory_engine
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +71,34 @@ async def search_similar_segments(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
+
+
+@router.get(
+    "/search",
+    response_model=List[SimilarityMatchResponse],
+    summary="Search for similar acoustic segments via GET query parameters",
+)
+async def search_similar_segments_get(
+    query_segment_id: Optional[str] = Query(None, description="Segment ID to use as query"),
+    limit: int = Query(10, ge=1, le=100),
+    min_similarity: float = Query(0.0, ge=-1.0, le=1.0),
+    exclude_same_session: bool = Query(False),
+    site_id: Optional[str] = Query(None),
+) -> List[SimilarityMatchResponse]:
+    """Execute exact cosine similarity search via GET query parameters."""
+    if not query_segment_id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="query_segment_id is required for GET /search.",
+        )
+    return await get_similar_for_segment(
+        segment_id=query_segment_id,
+        limit=limit,
+        min_similarity=min_similarity,
+        exclude_same_session=exclude_same_session,
+        site_id=site_id,
+    )
+
 
 
 @router.get(
@@ -261,3 +291,70 @@ async def get_visualization_projection(
         db=db,
     )
     return VisualizationResponse.model_validate(res)
+
+
+@router.get(
+    "/projection",
+    response_model=VisualizationResponse,
+    summary="Direct alias to retrieve 2D UMAP projection coordinates",
+)
+async def get_projection_alias(
+    cluster_run_id: Optional[str] = Query(None, description="Optional cluster run to attach labels"),
+    n_neighbors: int = Query(15, ge=2, description="UMAP n_neighbors parameter"),
+    min_dist: float = Query(0.1, ge=0.0, le=1.0, description="UMAP min_dist parameter"),
+    db: AsyncSession = Depends(get_db),
+) -> VisualizationResponse:
+    """Retrieve 2D UMAP coordinates (alias endpoint)."""
+    return await get_visualization_projection(
+        cluster_run_id=cluster_run_id,
+        n_neighbors=n_neighbors,
+        min_dist=min_dist,
+        db=db,
+    )
+
+
+@router.get(
+    "/clusters",
+    summary="List past HDBSCAN clustering runs and summaries",
+)
+async def list_acoustic_clusters(
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve historical HDBSCAN clustering runs from database."""
+    stmt = select(AcousticClusterRun).order_by(AcousticClusterRun.created_at.desc()).limit(limit)
+    res = await db.execute(stmt)
+    runs = res.scalars().all()
+    return [
+        {
+            "cluster_run_id": r.id,
+            "model_version": r.model_version,
+            "dataset_size": r.dataset_size,
+            "cluster_count": r.cluster_count,
+            "noise_count": r.noise_count,
+            "parameters": r.parameters,
+            "status": r.status,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in runs
+    ]
+
+
+@router.post(
+    "/benchmark/compare",
+    summary="Benchmark and compare exact NumPy vs FAISS nearest-neighbor retrieval",
+)
+async def benchmark_retrieval_comparison(
+    k: int = Query(10, ge=1, le=100),
+):
+    """Execute real-time retrieval benchmark comparing NumPy and FAISS engines."""
+    seg_ids, vectors, _ = embedding_index_service.get_all_vectors(normalized=True)
+    if len(seg_ids) == 0:
+        return {
+            "status": "empty_index",
+            "message": "Cannot benchmark retrieval comparison on empty vector index.",
+        }
+    sample_query = vectors[0]
+    comparison = acoustic_memory_engine.compare_retrieval_engines(sample_query, k=k)
+    return comparison.to_dict()
+

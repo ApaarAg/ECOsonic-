@@ -39,13 +39,16 @@ from app.schemas.live_session import (
     LiveSessionStats,
 )
 from app.schemas.soundscape import (
+    AnomalyCandidateResponse,
     CoOccurrenceObservationResponse,
     DisturbanceEventResponse,
+    SessionIntelligenceResponse,
     SoundscapeFingerprintResponse,
     SoundscapeMeasurementResponse,
     SoundscapeMetrics,
     TimelineItemResponse,
 )
+from app.services.acoustic_anomaly_service import acoustic_anomaly_service
 from app.services.live.session_manager import (
     LiveSessionState,
     get_hardware_metrics,
@@ -473,6 +476,109 @@ async def get_session_fingerprint(
 )
 async def get_disturbance_taxonomy():
     return disturbance_service.get_taxonomy()
+
+
+@router.get(
+    "/sessions/{session_id}/anomalies",
+    response_model=List[AnomalyCandidateResponse],
+    summary="Retrieve statistically unusual acoustic events and candidates for review",
+)
+async def get_session_anomalies(
+    session_id: str,
+    threshold: Optional[float] = Query(None, ge=0.0, le=1.0, description="Minimum anomaly score threshold"),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    session_res = await db.execute(select(LiveSession).where(LiveSession.id == session_id))
+    if not session_res.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Live session {session_id} not found.",
+        )
+    candidates = acoustic_anomaly_service.discover_session_anomalies(
+        session_id=session_id, threshold=threshold, max_candidates=limit
+    )
+    return [AnomalyCandidateResponse.model_validate(c.to_dict()) for c in candidates]
+
+
+@router.get(
+    "/sessions/{session_id}/intelligence",
+    response_model=SessionIntelligenceResponse,
+    summary="Retrieve holistic bioacoustic intelligence overview for a session",
+)
+async def get_session_intelligence(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    session_res = await db.execute(select(LiveSession).where(LiveSession.id == session_id))
+    session_obj = session_res.scalar_one_or_none()
+    if not session_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Live session {session_id} not found.",
+        )
+
+    # 1. Biological detections
+    bio_res = await db.execute(
+        select(LiveEvent).where(
+            LiveEvent.session_id == session_id,
+            LiveEvent.taxon_group != "sound_class",
+        )
+    )
+    bio_events = bio_res.scalars().all()
+    detections_count = len(bio_events)
+    unique_species = set(b.common_name or b.class_label for b in bio_events if b.common_name or b.class_label)
+
+    from collections import Counter
+    species_counts = Counter(b.common_name or b.class_label for b in bio_events if b.common_name or b.class_label)
+    top_species = [
+        {"species": sp, "count": cnt}
+        for sp, cnt in species_counts.most_common(5)
+    ]
+
+    # 2. Disturbances
+    dist_res = await db.execute(
+        select(DisturbanceEvent).where(DisturbanceEvent.session_id == session_id)
+    )
+    dist_events = dist_res.scalars().all()
+    dist_responses = [DisturbanceEventResponse.model_validate(d) for d in dist_events]
+    critical_cnt = sum(1 for d in dist_events if getattr(d, "hazard_classification", None) == "critical")
+
+    # 3. Anomalies
+    anomalies = acoustic_anomaly_service.discover_session_anomalies(session_id=session_id)
+    anom_responses = [AnomalyCandidateResponse.model_validate(a.to_dict()) for a in anomalies]
+
+    # 4. Fingerprint
+    fingerprint_res = await get_session_fingerprint(session_id, db)
+
+    # 5. Co-occurrences
+    co_res = await db.execute(
+        select(CoOccurrenceObservation).where(CoOccurrenceObservation.session_id == session_id)
+    )
+    co_obs = co_res.scalars().all()
+    co_responses = [CoOccurrenceObservationResponse.model_validate(c) for c in co_obs]
+
+    # Total timeline count
+    timeline_count = detections_count + len(dist_events) + len(anomalies)
+
+    return SessionIntelligenceResponse(
+        session_id=session_id,
+        status=session_obj.status,
+        total_audio_seconds=session_obj.total_audio_seconds,
+        processed_audio_seconds=session_obj.processed_audio_seconds,
+        detections_count=detections_count,
+        species_richness=len(unique_species),
+        top_detected_species=top_species,
+        disturbances=dist_responses,
+        disturbances_count=len(dist_responses),
+        critical_disturbances_count=critical_cnt,
+        anomalies=anom_responses,
+        anomalies_count=len(anom_responses),
+        soundscape_fingerprint=fingerprint_res,
+        co_occurrences=co_responses,
+        timeline_events_count=timeline_count,
+    )
+
 
 
 # ============================================================================
