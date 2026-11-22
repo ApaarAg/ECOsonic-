@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import asyncio
+from datetime import datetime, timezone
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,8 +9,13 @@ from sqlalchemy import update
 from app.api.v1.router import api_v1_router
 from app.config import settings
 from app.core.database import async_session_factory, close_db, init_db
+from app.core.job_manager import job_manager
 from app.models.analysis import Analysis
+from app.models.live_session import LiveSession
 from app.services.analysis_pipeline import analysis_pipeline
+from app.services.live.session_manager import live_session_manager
+from app.services.live.embedding_worker import embedding_worker
+from app.services.soundscape.soundscape_worker import soundscape_worker
 from app.core.exceptions import (
     AudioProcessingError,
     AudioValidationError,
@@ -33,11 +39,24 @@ async def lifespan(app: FastAPI):
                     current_stage="failed:process_restart",
                     error_message="Worker process restarted before completion.")
         )
+        await session.execute(
+            update(LiveSession)
+            .where(LiveSession.status.in_(["active", "created"]))
+            .values(status="stopped", stopped_at=datetime.now(timezone.utc))
+        )
         await session.commit()
+    await live_session_manager.initialize()
+    if settings.ENABLE_ACOUSTIC_MEMORY:
+        from app.services.acoustic_memory.embedding_index import embedding_index_service
+        await embedding_index_service.rebuild_index()
     await asyncio.to_thread(analysis_pipeline.load)
     yield
     # Graceful shutdown
     logger.info("Shutting down %s...", settings.PROJECT_NAME)
+    await job_manager.cancel_and_wait_all(timeout=5.0)
+    await live_session_manager.shutdown(timeout=5.0)
+    await embedding_worker.stop()
+    await soundscape_worker.stop()
     await close_db()
 
 
@@ -90,11 +109,25 @@ async def handle_not_found_error(request: Request, exc: ResourceNotFoundError):
 # Health & Metadata Endpoints
 @app.get("/health", tags=["System"])
 async def health_check():
+    model_ready = (
+        analysis_pipeline.engine is not None
+        and getattr(analysis_pipeline.engine, "model", None) is not None
+    )
+    device = (
+        getattr(analysis_pipeline.engine, "device", "unknown")
+        if analysis_pipeline.engine
+        else "none"
+    )
+    from app.services.direct_onnx_engine import direct_onnx_engine
+
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.PROJECT_VERSION,
         "model_version": settings.MODEL_VERSION,
+        "model_ready": model_ready,
+        "model_device": device,
+        "direct_onnx_engine": direct_onnx_engine.get_status(),
     }
 
 

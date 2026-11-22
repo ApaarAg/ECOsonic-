@@ -1,0 +1,182 @@
+{
+  "audit_timestamp": "2026-11-22T09:42:30+0530",
+  "hardware_environment": {
+    "os": "Windows 11 Home (x64)",
+    "cpu": "Intel Core i7-13620H (16 vCPUs @ 2.40 GHz)",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU (8GB VRAM)",
+    "onnxruntime_version": "1.26.0"
+  },
+  "benchmarks": {
+    "gpu_cuda": {
+      "configuration": "GPU (CUDAExecutionProvider)",
+      "device": "GPU",
+      "active_providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "runs_measured": 50,
+      "input_samples": 96000,
+      "sample_rate": 32000,
+      "audio_window_duration_s": 3.0,
+      "real_time_factor_rtf": 0.02304,
+      "speedup_vs_realtime": 43.4,
+      "stages_ms": {
+        "preprocessing": {
+          "count": 50,
+          "mean_ms": 0.183,
+          "std_ms": 0.051,
+          "median_ms": 0.19,
+          "p95_ms": 0.259,
+          "p99_ms": 0.318,
+          "min_ms": 0.115,
+          "max_ms": 0.367
+        },
+        "onnx_runtime_execution": {
+          "count": 50,
+          "mean_ms": 34.861,
+          "std_ms": 5.452,
+          "median_ms": 36.577,
+          "p95_ms": 42.035,
+          "p99_ms": 43.979,
+          "min_ms": 23.908,
+          "max_ms": 44.993
+        },
+        "prediction_postprocessing": {
+          "count": 50,
+          "mean_ms": 0.427,
+          "std_ms": 0.15,
+          "median_ms": 0.539,
+          "p95_ms": 0.596,
+          "p99_ms": 0.638,
+          "min_ms": 0.231,
+          "max_ms": 0.64
+        },
+        "embedding_handling": {
+          "count": 50,
+          "mean_ms": 8.056,
+          "std_ms": 4.746,
+          "median_ms": 5.854,
+          "p95_ms": 18.197,
+          "p99_ms": 19.382,
+          "min_ms": 2.422,
+          "max_ms": 19.55
+        },
+        "database_persistence": {
+          "count": 50,
+          "mean_ms": 24.893,
+          "std_ms": 3.537,
+          "median_ms": 25.171,
+          "p95_ms": 30.373,
+          "p99_ms": 33.076,
+          "min_ms": 17.905,
+          "max_ms": 33.282
+        },
+        "websocket_publication": {
+          "count": 50,
+          "mean_ms": 0.029,
+          "std_ms": 0.006,
+          "median_ms": 0.03,
+          "p95_ms": 0.039,
+          "p99_ms": 0.041,
+          "min_ms": 0.02,
+          "max_ms": 0.043
+        },
+        "total_post_window_latency": {
+          "count": 50,
+          "mean_ms": 68.449,
+          "std_ms": 8.895,
+          "median_ms": 69.119,
+          "p95_ms": 84.857,
+          "p99_ms": 86.56,
+          "min_ms": 48.815,
+          "max_ms": 86.879
+        }
+      }
+    },
+    "cpu_fallback": {
+      "configuration": "CPU (CPUExecutionProvider)",
+      "device": "CPU",
+      "active_providers": [
+        "CPUExecutionProvider"
+      ],
+      "runs_measured": 50,
+      "input_samples": 96000,
+      "sample_rate": 32000,
+      "audio_window_duration_s": 3.0,
+      "real_time_factor_rtf": 0.03121,
+      "speedup_vs_realtime": 32.0,
+      "stages_ms": {
+        "preprocessing": {
+          "count": 50,
+          "mean_ms": 0.187,
+          "std_ms": 0.043,
+          "median_ms": 0.178,
+          "p95_ms": 0.261,
+          "p99_ms": 0.285,
+          "min_ms": 0.127,
+          "max_ms": 0.291
+        },
+        "onnx_runtime_execution": {
+          "count": 50,
+          "mean_ms": 60.603,
+          "std_ms": 17.127,
+          "median_ms": 55.137,
+          "p95_ms": 83.599,
+          "p99_ms": 133.084,
+          "min_ms": 45.585,
+          "max_ms": 151.719
+        },
+        "prediction_postprocessing": {
+          "count": 50,
+          "mean_ms": 0.456,
+          "std_ms": 0.242,
+          "median_ms": 0.363,
+          "p95_ms": 0.74,
+          "p99_ms": 1.333,
+          "min_ms": 0.277,
+          "max_ms": 1.878
+        },
+        "embedding_handling": {
+          "count": 50,
+          "mean_ms": 12.527,
+          "std_ms": 4.558,
+          "median_ms": 12.04,
+          "p95_ms": 21.298,
+          "p99_ms": 23.555,
+          "min_ms": 3.09,
+          "max_ms": 24.509
+        },
+        "database_persistence": {
+          "count": 50,
+          "mean_ms": 27.799,
+          "std_ms": 24.833,
+          "median_ms": 23.578,
+          "p95_ms": 30.952,
+          "p99_ms": 123.144,
+          "min_ms": 19.309,
+          "max_ms": 199.457
+        },
+        "websocket_publication": {
+          "count": 50,
+          "mean_ms": 0.031,
+          "std_ms": 0.004,
+          "median_ms": 0.03,
+          "p95_ms": 0.038,
+          "p99_ms": 0.041,
+          "min_ms": 0.023,
+          "max_ms": 0.043
+        },
+        "total_post_window_latency": {
+          "count": 50,
+          "mean_ms": 101.604,
+          "std_ms": 29.346,
+          "median_ms": 93.629,
+          "p95_ms": 145.519,
+          "p99_ms": 224.191,
+          "min_ms": 80.342,
+          "max_ms": 257.345
+        }
+      }
+    }
+  }
+}

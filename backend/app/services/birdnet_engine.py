@@ -32,6 +32,20 @@ def _prepare_windows_cuda_dll_path() -> None:
         # loaded in this process are not inherited on Windows, while PATH is.
         os.environ["PATH"] = os.pathsep.join([*additions, *existing])
 
+def _ensure_model_cache_env() -> None:
+    """Ensure BIRDNET_APP_DATA points to project .model_cache if not explicitly set."""
+    if os.environ.get("BIRDNET_APP_DATA"):
+        return
+    for candidate in [
+        Path(__file__).resolve().parents[3] / ".model_cache",
+        Path.cwd() / ".model_cache",
+    ]:
+        if candidate.is_dir():
+            os.environ["BIRDNET_APP_DATA"] = str(candidate.resolve())
+            break
+
+_ensure_model_cache_env()
+
 try:
     import onnxruntime as ort
 except ImportError:  # pragma: no cover - reported by load() with a useful message
@@ -88,6 +102,40 @@ class BirdNetEngine:
         self.device = "CPU"
         self.provider_fallback_reason: str | None = None
 
+    def validate_offline_model_cache(self) -> Path:
+        """Verifies that the required BirdNET model weights exist in the local cache.
+
+        Raises BirdNetEngineError immediately if the artifact is missing, preventing
+        silent, unbounded 345 MB network downloads during application startup or tests.
+        """
+        _ensure_model_cache_env()
+        app_data = os.environ.get("BIRDNET_APP_DATA")
+        if not app_data or not Path(app_data).is_dir():
+            raise BirdNetEngineError(
+                f"BIRDNET_APP_DATA environment variable is not configured or does not point to a valid directory: '{app_data}'. "
+                "Automatic online model download is prohibited. "
+                "Please configure BIRDNET_APP_DATA to point to the local .model_cache directory."
+            )
+        cache_path = Path(app_data)
+        onnx_model_dir = cache_path / "acoustic-models" / "v3.0" / "onnx"
+        model_candidates = (
+            list(onnx_model_dir.glob(f"model-{self.precision}*.onnx"))
+            if onnx_model_dir.is_dir()
+            else []
+        )
+        if not model_candidates:
+            raise BirdNetEngineError(
+                f"Required BirdNET acoustic V3.0 ONNX {self.precision} model artifact was not found in cache: {onnx_model_dir}. "
+                "Automatic network download is disabled to prevent process hangs. "
+                "Please provision model artifacts in the local cache before starting the engine."
+            )
+        model_file = model_candidates[0]
+        if model_file.stat().st_size < 100_000_000:
+            raise BirdNetEngineError(
+                f"Model artifact {model_file} is smaller than expected ({model_file.stat().st_size} bytes). Corrupted cache."
+            )
+        return model_file
+
     def load(self) -> None:
         """Load the acoustic V3.0 model once and select an available provider."""
         if self.model is not None:
@@ -97,6 +145,9 @@ class BirdNetEngine:
                 "ONNX Runtime is not installed. Install the CPU package or the "
                 "CUDA-compatible onnxruntime-gpu package."
             )
+
+        # Enforce offline model cache check before calling birdnet.load()
+        self.validate_offline_model_cache()
 
         providers = ort.get_available_providers()
         if "CPUExecutionProvider" not in providers:

@@ -1,0 +1,52 @@
+{
+  "gpu_cpu_comparison": {
+    "gpu_device": "GPU",
+    "gpu_infer_avg_ms": 5285.21,
+    "gpu_infer_min_ms": 5193.43,
+    "gpu_infer_p95_ms": 5397.05,
+    "gpu_embed_avg_ms": 5444.89,
+    "cpu_device": "CPU",
+    "cpu_infer_avg_ms": 4648.05,
+    "cpu_infer_min_ms": 4536.05,
+    "cpu_infer_p95_ms": 4769.41,
+    "cpu_embed_avg_ms": 4591.52,
+    "speedup_factor": 0.88
+  },
+  "replay_streaming": {
+    "duration_streamed_s": 59.0,
+    "frames_sent": 236,
+    "dropped_frames": 0,
+    "dropped_windows": 0,
+    "detections_count": 34,
+    "avg_inference_latency_ms": 6172.43,
+    "avg_window_lag_ms": 18428.82,
+    "avg_embedding_latency_ms": 6343.04,
+    "mean_ram_mb": 465.83,
+    "peak_ram_mb": 474.16,
+    "peak_vram_mb": 2342.0
+  },
+  "physical_microphone": {
+    "device_name": "Microphone Array (Realtek(R) Au",
+    "hardware_sample_rate": 44100,
+    "duration_streamed_s": 30.0,
+    "frames_captured": 120,
+    "dropped_frames": 0,
+    "detections_count": 0,
+    "warnings_count": 9,
+    "avg_inference_latency_ms": 5287.63,
+    "avg_window_lag_ms": 5296.46
+  },
+  "latency_decomposition": {
+    "window_accumulation_non_overlapping_ms": 3000.0,
+    "window_accumulation_overlapping_ms": 1500.0,
+    "window_processing_lag_ms": 18428.82,
+    "inference_execution_latency_gpu_ms": 5285.21,
+    "inference_execution_latency_cpu_ms": 4648.05,
+    "embedding_execution_latency_gpu_ms": 5444.89,
+    "embedding_execution_latency_cpu_ms": 4591.52,
+    "event_publication_latency_ms": 1.2,
+    "e2e_onset_to_detection_non_overlapping_ms": 26715.23,
+    "e2e_onset_to_detection_overlapping_ms": 25215.23,
+    "e2e_minimum_at_window_boundary_ms": 23715.23
+  }
+}

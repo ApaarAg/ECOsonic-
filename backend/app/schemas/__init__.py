@@ -14,6 +14,24 @@ from app.schemas.detection import (
     ReviewCreate,
     ReviewResponse,
 )
+from app.schemas.live_session import (
+    LiveEventResponse,
+    LiveSegmentResponse,
+    LiveSessionCreate,
+    LiveSessionDetailResponse,
+    LiveSessionResponse,
+    LiveSessionStats,
+    WSDetectionEvent,
+    WSSessionControlEvent,
+)
+from app.schemas.soundscape import (
+    CoOccurrenceObservationResponse,
+    DisturbanceEventResponse,
+    SoundscapeFingerprintResponse,
+    SoundscapeMeasurementResponse,
+    SoundscapeMetrics,
+    TimelineItemResponse,
+)
 from app.schemas.site import SiteBase, SiteCreate, SiteResponse, SiteUpdate
 
 __all__ = [
@@ -26,6 +44,20 @@ __all__ = [
     "DetectionUpdate",
     "DetectionResponse",
     "EmbeddingSegmentResponse",
+    "LiveEventResponse",
+    "LiveSegmentResponse",
+    "LiveSessionCreate",
+    "LiveSessionDetailResponse",
+    "LiveSessionResponse",
+    "LiveSessionStats",
+    "WSDetectionEvent",
+    "WSSessionControlEvent",
+    "SoundscapeMetrics",
+    "SoundscapeFingerprintResponse",
+    "SoundscapeMeasurementResponse",
+    "DisturbanceEventResponse",
+    "CoOccurrenceObservationResponse",
+    "TimelineItemResponse",
     "ReviewCreate",
     "ReviewResponse",
     "SiteBase",

@@ -1,0 +1,394 @@
+{
+  "parity_verification": {
+    "birds_forest.ogg": {
+      "sess_top5": [
+        {
+          "species_name": "Phylloscopus trochilus_Willow Warbler",
+          "confidence": 0.7508766055107117
+        },
+        {
+          "species_name": "Turdus philomelos_Song Thrush",
+          "confidence": 0.24867665767669678
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.10534167289733887
+        },
+        {
+          "species_name": "Fringilla coelebs_Eurasian Chaffinch",
+          "confidence": 0.04558080434799194
+        },
+        {
+          "species_name": "Anthus trivialis_Tree Pipit",
+          "confidence": 0.035350680351257324
+        }
+      ],
+      "onnx_top5": [
+        {
+          "species_name": "Phylloscopus trochilus_Willow Warbler",
+          "confidence": 0.7508766055107117
+        },
+        {
+          "species_name": "Turdus philomelos_Song Thrush",
+          "confidence": 0.24867665767669678
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.10534167289733887
+        },
+        {
+          "species_name": "Fringilla coelebs_Eurasian Chaffinch",
+          "confidence": 0.04558080434799194
+        },
+        {
+          "species_name": "Anthus trivialis_Tree Pipit",
+          "confidence": 0.035350680351257324
+        }
+      ],
+      "prod_top5": [
+        {
+          "species_name": "Phylloscopus trochilus_Willow Warbler",
+          "confidence": 0.7508766055107117
+        },
+        {
+          "species_name": "Turdus philomelos_Song Thrush",
+          "confidence": 0.24867665767669678
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.10534167289733887
+        },
+        {
+          "species_name": "Fringilla coelebs_Eurasian Chaffinch",
+          "confidence": 0.04558080434799194
+        },
+        {
+          "species_name": "Anthus trivialis_Tree Pipit",
+          "confidence": 0.035350680351257324
+        }
+      ],
+      "max_score_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_dimension": 1280,
+      "max_emb_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_cosine_similarity": 0.9999999403953552,
+      "top5_labels_identical": true
+    },
+    "birds_garden.ogg": {
+      "sess_top5": [
+        {
+          "species_name": "Nannus troglodytes_Eurasian Wren",
+          "confidence": 0.8996077179908752
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.06438249349594116
+        },
+        {
+          "species_name": "Phylloscopus collybita_Common Chiffchaff",
+          "confidence": 0.013018429279327393
+        },
+        {
+          "species_name": "Sylvia atricapilla_Eurasian Blackcap",
+          "confidence": 0.012168586254119873
+        },
+        {
+          "species_name": "Fringilla coelebs_Eurasian Chaffinch",
+          "confidence": 0.011639595031738281
+        }
+      ],
+      "onnx_top5": [
+        {
+          "species_name": "Nannus troglodytes_Eurasian Wren",
+          "confidence": 0.8996077179908752
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.06438249349594116
+        },
+        {
+          "species_name": "Phylloscopus collybita_Common Chiffchaff",
+          "confidence": 0.013018429279327393
+        },
+        {
+          "species_name": "Sylvia atricapilla_Eurasian Blackcap",
+          "confidence": 0.012168586254119873
+        },
+        {
+          "species_name": "Fringilla coelebs_Eurasian Chaffinch",
+          "confidence": 0.011639595031738281
+        }
+      ],
+      "prod_top5": [
+        {
+          "species_name": "Nannus troglodytes_Eurasian Wren",
+          "confidence": 0.8996077179908752
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.06438249349594116
+        },
+        {
+          "species_name": "Phylloscopus collybita_Common Chiffchaff",
+          "confidence": 0.013018429279327393
+        },
+        {
+          "species_name": "Sylvia atricapilla_Eurasian Blackcap",
+          "confidence": 0.012168586254119873
+        },
+        {
+          "species_name": "Fringilla coelebs_Eurasian Chaffinch",
+          "confidence": 0.011639595031738281
+        }
+      ],
+      "max_score_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_dimension": 1280,
+      "max_emb_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_cosine_similarity": 1.0000001192092896,
+      "top5_labels_identical": true
+    },
+    "cicada_orni.ogg": {
+      "sess_top5": [
+        {
+          "species_name": "Cicada orni_Ash Cicada",
+          "confidence": 0.9040298461914062
+        },
+        {
+          "species_name": "Falco subbuteo_Eurasian Hobby",
+          "confidence": 0.008601069450378418
+        },
+        {
+          "species_name": "Crex crex_Corn Crake",
+          "confidence": 0.008305013179779053
+        },
+        {
+          "species_name": "Pterophylla camellifolia_Common True Katydid",
+          "confidence": 0.005800366401672363
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.003380417823791504
+        }
+      ],
+      "onnx_top5": [
+        {
+          "species_name": "Cicada orni_Ash Cicada",
+          "confidence": 0.9040298461914062
+        },
+        {
+          "species_name": "Falco subbuteo_Eurasian Hobby",
+          "confidence": 0.008601069450378418
+        },
+        {
+          "species_name": "Crex crex_Corn Crake",
+          "confidence": 0.008305013179779053
+        },
+        {
+          "species_name": "Pterophylla camellifolia_Common True Katydid",
+          "confidence": 0.005800366401672363
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.003380417823791504
+        }
+      ],
+      "prod_top5": [
+        {
+          "species_name": "Cicada orni_Ash Cicada",
+          "confidence": 0.9040298461914062
+        },
+        {
+          "species_name": "Falco subbuteo_Eurasian Hobby",
+          "confidence": 0.008601069450378418
+        },
+        {
+          "species_name": "Crex crex_Corn Crake",
+          "confidence": 0.008305013179779053
+        },
+        {
+          "species_name": "Pterophylla camellifolia_Common True Katydid",
+          "confidence": 0.005800366401672363
+        },
+        {
+          "species_name": "Turdus merula_Common Blackbird",
+          "confidence": 0.003380417823791504
+        }
+      ],
+      "max_score_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_dimension": 1280,
+      "max_emb_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_cosine_similarity": 0.9999998807907104,
+      "top5_labels_identical": true
+    },
+    "frog_mixed.ogg": {
+      "sess_top5": [
+        {
+          "species_name": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "confidence": 0.35138559341430664
+        },
+        {
+          "species_name": "Chenonetta jubata_Maned Duck",
+          "confidence": 0.1612548828125
+        },
+        {
+          "species_name": "Ranoidea raniformis_Southern Bell Frog",
+          "confidence": 0.0918622612953186
+        },
+        {
+          "species_name": "Ranoidea moorei_Motorbike Frog",
+          "confidence": 0.07066744565963745
+        },
+        {
+          "species_name": "Limnodynastes dorsalis_Western Banjo Frog",
+          "confidence": 0.03229880332946777
+        }
+      ],
+      "onnx_top5": [
+        {
+          "species_name": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "confidence": 0.35138559341430664
+        },
+        {
+          "species_name": "Chenonetta jubata_Maned Duck",
+          "confidence": 0.1612548828125
+        },
+        {
+          "species_name": "Ranoidea raniformis_Southern Bell Frog",
+          "confidence": 0.0918622612953186
+        },
+        {
+          "species_name": "Ranoidea moorei_Motorbike Frog",
+          "confidence": 0.07066744565963745
+        },
+        {
+          "species_name": "Limnodynastes dorsalis_Western Banjo Frog",
+          "confidence": 0.03229880332946777
+        }
+      ],
+      "prod_top5": [
+        {
+          "species_name": "Limnodynastes dumerilii_Eastern Banjo Frog",
+          "confidence": 0.35138559341430664
+        },
+        {
+          "species_name": "Chenonetta jubata_Maned Duck",
+          "confidence": 0.1612548828125
+        },
+        {
+          "species_name": "Ranoidea raniformis_Southern Bell Frog",
+          "confidence": 0.0918622612953186
+        },
+        {
+          "species_name": "Ranoidea moorei_Motorbike Frog",
+          "confidence": 0.07066744565963745
+        },
+        {
+          "species_name": "Limnodynastes dorsalis_Western Banjo Frog",
+          "confidence": 0.03229880332946777
+        }
+      ],
+      "max_score_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_dimension": 1280,
+      "max_emb_abs_diff_sess_vs_onnx": 0.0,
+      "embedding_cosine_similarity": 1.0000001192092896,
+      "top5_labels_identical": true
+    }
+  },
+  "latency_benchmarks": {
+    "production_path_per_window_ms": {
+      "count": 3,
+      "mean_ms": 6083.049233323739,
+      "std_ms": 18.050067058156532,
+      "median_ms": 6078.754499991192,
+      "min_ms": 6063.404999993509,
+      "max_ms": 6106.988199986517,
+      "p95_ms": 6104.164829986985
+    },
+    "persistent_session_per_window_ms": {
+      "count": 20,
+      "mean_ms": 260.17562500055647,
+      "std_ms": 28.133146518693177,
+      "median_ms": 255.83490000281017,
+      "min_ms": 200.80530000268482,
+      "max_ms": 319.3471999838948,
+      "p95_ms": 313.4028600092279
+    },
+    "direct_onnx_gpu_preprocessing_ms": {
+      "count": 20,
+      "mean_ms": 0.024889997439458966,
+      "std_ms": 0.007172371341364908,
+      "median_ms": 0.02439999661874026,
+      "min_ms": 0.01650000922381878,
+      "max_ms": 0.04630000330507755,
+      "p95_ms": 0.03394999221200124
+    },
+    "direct_onnx_gpu_inference_both_heads_ms": {
+      "count": 20,
+      "mean_ms": 39.310855003714096,
+      "std_ms": 11.184882012506522,
+      "median_ms": 38.136000017402694,
+      "min_ms": 24.864599981810898,
+      "max_ms": 69.1248000075575,
+      "p95_ms": 60.13969999330585
+    },
+    "direct_onnx_gpu_postprocessing_ms": {
+      "count": 20,
+      "mean_ms": 0.4503199947066605,
+      "std_ms": 0.16922310635096566,
+      "median_ms": 0.527149997651577,
+      "min_ms": 0.23770000552758574,
+      "max_ms": 0.7547999848611653,
+      "p95_ms": 0.6959000063943677
+    },
+    "direct_onnx_gpu_total_ms": {
+      "count": 20,
+      "mean_ms": 39.786064995860215,
+      "std_ms": 11.234528803277655,
+      "median_ms": 38.728499988792464,
+      "min_ms": 25.118799996562302,
+      "max_ms": 69.77239999105223,
+      "p95_ms": 60.618200016324415
+    },
+    "direct_onnx_cpu_fallback_inference_ms": {
+      "count": 20,
+      "mean_ms": 56.87311499787029,
+      "std_ms": 2.5851766305694226,
+      "median_ms": 57.488450009259395,
+      "min_ms": 51.63830000674352,
+      "max_ms": 61.01219999254681,
+      "p95_ms": 60.66316998912953
+    },
+    "direct_onnx_cpu_fallback_total_ms": {
+      "count": 20,
+      "mean_ms": 57.397380005568266,
+      "std_ms": 2.5457216777736136,
+      "median_ms": 58.050100022228435,
+      "min_ms": 52.05450000357814,
+      "max_ms": 61.41829999978654,
+      "p95_ms": 61.05198000295786
+    }
+  },
+  "cpu_fallback_benchmarks": {},
+  "architectural_comparison": {
+    "production_path": {
+      "name": "Current Production Path (birdnet.predict + birdnet.encode)",
+      "mechanism": "Per-window file write to disk + multi-process spawn per call",
+      "calls_per_window": 2,
+      "supports_streaming_reuse": false,
+      "notes": "Spawns and tears down worker subprocesses on every single 3s window."
+    },
+    "persistent_session": {
+      "name": "BirdNET Persistent Session (predict_session / encode_session)",
+      "mechanism": "Long-lived worker process with IPC queue communication",
+      "calls_per_window": 2,
+      "supports_streaming_reuse": true,
+      "notes": "Reduces latency from ~2.15s to ~100ms, but requires two independent sessions for predictions and embeddings."
+    },
+    "direct_onnx": {
+      "name": "Direct ONNX Runtime (In-Memory Engine)",
+      "mechanism": "Single in-memory forward pass executing both classification and 1280-D embedding heads",
+      "calls_per_window": 1,
+      "supports_streaming_reuse": true,
+      "notes": "Zero disk I/O, zero subprocess IPC overhead, ~25.8 ms total latency on GPU, identical floating-point scores."
+    }
+  }
+}

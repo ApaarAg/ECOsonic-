@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 from app.core.logging import logger
@@ -31,6 +32,7 @@ engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DEBUG,
     future=True,
+    poolclass=NullPool if "sqlite" in settings.DATABASE_URL else None,
     connect_args={"check_same_thread": False, "timeout": 30} if "sqlite" in settings.DATABASE_URL else {},
 )
 
@@ -76,9 +78,26 @@ async def init_db() -> None:
     """Initializes tables in the database."""
     async with engine.begin() as conn:
         # Import models inside to ensure all models are registered on Base.metadata
-        from app.models import analysis, detection, site, review  # noqa: F401
+        from app.models import analysis, detection, live_session, soundscape, site, review  # noqa: F401
         logger.info("Initializing database schema from metadata...")
         await conn.run_sync(Base.metadata.create_all)
+
+        # Ensure backward-compatible column upgrades for existing SQLite tables
+        def _ensure_sqlite_columns(sync_conn):
+            cursor = sync_conn.connection.cursor()
+            try:
+                cursor.execute("PRAGMA table_info(disturbance_events)")
+                cols = {row[1] for row in cursor.fetchall()}
+                if cols and "category" not in cols:
+                    cursor.execute("ALTER TABLE disturbance_events ADD COLUMN category VARCHAR(100)")
+                if cols and "hazard_classification" not in cols:
+                    cursor.execute("ALTER TABLE disturbance_events ADD COLUMN hazard_classification VARCHAR(50)")
+            except Exception as e:
+                logger.warning("Auto column migration check failed: %s", e)
+            finally:
+                cursor.close()
+
+        await conn.run_sync(_ensure_sqlite_columns)
         logger.info("Database schema initialized successfully.")
 
 
