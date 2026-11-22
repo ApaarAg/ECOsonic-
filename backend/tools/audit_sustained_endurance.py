@@ -50,7 +50,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("audit_endurance")
 
 SMOKE_AUDIO_PATH = PROJECT_ROOT / "backend" / "data" / "smoke_audio" / "birds_forest.ogg"
-RESULTS_OUTPUT_PATH = PROJECT_ROOT / "docs" / "audit_sustained_endurance_results.json"
+RESULTS_OUTPUT_PATH = PROJECT_ROOT / "docs" / "direct_onnx_endurance_results.json"
 
 
 def get_vram_usage_mb() -> Optional[float]:
@@ -104,10 +104,10 @@ def audit_physical_microphone() -> Dict[str, Any]:
         }
 
 
-async def run_replay_endurance_test(duration_seconds: float = 600.0) -> Dict[str, Any]:
+async def run_replay_endurance_test(duration_seconds: float = 600.0, hop_duration_s: float = 3.0) -> Dict[str, Any]:
     logger.info("============================================================")
-    logger.info("STARTING REPLAY SUSTAINED ENDURANCE TEST (Target: %.1fs = %.1f min)",
-                duration_seconds, duration_seconds / 60.0)
+    logger.info("STARTING REPLAY SUSTAINED ENDURANCE TEST (Target: %.1fs = %.1f min | Hop: %.1fs)",
+                duration_seconds, duration_seconds / 60.0, hop_duration_s)
     logger.info("============================================================")
 
     await init_db()
@@ -143,7 +143,7 @@ async def run_replay_endurance_test(duration_seconds: float = 600.0) -> Dict[str
         sample_rate=32000,
         channels=1,
         window_duration_s=3.0,
-        hop_duration_s=3.0,
+        hop_duration_s=hop_duration_s,
     )
 
     received_events = []
@@ -286,6 +286,7 @@ async def run_replay_endurance_test(duration_seconds: float = 600.0) -> Dict[str
     return {
         "status": "PASS",
         "duration_seconds": round(total_test_duration, 2),
+        "hop_duration_s": hop_duration_s,
         "total_frames_sent": seq,
         "dropped_frames": state.dropped_frames,
         "processed_windows": state.inference_worker.processed_windows,
@@ -319,10 +320,14 @@ async def run_replay_endurance_test(duration_seconds: float = 600.0) -> Dict[str
     }
 
 
-async def run_physical_mic_endurance_test(duration_seconds: float = 1800.0, device_index: int = 1) -> Dict[str, Any]:
+async def run_physical_mic_endurance_test(
+    duration_seconds: float = 1800.0,
+    device_index: int = 1,
+    hop_duration_s: float = 3.0,
+) -> Dict[str, Any]:
     logger.info("============================================================")
-    logger.info("STARTING PHYSICAL MICROPHONE ENDURANCE TEST (Target: %.1fs = %.1f min)",
-                duration_seconds, duration_seconds / 60.0)
+    logger.info("STARTING PHYSICAL MICROPHONE ENDURANCE TEST (Target: %.1fs = %.1f min | Hop: %.1fs)",
+                duration_seconds, duration_seconds / 60.0, hop_duration_s)
     logger.info("============================================================")
 
     # Inspect device
@@ -364,7 +369,7 @@ async def run_physical_mic_endurance_test(duration_seconds: float = 1800.0, devi
         sample_rate=32000,
         channels=1,
         window_duration_s=3.0,
-        hop_duration_s=3.0,
+        hop_duration_s=hop_duration_s,
     )
 
     received_events = []
@@ -538,6 +543,7 @@ async def run_physical_mic_endurance_test(duration_seconds: float = 1800.0, devi
             "target_samplerate": 32000,
         },
         "duration_seconds": round(total_test_duration, 2),
+        "hop_duration_s": hop_duration_s,
         "total_frames_sent": seq,
         "dropped_frames": state.dropped_frames,
         "processed_windows": state.inference_worker.processed_windows,
@@ -573,11 +579,20 @@ async def run_physical_mic_endurance_test(duration_seconds: float = 1800.0, devi
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="EcoSonic 3.0 Sustained Endurance Audit")
-    parser.add_argument("--mode", choices=["replay", "mic", "all"], default="all")
+    parser.add_argument(
+        "--mode",
+        choices=["replay", "mic", "all", "replay_hops"],
+        default="all",
+        help="Test mode: replay, mic, all, or replay_hops (runs 1.5s hop and 3.0s hop)",
+    )
     parser.add_argument("--replay-duration", type=float, default=600.0, help="Replay test duration in seconds (min 600s)")
     parser.add_argument("--mic-duration", type=float, default=1800.0, help="Mic test duration in seconds (min 1800s)")
+    parser.add_argument("--hop-duration", type=float, default=3.0, help="Hop duration in seconds for replay mode (default 3.0, supports 1.5)")
     parser.add_argument("--device-index", type=int, default=1, help="Sounddevice input device index")
+    parser.add_argument("--output-path", type=str, default=None, help="Custom output JSON path")
     args = parser.parse_args()
+
+    out_path = Path(args.output_path) if args.output_path else RESULTS_OUTPUT_PATH
 
     mic_hardware_audit = audit_physical_microphone()
 
@@ -592,29 +607,44 @@ async def main() -> None:
     }
 
     # Load existing report to preserve previous results if running single mode
-    if RESULTS_OUTPUT_PATH.exists():
+    if out_path.exists():
         try:
-            with open(RESULTS_OUTPUT_PATH, "r", encoding="utf-8") as f:
+            with open(out_path, "r", encoding="utf-8") as f:
                 existing = json.load(f)
                 report.update({k: v for k, v in existing.items() if k not in ["audit_timestamp"]})
         except Exception:
             pass
 
-    if args.mode in ["replay", "all"]:
-        replay_res = await run_replay_endurance_test(duration_seconds=args.replay_duration)
+    if args.mode == "replay_hops":
+        logger.info("Running Replay Endurance with 1.5s Hop...")
+        res_1_5 = await run_replay_endurance_test(duration_seconds=args.replay_duration, hop_duration_s=1.5)
+        report["replay_endurance_hop_1_5s"] = res_1_5
+
+        logger.info("Running Replay Endurance with 3.0s Hop...")
+        res_3_0 = await run_replay_endurance_test(duration_seconds=args.replay_duration, hop_duration_s=3.0)
+        report["replay_endurance_hop_3_0s"] = res_3_0
+
+    elif args.mode in ["replay", "all"]:
+        replay_res = await run_replay_endurance_test(
+            duration_seconds=args.replay_duration,
+            hop_duration_s=args.hop_duration,
+        )
+        hop_key = f"replay_endurance_hop_{str(args.hop_duration).replace('.', '_')}s"
+        report[hop_key] = replay_res
         report["replay_endurance_results"] = replay_res
 
     if args.mode in ["mic", "all"]:
         mic_res = await run_physical_mic_endurance_test(
             duration_seconds=args.mic_duration,
             device_index=args.device_index,
+            hop_duration_s=args.hop_duration,
         )
         report["physical_microphone_endurance_results"] = mic_res
 
-    with open(RESULTS_OUTPUT_PATH, "w", encoding="utf-8") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
-    logger.info("Complete endurance report successfully written to %s", RESULTS_OUTPUT_PATH)
+    logger.info("Complete endurance report successfully written to %s", out_path)
 
 
 if __name__ == "__main__":
