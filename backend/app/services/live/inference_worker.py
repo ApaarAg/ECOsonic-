@@ -17,8 +17,9 @@ from app.core.database import async_session_factory
 from app.core.logging import logger
 from app.models.live_session import LiveEvent, LiveSegment, LiveSession
 from app.schemas.live_session import WSDetectionEvent
-from app.services.analysis_pipeline import analysis_pipeline
+from app.services.analysis_pipeline import analysis_pipeline, FallbackMockEngine
 from app.services.birdnet_engine import AudioValidationError
+from app.services.direct_onnx_engine import direct_onnx_engine
 from app.services.live.embedding_worker import EmbeddingTask, embedding_worker
 from app.services.live.ring_buffer import AudioWindow
 from app.services.soundscape.disturbance_service import disturbance_service
@@ -81,13 +82,16 @@ class LiveInferenceWorker:
     async def start(self) -> None:
         if self._running:
             return
-        # Ensure underlying BirdNET model is initialized
-        analysis_pipeline.load()
+        # If a test mock is injected, respect it; otherwise ensure Direct ONNX is loaded
+        if analysis_pipeline.engine is not None and isinstance(analysis_pipeline.engine, FallbackMockEngine):
+            analysis_pipeline.load()
+        else:
+            direct_onnx_engine.load()
         self._running = True
         self._worker_task = asyncio.create_task(
             self._run_loop(), name=f"LiveInferenceWorker-{self.session_id}"
         )
-        logger.info("LiveInferenceWorker started for session %s", self.session_id)
+        logger.info("LiveInferenceWorker started for session %s (Direct ONNX engine)", self.session_id)
 
     async def stop(self) -> None:
         if not self._running:
@@ -237,16 +241,36 @@ class LiveInferenceWorker:
                 }
             )
 
-        # Run real BirdNET inference in thread pool
+        # Run inference in thread pool
         loop = asyncio.get_running_loop()
         t_infer_start = time.perf_counter()
 
-        model_adapter = analysis_pipeline.engine
+        use_mock = (
+            analysis_pipeline.engine is not None
+            and isinstance(analysis_pipeline.engine, FallbackMockEngine)
+        )
+
         try:
-            raw_detections = await loop.run_in_executor(
-                None,
-                lambda: model_adapter.analyze_audio(str(audio_path), self.min_confidence),
-            )
+            if use_mock:
+                raw_detections = await loop.run_in_executor(
+                    None,
+                    lambda: analysis_pipeline.engine.analyze_audio(str(audio_path), self.min_confidence),
+                )
+                mock_vectors, _ = analysis_pipeline.engine.extract_embeddings(str(audio_path))
+                embedding_vector = mock_vectors[0] if mock_vectors.ndim > 1 else mock_vectors
+                active_model_version = str(analysis_pipeline.engine.model_version)
+            else:
+                direct_res = await loop.run_in_executor(
+                    None,
+                    lambda: direct_onnx_engine.infer(
+                        window.data,
+                        min_confidence=self.min_confidence,
+                        top_k=5,
+                    ),
+                )
+                raw_detections = direct_res.detections
+                embedding_vector = direct_res.embedding
+                active_model_version = str(direct_onnx_engine.model_version)
         except AudioValidationError as ave:
             logger.warning(
                 "Audio validation rejected window for session %s [%.1f-%.1f]: %s",
@@ -324,7 +348,7 @@ class LiveInferenceWorker:
                 common_name=det.common_name,
                 confidence_score=score,
                 taxon_group=det.taxon_group or "Bird",
-                model_version=str(model_adapter.model_version),
+                model_version=active_model_version,
             )
             db_events.append(live_event)
 
@@ -340,7 +364,7 @@ class LiveInferenceWorker:
                     "common_name": det.common_name,
                     "confidence_score": round(score, 4),
                     "taxon_group": det.taxon_group or "Bird",
-                    "model_version": str(model_adapter.model_version),
+                    "model_version": active_model_version,
                 }
             )
 
@@ -385,7 +409,7 @@ class LiveInferenceWorker:
                 }
             )
 
-        # Submit to background asynchronous embedding queue
+        # Submit precomputed embedding to background worker for non-blocking persistence
         await embedding_worker.enqueue(
             EmbeddingTask(
                 session_id=self.session_id,
@@ -394,5 +418,6 @@ class LiveInferenceWorker:
                 end_seconds=window.end_seconds,
                 audio_path=str(audio_path),
                 created_at=time.perf_counter(),
+                vector=embedding_vector,
             )
         )

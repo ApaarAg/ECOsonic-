@@ -27,6 +27,7 @@ class EmbeddingTask:
     end_seconds: float
     audio_path: str
     created_at: float
+    vector: Optional[np.ndarray] = None
 
 
 class EmbeddingWorker:
@@ -128,31 +129,42 @@ class EmbeddingWorker:
 
             started = time.perf_counter()
             try:
-                # Run embedding extraction in thread pool
                 loop = asyncio.get_running_loop()
-                audio_path = Path(task.audio_path)
-                if not audio_path.exists():
-                    logger.warning("Audio file for embedding does not exist: %s", task.audio_path)
-                    self._queue.task_done()
-                    continue
+                if task.vector is not None:
+                    # Precomputed in Direct ONNX single forward pass - zero subprocess overhead
+                    vectors = (
+                        np.expand_dims(task.vector, axis=0)
+                        if task.vector.ndim == 1
+                        else task.vector
+                    )
+                else:
+                    # Legacy fallback: run embedding extraction in thread pool via analysis_pipeline
+                    audio_path = Path(task.audio_path)
+                    if not audio_path.exists():
+                        logger.warning("Audio file for embedding does not exist: %s", task.audio_path)
+                        self._queue.task_done()
+                        continue
 
-                vectors, _, duration_s = await loop.run_in_executor(
-                    None,
-                    lambda: analysis_pipeline.extract_embeddings(
-                        audio_path, duration_seconds=task.end_seconds - task.start_seconds
-                    ),
-                )
+                    vectors, _, duration_s = await loop.run_in_executor(
+                        None,
+                        lambda: analysis_pipeline.extract_embeddings(
+                            audio_path, duration_seconds=task.end_seconds - task.start_seconds
+                        ),
+                    )
 
                 # Validate dimensions and finite values
                 if vectors.shape[1] != 1280 or not np.isfinite(vectors).all():
                     raise ValueError(f"Extracted embedding invalid shape {vectors.shape} or non-finite values.")
 
-                # Save embedding vector
-                saved_path = storage_service.save_live_embedding(
-                    session_id=task.session_id,
-                    start_seconds=task.start_seconds,
-                    end_seconds=task.end_seconds,
-                    vector=vectors[0],
+                # Save embedding vector to disk
+                saved_path = await loop.run_in_executor(
+                    None,
+                    lambda: storage_service.save_live_embedding(
+                        session_id=task.session_id,
+                        start_seconds=task.start_seconds,
+                        end_seconds=task.end_seconds,
+                        vector=vectors[0],
+                    ),
                 )
 
                 # Update database record

@@ -239,6 +239,9 @@ class LiveSessionManager:
         await embedding_worker.start()
         await soundscape_worker.start()
         soundscape_worker.set_broadcast_callback(self._broadcast_to_session)
+        # Pre-warm Direct ONNX live engine in thread so live streaming has zero cold-start latency
+        from app.services.direct_onnx_engine import direct_onnx_engine
+        await asyncio.to_thread(direct_onnx_engine.load)
 
     async def _broadcast_to_session(self, session_id: str, payload: Dict[str, Any]) -> None:
         state = self.get_session(session_id)

@@ -118,6 +118,8 @@ async def health_check():
         if analysis_pipeline.engine
         else "none"
     )
+    from app.services.direct_onnx_engine import direct_onnx_engine
+
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
@@ -125,6 +127,7 @@ async def health_check():
         "model_version": settings.MODEL_VERSION,
         "model_ready": model_ready,
         "model_device": device,
+        "direct_onnx_engine": direct_onnx_engine.get_status(),
     }
 
 
