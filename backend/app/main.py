@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,
-    description="EcoSonic 2.0 AI-Powered Bioacoustic Intelligence Platform Backend API",
+    description="EcoSonic 3.0 AI-Powered Bioacoustic Intelligence Platform Backend API",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -134,7 +134,7 @@ async def health_check():
 @app.get("/", tags=["System"])
 async def root():
     return {
-        "message": "Welcome to EcoSonic 2.0 Bioacoustic Intelligence API",
+        "message": "Welcome to EcoSonic 3.0 Bioacoustic Intelligence API",
         "documentation": "/docs",
         "api_v1": "/api/v1",
     }

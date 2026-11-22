@@ -11,8 +11,8 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    PROJECT_NAME: str = "EcoSonic 2.0 Bioacoustic Intelligence"
-    PROJECT_VERSION: str = "2.0.0"
+    PROJECT_NAME: str = "EcoSonic 3.0 Bioacoustic Intelligence"
+    PROJECT_VERSION: str = "3.0.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     NUM_WORKER_THREADS: int = 4
 
     # Feature Flags
-    ENABLE_ACOUSTIC_MEMORY: bool = False
+    ENABLE_ACOUSTIC_MEMORY: bool = True
 
     @property
     def raw_audio_dir(self) -> Path:

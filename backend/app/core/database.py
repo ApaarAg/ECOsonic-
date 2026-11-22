@@ -79,6 +79,7 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         # Import models inside to ensure all models are registered on Base.metadata
         from app.models import (  # noqa: F401
+            acoustic_memory,
             analysis,
             detection,
             environmental_intelligence,
