@@ -105,6 +105,7 @@ def test_websocket_handshake_and_control_messages(test_engine):
         ws.send_json({"type": "stop"})
         stop_event = ws.receive_json()
         assert stop_event["type"] == "session_stopped"
+        ws.close()
 
 
 def test_websocket_frame_validation_and_sequencing(test_engine):
@@ -153,6 +154,7 @@ def test_websocket_frame_validation_and_sequencing(test_engine):
         # 6. Missing frames: jump from 0 to 5
         ws.send_bytes(struct.pack(">I", 5) + valid_pcm)
         # Server accepts frame 5 while internally logging dropped frames 1..4
+        ws.close()
 
 
 def test_websocket_streaming_inference_and_event_delivery(test_engine):
@@ -192,3 +194,4 @@ def test_websocket_streaming_inference_and_event_delivery(test_engine):
         assert math.isclose(detection_event["end_seconds"], 3.0, abs_tol=1e-2)
         assert detection_event["confidence_score"] > 0.0
         assert "class_label" in detection_event
+        ws.close()

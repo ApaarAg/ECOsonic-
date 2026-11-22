@@ -283,13 +283,26 @@ async def run_replay_endurance_test(duration_seconds: float = 600.0, hop_duratio
     logger.info("  Disturbances in DB:   %d", len(saved_disturbances))
     logger.info("============================================================")
 
+    total_samples = int(state.ring_buffer.total_seconds_written * 32000)
+    win_samples = int(3.0 * 32000)
+    hop_samples = int(hop_duration_s * 32000)
+    expected_windows = (
+        math.floor((total_samples - win_samples) / hop_samples) + 1
+        if total_samples >= win_samples
+        else 0
+    )
+
     return {
         "status": "PASS",
         "duration_seconds": round(total_test_duration, 2),
         "hop_duration_s": hop_duration_s,
         "total_frames_sent": seq,
+        "samples_accepted": total_samples,
+        "complete_eligible_windows": expected_windows,
         "dropped_frames": state.dropped_frames,
         "processed_windows": state.inference_worker.processed_windows,
+        "inferred_windows": state.inference_worker.inferred_windows,
+        "silent_windows": state.inference_worker.silent_windows,
         "dropped_windows": state.inference_worker.dropped_windows,
         "detections_broadcast_count": len(detections),
         "warnings_broadcast_count": len(warnings),
@@ -534,6 +547,15 @@ async def run_physical_mic_endurance_test(
     logger.info("  Disturbances in DB:   %d", len(saved_disturbances))
     logger.info("============================================================")
 
+    total_samples = int(state.ring_buffer.total_seconds_written * 32000)
+    win_samples = int(3.0 * 32000)
+    hop_samples = int(hop_duration_s * 32000)
+    expected_windows = (
+        math.floor((total_samples - win_samples) / hop_samples) + 1
+        if total_samples >= win_samples
+        else 0
+    )
+
     return {
         "status": "PASS",
         "device_configuration": {
@@ -545,8 +567,12 @@ async def run_physical_mic_endurance_test(
         "duration_seconds": round(total_test_duration, 2),
         "hop_duration_s": hop_duration_s,
         "total_frames_sent": seq,
+        "samples_accepted": total_samples,
+        "complete_eligible_windows": expected_windows,
         "dropped_frames": state.dropped_frames,
         "processed_windows": state.inference_worker.processed_windows,
+        "inferred_windows": state.inference_worker.inferred_windows,
+        "silent_windows": state.inference_worker.silent_windows,
         "dropped_windows": state.inference_worker.dropped_windows,
         "detections_broadcast_count": len(detections),
         "warnings_broadcast_count": len(warnings),

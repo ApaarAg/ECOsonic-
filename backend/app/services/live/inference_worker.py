@@ -49,6 +49,8 @@ class LiveInferenceWorker:
         self._running = False
 
         self._processed_windows = 0
+        self._inferred_windows = 0
+        self._silent_windows = 0
         self._dropped_windows = 0
         self._total_inference_time_s = 0.0
         self._total_lag_time_s = 0.0
@@ -68,10 +70,18 @@ class LiveInferenceWorker:
         return self._processed_windows
 
     @property
+    def inferred_windows(self) -> int:
+        return self._inferred_windows
+
+    @property
+    def silent_windows(self) -> int:
+        return self._silent_windows
+
+    @property
     def avg_inference_latency_ms(self) -> float:
-        if self._processed_windows == 0:
+        if self._inferred_windows == 0:
             return 0.0
-        return (self._total_inference_time_s / self._processed_windows) * 1000.0
+        return (self._total_inference_time_s / self._inferred_windows) * 1000.0
 
     @property
     def avg_window_lag_ms(self) -> float:
@@ -204,16 +214,25 @@ class LiveInferenceWorker:
 
         segment_id = str(uuid.uuid4())
 
-        # If window is silent / dead microphone, warn and skip heavy model inference
+        # If window is silent / dead microphone, skip heavy model inference and emit progress telemetry
         if window.is_silent:
+            self._silent_windows += 1
+            self._processed_windows += 1
+            self._total_lag_time_s += (time.perf_counter() - window.created_at)
             if self.event_callback:
                 await self.event_callback(
                     {
-                        "type": "audio_quality_warning",
+                        "type": "processing_update",
                         "session_id": self.session_id,
-                        "reason": f"Audio window silent or below threshold (RMS={window.rms_energy:.6f}).",
+                        "status": "silent_skipped",
+                        "processed_seconds": window.end_seconds,
+                        "window_index": window.window_index,
+                        "is_silent": True,
+                        "rms_energy": round(window.rms_energy, 6),
                         "start_seconds": window.start_seconds,
                         "end_seconds": window.end_seconds,
+                        "queue_size": self._queue.qsize(),
+                        "detections_count": 0,
                     }
                 )
             # Create LiveSegment record marked as silent
@@ -303,6 +322,7 @@ class LiveInferenceWorker:
             return
 
         inference_duration_s = time.perf_counter() - t_infer_start
+        self._inferred_windows += 1
         self._processed_windows += 1
         self._total_inference_time_s += inference_duration_s
         self._total_lag_time_s += (time.perf_counter() - window.created_at)
@@ -400,8 +420,11 @@ class LiveInferenceWorker:
                 {
                     "type": "processing_update",
                     "session_id": self.session_id,
+                    "status": "processed",
                     "processed_seconds": window.end_seconds,
                     "window_index": window.window_index,
+                    "is_silent": False,
+                    "rms_energy": round(window.rms_energy, 6),
                     "inference_duration_ms": round(self._last_inference_duration_ms, 2),
                     "window_lag_ms": round(self._last_window_lag_ms, 2),
                     "queue_size": self._queue.qsize(),

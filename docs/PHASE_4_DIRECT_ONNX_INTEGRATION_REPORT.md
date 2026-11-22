@@ -21,7 +21,7 @@ During the final cross-phase acceptance audit (`0721c99`), the live audio acquis
 
 To eliminate this bottleneck while strictly preserving BirdNET V3.0 numerical semantics, we engineered and deployed the **Direct ONNX Live Inference Engine** (`backend/app/services/direct_onnx_engine.py`):
 1. **Persistent In-Memory ONNX Runtime Engine:** Loads the official FP32 ONNX acoustic model weights (`.model_cache/acoustic-models/v3.0/onnx/model-fp32-e78c3b50e224.onnx`) and the 11,725 species label taxonomy once at application startup.
-2. **Dual-Head Single Forward Pass:** Leverages the native ONNX computational graph outputs `["predictions", "embeddings"]` in a single forward pass, producing both species probabilities and 1,280-dimensional acoustic embeddings in **33.89 ms** on GPU.
+2. **Dual-Head Single Forward Pass:** Leverages the native ONNX computational graph outputs `["predictions", "embeddings"]` in a single forward pass, producing both species probabilities and 1,280-dimensional acoustic embeddings with median execution latency of **36.58 ms** on GPU (**69.12 ms** total end-to-end post-window processing latency).
 3. **Zero Subprocess Overhead in Live Stream:** The embedding worker receives precomputed in-memory embeddings directly from the inference worker, completely bypassing secondary encoding passes and disk round-trips.
 4. **Zero Dropped Windows:** In subsequent 10-minute replay endurance tests (at both 1.5s and 3.0s hop duration) and a 30-minute physical microphone capture test, the live pipeline recorded **0 dropped windows** and **0 dropped frames**.
 5. **100% Numerical Parity:** Verified across all four environmental smoke recordings with identical Top-5 species labels, score discrepancies below $10^{-4}$, and embedding cosine similarities $> 0.9999$.
@@ -100,70 +100,83 @@ To ensure the Direct ONNX engine output is identical to official BirdNET V3.0 pr
 
 ---
 
-## 4. Production Path Latency Benchmarks
+## 4. Reconciled Production Path Latency Benchmarks
 
-Benchmarking was performed with `backend/tools/benchmark_integrated_production_path.py` across 50 measured iterations (+ 10 warm-up runs) using 96,000 samples (3.0s @ 32 kHz) simulating the full live production pipeline:
+Benchmarking was performed with `backend/tools/benchmark_integrated_production_path.py` across 50 measured iterations (+ 10 warm-up runs) using 96,000 float32 samples (3.0 seconds audio @ 32 kHz mono) simulating the complete integrated production path. The canonical machine-readable results are preserved in `docs/integrated_direct_onnx_benchmark_results.json`.
 
-### 4.1 Latency Breakdown by Pipeline Stage (Median Values)
+### 4.1 Benchmark Configuration
+- **Hardware Profile:** Intel Core i7-13620H (16 vCPUs @ 2.40 GHz), NVIDIA GeForce RTX 4060 Laptop GPU (8GB VRAM), ONNX Runtime 1.26.0
+- **Input Segment Size:** 96,000 samples (3.000s @ 32,000 Hz)
+- **Measured Iterations:** 50 runs (+ 10 warmup discarded)
+- **Active Provider Configurations:**
+  - **GPU Mode:** `["CUDAExecutionProvider", "CPUExecutionProvider"]`
+  - **CPU Fallback Mode:** `["CPUExecutionProvider"]`
 
-| Pipeline Component | GPU (`CUDAExecutionProvider`) | CPU (`CPUExecutionProvider`) | Legacy Subprocess Path |
-|---|---:|---:|---:|
-| Audio Preprocessing & Validation | 0.17 ms | 0.17 ms | 12.40 ms |
-| **Model Inference (Preds + Embs)** | **33.89 ms** | **55.14 ms** | **6,078.75 ms** |
-| Postprocessing & Top-K Extraction | 0.45 ms | 0.44 ms | 1.85 ms |
-| Embedding Persistence (`.npy` write) | 5.16 ms | 5.25 ms | 14.20 ms |
-| Database Persistence (SQLite WAL) | 24.68 ms | 25.10 ms | 28.50 ms |
-| WebSocket Broadcast Simulation | 0.03 ms | 0.03 ms | 0.05 ms |
-| **Total Post-Window E2E Latency** | **63.55 ms** | **93.63 ms** | **6,135.75 ms** |
+### 4.2 Detailed Latency Statistics by Stage
 
-### 4.2 Real-Time Factor (RTF) Comparison
+#### GPU Execution (`CUDAExecutionProvider`)
+| Pipeline Stage | Mean | Median | P95 | P99 | Min | Max |
+|---|---:|---:|---:|---:|---:|---:|
+| Preprocessing & Audio Validation | 0.183 ms | 0.190 ms | 0.259 ms | 0.318 ms | 0.115 ms | 0.367 ms |
+| **ONNX Runtime (Preds + Embs)** | **34.861 ms** | **36.577 ms** | **42.035 ms** | **43.979 ms** | **23.908 ms** | **44.993 ms** |
+| Postprocessing & Top-K Extraction | 0.427 ms | 0.539 ms | 0.596 ms | 0.638 ms | 0.231 ms | 0.640 ms |
+| Embedding File Persistence (`.npy`) | 8.056 ms | 5.854 ms | 18.197 ms | 19.382 ms | 2.422 ms | 19.550 ms |
+| Database Persistence (SQLite WAL) | 24.893 ms | 25.171 ms | 30.373 ms | 33.076 ms | 17.905 ms | 33.282 ms |
+| WebSocket Publication (Simulated in-process) | 0.029 ms | 0.030 ms | 0.039 ms | 0.041 ms | 0.020 ms | 0.043 ms |
+| **Total Post-Window E2E Latency** | **68.449 ms** | **69.119 ms** | **84.857 ms** | **86.560 ms** | **48.815 ms** | **86.879 ms** |
 
-$$\text{RTF} = \frac{\text{Processing Time}}{\text{Audio Duration (3.000s)}}$$
+- **Real-Time Factor (RTF):** **0.02304** ($43.4\times$ faster than real-time)
 
-- **GPU Pipeline RTF:** **0.02118** ($47.2\times$ faster than real-time)
-- **CPU Pipeline RTF:** **0.03121** ($32.0\times$ faster than real-time)
-- **Legacy Subprocess RTF:** **2.04525** ($2.05\times$ slower than real-time — guaranteed backpressure collapse)
+#### CPU Fallback Execution (`CPUExecutionProvider`)
+| Pipeline Stage | Mean | Median | P95 | P99 | Min | Max |
+|---|---:|---:|---:|---:|---:|---:|
+| Preprocessing & Audio Validation | 0.187 ms | 0.178 ms | 0.261 ms | 0.285 ms | 0.127 ms | 0.291 ms |
+| **ONNX Runtime (Preds + Embs)** | **60.603 ms** | **55.137 ms** | **83.599 ms** | **133.084 ms** | **45.585 ms** | **151.719 ms** |
+| Postprocessing & Top-K Extraction | 0.456 ms | 0.363 ms | 0.740 ms | 1.333 ms | 0.277 ms | 1.878 ms |
+| Embedding File Persistence (`.npy`) | 12.527 ms | 12.040 ms | 21.298 ms | 23.555 ms | 3.090 ms | 24.509 ms |
+| Database Persistence (SQLite WAL) | 27.799 ms | 23.578 ms | 30.952 ms | 123.144 ms | 19.309 ms | 199.457 ms |
+| WebSocket Publication (Simulated in-process) | 0.031 ms | 0.030 ms | 0.038 ms | 0.041 ms | 0.023 ms | 0.043 ms |
+| **Total Post-Window E2E Latency** | **101.604 ms** | **93.629 ms** | **145.519 ms** | **224.191 ms** | **80.342 ms** | **257.345 ms** |
+
+- **Real-Time Factor (RTF):** **0.03121** ($32.0\times$ faster than real-time)
+
+### 4.3 Critical Architectural Boundary Clarifications
+1. **WebSocket Publication Measurement:** The benchmark's `websocket_publication` stage (~0.03 ms) measures *in-process Python event serialization and queue insertion* (`await state.broadcast_event()`). It is **not** a measurement of browser-to-server or server-to-browser network transit time, TCP transmission latency, or frontend DOM rendering latency.
+2. **Sound-Onset-to-Browser Latency:** Total sound-onset-to-browser latency includes:
+   - Rolling buffer accumulation duration: up to 3.0 seconds (or 1.5 seconds hop interval elapsed time before a complete window is formed).
+   - Ingest framing jitter (typically 1–15 ms).
+   - Direct ONNX post-window processing: ~69 ms on GPU (~94 ms on CPU).
+   - WebSocket network transit and browser rendering: typically 10–50 ms depending on network topology.
+   Therefore, the backend benchmark specifically demonstrates **sub-70ms post-window processing latency**, and does not claim an unrealistic sub-200ms sound-onset-to-browser latency.
 
 ---
 
-## 5. Sustained Endurance & Stability Validation
+## 5. Reconciled Inference-Window Accounting & Endurance Validation
 
-Full endurance stress tests were executed using `backend/tools/audit_sustained_endurance.py` with results serialized to `docs/direct_onnx_endurance_results.json`:
+Full endurance stress tests were executed using `backend/tools/audit_sustained_endurance.py` with canonical records saved in `docs/direct_onnx_endurance_results.json`:
 
-### 5.1 Sustained Replay Test (1.5-Second Hop — High-Stress Workload)
-- **Duration:** 605.26 seconds (10.1 minutes)
-- **Audio Source:** `birds_forest.ogg` continuously looped at 1.0x real-time pacing
-- **Window Duration:** 3.0 seconds | **Hop Duration:** 1.5 seconds (2x inference frequency)
-- **Frames Ingested:** 2,341 | **Frames Dropped:** **0**
-- **Windows Processed:** 389 | **Windows Dropped:** **0** (0.00% drop rate)
-- **Detections Broadcast:** 1,565 | **Soundscape Fingerprints:** 9
-- **Max Queue Depth:** 1 (Buffer capacity 15 — zero backlog)
-- **Memory Footprint:** Initial RSS: 1,186.36 MB $\rightarrow$ Final RSS: 1,239.86 MB ($\Delta = +53.50\text{ MB}$, strictly bounded)
-- **Peak VRAM:** 2,237.00 MB / 8,192 MB (27.3% utilization)
+### 5.1 Mathematical Accounting of Eligible Windows
+For any streaming session with total samples $S$, window length $W = 96,000$ samples (3.0s), and hop size $H$:
+$$\text{Expected Eligible Windows} = \left\lfloor \frac{S - W}{H} \right\rfloor + 1 \quad (\text{for } S \ge W)$$
 
-### 5.2 Sustained Replay Test (3.0-Second Hop — Standard Production Workload)
-- **Duration:** 605.23 seconds (10.1 minutes)
-- **Audio Source:** `birds_forest.ogg` continuously looped at 1.0x real-time pacing
-- **Window Duration:** 3.0 seconds | **Hop Duration:** 3.0 seconds
-- **Frames Ingested:** 2,327 | **Frames Dropped:** **0**
-- **Windows Processed:** 193 | **Windows Dropped:** **0** (0.00% drop rate)
-- **Detections Broadcast:** 773 | **Soundscape Fingerprints:** 9
-- **Max Queue Depth:** 1
-- **Memory Footprint:** Initial RSS: 1,185.08 MB $\rightarrow$ Final RSS: 1,237.50 MB ($\Delta = +52.42\text{ MB}$, strictly bounded)
-- **Peak VRAM:** 1,569.00 MB
+| Workload | Ingested Frames | Samples Accepted ($S$) | Hop ($H$) | Expected Windows | Windows Generated | Completed Windows | Inferred Windows | Silent Skipped | Dropped Windows |
+|---|:---:|---:|---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Replay 1.5s Hop** | 2,341 | 18,728,000 (585.25s) | 48,000 (1.5s) | **389** | 389 | 389 | 389 | 0 | **0** |
+| **Replay 3.0s Hop** | 2,327 | 18,616,000 (581.75s) | 96,000 (3.0s) | **193** | 193 | 193 | 193 | 0 | **0** |
+| **Physical Mic (30 min)** | 7,200 | 57,600,000 (1800.0s) | 96,000 (3.0s) | **600** | 600 | 600 | 84 | 516 | **0** |
 
-### 5.3 Sustained Physical Microphone Test (30 Minutes Continuous Capture)
-- **Duration:** 1,805.38 seconds (30.1 minutes)
-- **Hardware Device:** `Microphone Array (Realtek(R) Audio)`, Device Index 1
-- **Native Hardware Sample Rate:** 44,100 Hz $\rightarrow$ **Resampled:** 32,000 Hz polyphase filter
-- **Frames Ingested:** 7,200 | **Frames Dropped:** **0**
-- **Segments Saved to DB:** 600
-- **Windows Processed:** 84 | **Windows Dropped:** **0** (0.00% drop rate)
-- **Detections Recorded:** 10 | **Disturbance Events:** 2 | **Fingerprints:** 30
-- **Max Queue Depth:** 1
-- **Memory Footprint:** Initial RSS: 1,182.63 MB $\rightarrow$ Final RSS: 961.01 MB ($\Delta = -221.62\text{ MB}$, periodic GC recovery)
-- **Peak VRAM:** 1,748.00 MB
-- **Graceful Shutdown:** Success
+#### Reconciliation Findings:
+1. **Replay 1.5s Hop (389 Windows):** Over 605s elapsed wall-clock time, 2,341 audio frames (250ms chunks) were sent due to sleep timer resolution on Windows ($2,341 \times 8,000 = 18,728,000\text{ samples} = 585.25\text{s}$). $\lfloor (18,728,000 - 96,000) / 48,000 \rfloor + 1 = 389$. Exactly 389 complete windows were eligible, generated, processed, and persisted in SQLite (`LiveSegment`). Zero drops.
+2. **Replay 3.0s Hop (193 Windows):** 2,327 audio frames were sent ($18,616,000\text{ samples} = 581.75\text{s}$). $\lfloor (18,616,000 - 96,000) / 96,000 \rfloor + 1 = 193$. Exactly 193 complete windows were eligible, generated, processed, and persisted. Zero drops.
+3. **Physical Mic 30 Min (600 Windows):** 7,200 frames of 250ms native microphone audio were captured, resampled, and written ($57,600,000\text{ samples} = 1,800.0\text{s}$). Exactly 600 windows were generated and written as `LiveSegment` records in SQLite.
+   - **84 Inferred Windows:** Windows where audio energy exceeded the silence threshold ($RMS \ge 10^{-4}$), executing full ONNX inference and extracting 10 bird detections and 2 disturbance events.
+   - **516 Silent Skipped Windows:** Windows in the quiet recording room where ambient energy fell below $10^{-4}\text{ RMS}$ ($-80\text{ dBFS}$). Heavy model forward passes were bypassed to conserve power and compute, recording `processing_status="silent_skipped"`.
+   - **Warning Reconciliation:** In previous unoptimized runs, each silent window triggered an `audio_quality_warning`, resulting in 516 redundant warnings. This has been updated so that expected environmental silence is communicated via standard `processing_update` (`status="silent_skipped", is_silent=True`), preserving `audio_quality_warning` solely for true anomalies (such as severe clipping $> 5\%$ or unparseable frames).
+
+### 5.2 Resource Stability Metrics
+- **Replay 1.5s Hop:** RAM growth strictly bounded ($\Delta = +53.50\text{ MB}$, initial 1,186.36 MB $\rightarrow$ final 1,239.86 MB); Peak VRAM 2,237.00 MB / 8,192 MB (27.3%).
+- **Replay 3.0s Hop:** RAM growth strictly bounded ($\Delta = +52.42\text{ MB}$, initial 1,185.08 MB $\rightarrow$ final 1,237.50 MB); Peak VRAM 1,569.00 MB.
+- **Physical Mic 30 Min:** Initial RAM 1,182.63 MB $\rightarrow$ Final RAM 961.01 MB ($\Delta = -221.62\text{ MB}$, verified periodic garbage collection); Peak VRAM 1,748.00 MB. Max queue depth = 1 across all 30 minutes. Graceful shutdown success.
 
 ---
 
@@ -197,9 +210,9 @@ The complete test suite was executed against the repository:
 | Metric / Dimension | Phase 4 Audit Baseline (`0721c99`) | Direct ONNX Integration (`feature/live-direct-onnx-inference`) | Improvement Factor |
 |---|---:|---:|:---:|
 | Live Model Execution Mode | Python subprocess (`birdnet.predict`) | In-memory `ort.InferenceSession` | Process boundary eliminated |
-| Inference Latency (GPU) | 6,078.75 ms | **33.89 ms** | **179.4x faster** |
-| Post-Window Total Latency | 6,135.75 ms | **63.55 ms** | **96.5x faster** |
-| Real-Time Factor (RTF) | 2.045 | **0.021** | **97.4x improvement** |
+| Inference Latency (GPU) | 6,078.75 ms | **36.58 ms** | **166.2x faster** |
+| Post-Window Total Latency | 6,135.75 ms | **69.12 ms** | **88.8x faster** |
+| Real-Time Factor (RTF) | 2.045 | **0.023** | **88.9x improvement** |
 | Windows Dropped (10 min replay) | 93 dropped windows | **0 dropped windows** | **100% elimination of drops** |
 | Windows Dropped (30 min mic) | Untested | **0 dropped windows** | **Zero-drop verified** |
 | Acoustic Embedding Overhead | Second subprocess call (~6s) | Precomputed in same forward pass (~0 ms) | Single-pass dual output |

@@ -218,6 +218,9 @@ class LiveSessionState:
             ),
             dropped_frames=self.dropped_frames,
             dropped_windows=self.inference_worker.dropped_windows + self.ring_buffer.dropped_windows,
+            processed_windows=self.inference_worker.processed_windows,
+            inferred_windows=self.inference_worker.inferred_windows,
+            silent_windows=self.inference_worker.silent_windows,
             inference_queue_size=self.inference_worker.queue_size,
             embedding_queue_size=embedding_worker.queue_size,
             soundscape_queue_size=soundscape_worker.queue_size,
@@ -466,7 +469,7 @@ class LiveSessionManager:
             samples_i16 = np.frombuffer(pcm_bytes, dtype="<i2")
             samples_f32 = samples_i16.astype(np.float32) / 32768.0
 
-        if warning:
+        if warning and "silent" not in warning.lower():
             await state.broadcast_event(
                 {
                     "type": "audio_quality_warning",
