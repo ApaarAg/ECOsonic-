@@ -6,6 +6,12 @@ from app.models.acoustic_memory import (
 )
 from app.models.analysis import Analysis, EmbeddingSegment
 from app.models.detection import Detection
+from app.models.environmental_intelligence import (
+    EnvironmentalIncident,
+    EnvironmentalReview,
+    GeographicContext,
+    HabitatComparison,
+)
 from app.models.live_session import LiveEvent, LiveSegment, LiveSession
 from app.models.review import Review
 from app.models.site import Site
@@ -31,4 +37,8 @@ __all__ = [
     "AcousticClusterRun",
     "AcousticClusterAssignment",
     "AcousticProjection",
+    "GeographicContext",
+    "HabitatComparison",
+    "EnvironmentalReview",
+    "EnvironmentalIncident",
 ]

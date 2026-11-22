@@ -754,3 +754,204 @@ Benchmarks and validates numerical parity between the exact NumPy BLAS dot-produ
 2. **Deterministic Audio Transport:** 32 kHz PCM16 with 4-byte sequence number framing is the singular standard for live streaming.
 3. **Low-Latency Guarantees:** Server-side processing overhead is guaranteed under 100 ms for every complete 3-second window.
 4. **Telemetry Integrity:** Window accounting ($S_{\text{eligible}} = \lfloor (S - W)/H \rfloor + 1$) strictly balances $\text{processed} = \text{inferred} + \text{silent\_skipped}$.
+
+---
+
+## 10. GEO-TEMPORAL ENVIRONMENTAL INTELLIGENCE & HABITAT MONITORING (PHASE 5)
+
+EcoSonic 3.0 Phase 5 extends bioacoustic monitoring with geographic occurrence modeling (BirdNET Geo V3.0), site-specific baseline profiles, multi-horizon statistical habitat drift comparisons, non-destructive expert review workflows, structured incident investigation records, and scientific ecological evidence reports.
+
+### 10.1 Geographic Occurrence Intelligence
+
+Contextualizes acoustic detections using spatial and seasonal distribution probabilities across 14,082 taxa modeled by BirdNET Geo V3.0.
+
+#### 10.1.1 Contextualize Detection
+- **Endpoint:** `POST /api/v1/geo/contextualize`
+- **Request Body (`GeoContextualizeRequest`):**
+```json
+{
+  "scientific_name": "Turdus migratorius",
+  "acoustic_confidence": 0.82,
+  "latitude": 42.44,
+  "longitude": -76.50,
+  "week": 20
+}
+```
+- **Response Format (`AcousticDetectionGeoContext`):**
+```json
+{
+  "detection_id": null,
+  "live_event_id": null,
+  "scientific_name": "Turdus migratorius",
+  "common_name": "American Robin",
+  "birdnet_taxonomy_id": "BN00321",
+  "acoustic_confidence": 0.82,
+  "geographic_score": 0.3842,
+  "occurrence_status": "expected",
+  "is_unusual_occurrence": false,
+  "review_recommended": false,
+  "flag_reason": null,
+  "disclaimer": "Geographic occurrence probabilities represent modeled regional and seasonal suitability from BirdNET Geo V3.0. They do NOT establish empirical presence or absence."
+}
+```
+
+#### 10.1.2 Site Regional Checklist
+- **Endpoint:** `GET /api/v1/sites/{site_id}/geo-context?week={week}`
+- **Response Format (`SiteGeoContextResponse`):** Returns regional species baseline checklist, expected species count, rare species count, and ranked probabilities.
+
+#### 10.1.3 Site Species Suitability
+- **Endpoint:** `GET /api/v1/sites/{site_id}/species-context?scientific_name={name}&confidence={conf}&week={week}`
+- **Response Format (`AcousticDetectionGeoContext`):** Evaluates occurrence suitability for a given species at the monitoring site.
+
+---
+
+### 10.2 Monitoring Site Intelligence & Privacy Tiers
+
+Manages physical sensor positions, ecosystem baseline parameters, and location sensitivity tiers.
+
+- **Coordinate Attribution Rule:** Single-sensor microphones record physical station coordinates only. Sound-source coordinates are never fabricated.
+- **Privacy Tiers:**
+  - `"exact"`: Exposes true physical GPS coordinates.
+  - `"generalized"`: Obfuscates coordinates to ~11 km resolution (2-decimal degrees).
+  - `"restricted"`: Fully suppresses public latitude and longitude (`null`), providing a protective disclaimer.
+
+#### 10.2.1 Site Aggregated History & Baseline Profile
+- **Endpoint:** `GET /api/v1/sites/{site_id}/history`
+- **Response Format (`SiteAcousticProfile`):**
+```json
+{
+  "site_id": "08418b53-ec75-496f-8216-7e9a3e994ba0",
+  "name": "Appalachian Field Site",
+  "ecosystem_category": "temperate_broadleaf_forest",
+  "recording_station_coords": {
+    "latitude": 38.5,
+    "longitude": -80.2,
+    "sensitivity": "generalized",
+    "note": "Coordinates generalized to protect precise species location."
+  },
+  "sound_source_localization_note": "Single-microphone deployments provide recording station coordinates only. Sound source coordinates are not estimated or fabricated.",
+  "total_sessions": 12,
+  "total_audio_hours": 36.0,
+  "species_richness_observed": 48,
+  "common_taxa": ["Turdus migratorius", "Cyanocitta cristata", "Parus major"],
+  "recent_disturbances_count": 3,
+  "last_observation_timestamp": "2026-11-20T14:30:00Z"
+}
+```
+
+---
+
+### 10.3 Habitat Drift Analysis Engine
+
+Computes scientifically defensible soundscape comparisons between monitoring recordings with rigorous duration normalization.
+
+- **Normalization Invariant:** All vocalization activity and disturbance occurrences are converted to hourly rates (`detections/hour`, `disturbances/hour`).
+- **Statistics:** Non-parametric Median Absolute Deviation (MAD) and robust Z-scores.
+- **Guardrail:** Fewer than 3 sessions return status `"insufficient_baseline"` rather than generating synthetic trends.
+- **Scientific Limitation:** Findings represent analytical acoustic screening; they never assert species extinction or habitat destruction.
+
+#### 10.3.1 Execute Habitat Comparison
+- **Endpoint:** `POST /api/v1/sites/{site_id}/comparisons`
+- **Request Body (`HabitatComparisonRequest`):**
+```json
+{
+  "baseline_session_id": "sess-uuid-1",
+  "target_session_id": "sess-uuid-2",
+  "comparison_type": "session_vs_session"
+}
+```
+- **Response Format (`HabitatComparisonResponse`):**
+```json
+{
+  "comparison_id": "comp-uuid",
+  "site_id": "site-uuid",
+  "comparison_type": "session_vs_session",
+  "baseline_session_id": "sess-uuid-1",
+  "target_session_id": "sess-uuid-2",
+  "drift_category": "increased_disturbance_activity",
+  "status": "completed",
+  "normalized_duration_ratio": 0.5,
+  "detection_rate_per_hour": {
+    "baseline_value": 10.0,
+    "target_value": 40.0,
+    "delta": 30.0,
+    "pct_change": 300.0,
+    "robust_z_score": null,
+    "is_statistically_significant": true
+  },
+  "disturbance_frequency_per_hour": {
+    "baseline_value": 1.0,
+    "target_value": 10.0,
+    "delta": 9.0,
+    "pct_change": 900.0,
+    "robust_z_score": null,
+    "is_statistically_significant": true
+  },
+  "explainable_findings": [
+    "Disturbance frequency increased from 1.0 to 10.0 events/hour."
+  ],
+  "scientific_limitations": "Habitat drift metrics report statistical differences in observed soundscape features and detection rates. They represent acoustic screening observations and never establish biological population trends, habitat degradation, or local extinction."
+}
+```
+
+#### 10.3.2 Multi-Temporal Site Drift Summary
+- **Endpoint:** `GET /api/v1/sites/{site_id}/habitat-drift`
+- **Response Format (`HabitatDriftSummaryResponse`):** Evaluates overall stability index, biophony and anthrophony trends, and recent comparisons.
+
+---
+
+### 10.4 Expert Verification & Review Workflows
+
+Provides a non-destructive human-in-the-loop audit trail. Original model inferences and scores are never mutated or deleted.
+
+#### 10.4.1 Review Environmental Event
+- **Endpoint:** `POST /api/v1/environmental-events/{event_id}/review`
+- **Status Code:** `201 Created`
+- **Request Body (`EventReviewRequest`):**
+```json
+{
+  "review_category": "unexpected_geographic_occurrence",
+  "target_type": "live_event",
+  "original_prediction": {"scientific_name": "Bubo virginianus"},
+  "original_score": 0.89,
+  "review_decision": "confirmed",
+  "reviewer_note": "Distinctive deep hoot sequence confirmed by field ornithologist."
+}
+```
+
+#### 10.4.2 Review List & Detail
+- **`GET /api/v1/environmental-reviews`:** Query reviews filtered by `site_id`, `session_id`, `review_category`, `review_decision`.
+- **`GET /api/v1/environmental-reviews/{review_id}`:** Retrieve review record and chronological audit trail (`history`).
+- **`PATCH /api/v1/environmental-reviews/{review_id}`:** Update review decision (`confirmed`, `rejected`, `uncertain`, `needs_more_evidence`) while preserving full audit history.
+
+---
+
+### 10.5 Environmental Incident Management
+
+Tracks, triages, and manages structured investigations for critical disturbance patterns and acoustic hazards.
+
+- **Priority Determination Rules:**
+  - Critical Hazards (`Gun`, `Explosion`, `Fire`): `critical` if confidence $\ge 0.50$, else `high`.
+  - Logging Activity (`Chainsaw`): `critical` if repetitions $\ge 3$ or confidence $\ge 0.75$, else `high`.
+  - Mechanical Activity (`Power tool`, `Sawing`, `Hammer`): `medium`.
+  - Transportation / Cultural (`Aircraft`, `Engine`, `Vehicle horn`): `low` or `informational`.
+- **Disclaimer:** Acoustic incident records do not establish criminal culpability or illegal logging without ground verification.
+
+#### 10.5.1 Incident Endpoints
+- **`POST /api/v1/environmental-incidents`:** Create structured incident record (`incident_code` e.g. `"INC-20261122-0001"`).
+- **`GET /api/v1/environmental-incidents`:** Filter incidents by site, session, status, and priority.
+- **`GET /api/v1/environmental-incidents/{incident_id}`:** Retrieve incident details by UUID or incident code.
+- **`PATCH /api/v1/environmental-incidents/{incident_id}`:** Update status (`detected`, `under_review`, `confirmed`, `dismissed`, `resolved`), investigation notes, and resolution notes.
+- **`GET /api/v1/sites/{site_id}/incidents`:** Site-scoped incidents list.
+
+---
+
+### 10.6 Ecological Evidence Reports
+
+Exports multi-session acoustic screening evidence in structured JSON and publication-ready CSV formats.
+
+- **Endpoint:** `GET /api/v1/sites/{site_id}/reports?format={json|csv}&mask_sensitive_locations={bool}`
+- **Supported Formats:**
+  - `format=json`: Comprehensive hierarchical JSON report including metadata, species inventory, observation tables, expert reviews, active incidents, and disclaimers.
+  - `format=csv`: Scientific CSV with metadata header comments (`# EcoSonic Ecological Evidence Report...`), suitable for R, Pandas, and QGIS workflows.
+- **Privacy Enforcement:** Respects site location sensitivity unless `mask_sensitive_locations=false` is requested.

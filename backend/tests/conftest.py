@@ -28,6 +28,7 @@ from app.models import (
     acoustic_memory,
     analysis,
     detection,
+    environmental_intelligence,
     live_session,
     review,
     site,

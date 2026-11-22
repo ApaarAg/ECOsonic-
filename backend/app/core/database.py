@@ -78,7 +78,15 @@ async def init_db() -> None:
     """Initializes tables in the database."""
     async with engine.begin() as conn:
         # Import models inside to ensure all models are registered on Base.metadata
-        from app.models import analysis, detection, live_session, soundscape, site, review  # noqa: F401
+        from app.models import (  # noqa: F401
+            analysis,
+            detection,
+            environmental_intelligence,
+            live_session,
+            review,
+            site,
+            soundscape,
+        )
         logger.info("Initializing database schema from metadata...")
         await conn.run_sync(Base.metadata.create_all)
 
@@ -86,12 +94,31 @@ async def init_db() -> None:
         def _ensure_sqlite_columns(sync_conn):
             cursor = sync_conn.connection.cursor()
             try:
+                # 1. Disturbance events
                 cursor.execute("PRAGMA table_info(disturbance_events)")
-                cols = {row[1] for row in cursor.fetchall()}
-                if cols and "category" not in cols:
+                dist_cols = {row[1] for row in cursor.fetchall()}
+                if dist_cols and "category" not in dist_cols:
                     cursor.execute("ALTER TABLE disturbance_events ADD COLUMN category VARCHAR(100)")
-                if cols and "hazard_classification" not in cols:
+                if dist_cols and "hazard_classification" not in dist_cols:
                     cursor.execute("ALTER TABLE disturbance_events ADD COLUMN hazard_classification VARCHAR(50)")
+
+                # 2. Sites table additions
+                cursor.execute("PRAGMA table_info(sites)")
+                site_cols = {row[1] for row in cursor.fetchall()}
+                if site_cols and "ecosystem_category" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN ecosystem_category VARCHAR(50) DEFAULT 'forest'")
+                if site_cols and "timezone" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN timezone VARCHAR(50) DEFAULT 'UTC'")
+                if site_cols and "location_sensitivity" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN location_sensitivity VARCHAR(50) DEFAULT 'exact'")
+                if site_cols and "generalized_latitude" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN generalized_latitude FLOAT")
+                if site_cols and "generalized_longitude" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN generalized_longitude FLOAT")
+                if site_cols and "ecosystem_profile_json" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN ecosystem_profile_json JSON")
+                if site_cols and "metadata_json" not in site_cols:
+                    cursor.execute("ALTER TABLE sites ADD COLUMN metadata_json JSON")
             except Exception as e:
                 logger.warning("Auto column migration check failed: %s", e)
             finally:
