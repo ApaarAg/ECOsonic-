@@ -147,12 +147,27 @@ Tests path traversal resistance across 6 injection vectors and validates coordin
 
 ---
 
-### 3.5 Full Fast Regression Test Suite
-Runs the complete fast backend test suite:
+### 3.5 Full Test Suite & Inventory Execution
+Runs the complete backend test suite across fast unit tests and real GPU model suites:
 
-**Command:**
+**Fast Regression Suite (171 tests):**
 ```powershell
-.venv\Scripts\python.exe -m pytest backend/tests/ -m "not real_model"
+.venv\Scripts\python.exe -m pytest backend/tests/ -m "not real_model" -q
 ```
+*Expected Outcome:* 171 passed, 13 deselected, 0 failed.
 
-**Expected Outcome:** 171 passed, 0 failed.
+**Real Model & Hardware Inference Suite (13 tests):**
+```powershell
+.venv\Scripts\python.exe -m pytest backend/tests/ -m "real_model" -q
+```
+*Expected Outcome:* 13 passed, 171 deselected, 0 failed.
+
+**Total Test Inventory:** 184 collected tests, 184 passed (100% pass rate).
+
+---
+
+### 3.6 Phase 6.1 Independent Audit Tools
+Additional deep dive scripts authored during Phase 6.1 independent audit:
+- `backend/tools/audit_phase6_1_scientific_deep_dive.py` -> produces `docs/phase6_1_scientific_deep_dive_results.json`
+- `backend/tools/audit_phase6_1_storage_and_backup.py` -> produces `docs/phase6_1_storage_and_backup_results.json`
+- `backend/tools/audit_phase6_1_reliability.py` -> produces `docs/PHASE_6_1_RELIABILITY_RESULTS.json`

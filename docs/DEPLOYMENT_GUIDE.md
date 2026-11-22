@@ -159,39 +159,111 @@ The persistent Docker volume `ecosonic_storage` maps directly to `/app/storage`:
 
 ## 7. Operational Runbooks
 
-### 7.1 Creating a Live Online Hot Backup
-To create a clean, non-locking backup of the live database while streaming sessions are active:
+### 7.1 Reverse Proxy & Authentication Perimeter (MANDATORY)
 
-```bash
-docker exec -it ecosonic-backend python -c "
-import sqlite3
-src = sqlite3.connect('file:/app/storage/db/ecosonic.db?mode=ro', uri=True)
-dst = sqlite3.connect('/app/storage/db/backup_$(date +%Y%m%d_%H%M%S).db')
-with dst:
-    src.backup(dst)
-src.close()
-dst.close()
-print('Hot backup created successfully.')
-"
+> [!CAUTION]
+> **No Built-In Authentication:** The EcoSonic 3.0 backend does not include built-in user authentication. Exposing raw port 8000 to the public internet allows unauthorized session creation and audio injection.
+> In production, EcoSonic **MUST** be deployed behind an authenticating reverse proxy (Nginx, Traefik, Caddy, or Cloudflare Tunnel) terminating TLS and enforcing JWT/OAuth or HTTP Basic authentication.
+
+#### Example Production Nginx Reverse Proxy Configuration:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name ecosonic.yourdomain.org;
+
+    ssl_certificate     /etc/letsencrypt/live/ecosonic/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ecosonic/privkey.pem;
+
+    client_max_body_size 100M;
+
+    # Require authentication on all API routes
+    auth_basic "EcoSonic Protected Bioacoustic Gateway";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+    # REST API endpoints
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Live streaming WebSocket endpoint
+    location /api/v1/live/ws/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}
 ```
 
-### 7.2 Restoring from Backup
+### 7.2 Two-Stage Coordinated Backup Protocol
+
+> [!WARNING]
+> **Do NOT back up `ecosonic.db` alone!**  
+> EcoSonic stores metadata in SQLite, but persists 379+ MB of audio snippets (`live_audio/`) and embeddings (`embeddings/`) directly on the filesystem. Restoring `ecosonic.db` without a synchronized filesystem backup produces orphaned database records pointing to non-existent WAV files.
+
+#### Recommended Hot Backup Script (`backup_ecosonic.sh`):
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+BACKUP_ROOT="/backups/ecosonic_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "${BACKUP_ROOT}/db" "${BACKUP_ROOT}/storage"
+
+echo "[1/4] Performing atomic SQLite online backup..."
+docker exec ecosonic-backend python -c "
+import sqlite3
+src = sqlite3.connect('file:/app/storage/db/ecosonic.db?mode=ro', uri=True)
+dst = sqlite3.connect('/app/storage/db/hot_backup.db')
+with dst:
+    src.backup(dst, pages=100)
+src.close()
+dst.close()
+"
+mv /var/lib/docker/volumes/ecosonic_storage/_data/db/hot_backup.db "${BACKUP_ROOT}/db/ecosonic.db"
+
+echo "[2/4] Archiving live audio snippets and embeddings..."
+rsync -a --delete \
+    /var/lib/docker/volumes/ecosonic_storage/_data/live_audio/ \
+    "${BACKUP_ROOT}/storage/live_audio/"
+rsync -a --delete \
+    /var/lib/docker/volumes/ecosonic_storage/_data/live_embeddings/ \
+    "${BACKUP_ROOT}/storage/live_embeddings/"
+
+echo "[3/4] Generating cryptographic SHA256 manifest..."
+cd "${BACKUP_ROOT}"
+find . -type f -exec sha256sum {} + > SHA256SUMS
+
+echo "[4/4] Coordinated backup completed successfully at: ${BACKUP_ROOT}"
+```
+
+### 7.3 Restoring from Coordinated Backup
 To restore a snapshot:
 1. Stop the backend container:
    ```bash
    docker compose stop ecosonic-backend
    ```
-2. Replace `/app/storage/db/ecosonic.db` with the backup file.
-3. Remove any stale `-wal` or `-shm` files:
+2. Replace `/app/storage/db/ecosonic.db` with the backup database file.
+3. Remove stale `-wal` and `-shm` files:
    ```bash
    rm -f /app/storage/db/ecosonic.db-wal /app/storage/db/ecosonic.db-shm
    ```
-4. Restart the service:
+4. Restore `live_audio/` and `live_embeddings/` directories from the storage backup.
+5. Verify SHA256 checksums match `SHA256SUMS`.
+6. Restart the service:
    ```bash
    docker compose start ecosonic-backend
    ```
 
-### 7.3 Log Inspection & Diagnostics
+### 7.4 Log Inspection & Diagnostics
 View real-time structured telemetry:
 
 ```bash

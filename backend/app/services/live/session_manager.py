@@ -422,6 +422,14 @@ class LiveSessionManager:
             return False, "Session is stopped; audio rejected."
 
         # Format & alignment validation
+        if len(pcm_bytes) == 0:
+            return False, "Empty PCM frame received; discarded."
+
+        # Reject oversized frames exceeding 10s of audio (e.g. DoS or packet corruption)
+        max_frame_bytes = 10 * state.sample_rate * 2 * state.channels
+        if len(pcm_bytes) > max_frame_bytes:
+            return False, f"Oversized PCM frame: {len(pcm_bytes)} bytes exceeds maximum allowed {max_frame_bytes} bytes."
+
         if state.channels > 1:
             bytes_per_sample = 2 * state.channels
             if len(pcm_bytes) % bytes_per_sample != 0:

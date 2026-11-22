@@ -204,7 +204,8 @@ class GeoTemporalIntelligenceService:
     ) -> np.ndarray:
         """Execute or retrieve cached Geo model probability vector across all 14,082 species.
 
-        Cache key: (round(lat, 3), round(lon, 3), week) ~110m spatial resolution.
+        Cache key: (round(lat, 3), round(lon, 3), week).
+        Quantizes coordinates to 0.001° resolution (~111 m latitudinally; ~111·cos(latitude) km longitudinally, e.g. ~79 m at 45°N).
         """
         self.load_model()
         lat_clean, lon_clean = self.validate_coordinates(latitude, longitude)

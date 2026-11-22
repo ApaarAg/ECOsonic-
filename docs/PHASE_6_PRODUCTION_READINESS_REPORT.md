@@ -4,7 +4,7 @@
 **Release:** EcoSonic 3.0.0 Production Backend  
 **Audit Branch:** `integration/ecosonic-v1-release`  
 **Execution Environment:** Windows x64 (Python 3.11.15), NVIDIA RTX GPU (Direct ONNX CUDAExecutionProvider)  
-**Status:** PRODUCTION READY (PASSED)  
+**Status:** QUALIFIED FOR RELEASE (CONDITIONAL GO)  
 
 ---
 
@@ -27,12 +27,14 @@ Abrupt Disconnect Recovery            84.09 ms clean shutdown         PASS
 Corrupted Frame Injection             Gracefully rejected             PASS
 Concurrent Live Streams Capacity      5 streams: 0.00% dropped        PASS
 SQLite WAL Configuration              PRAGMA journal_mode=WAL         PASS
-Hot Database Backup Integrity         Integrity Check: OK (0.045s)    PASS
+Hot Database Backup Integrity         Integrity Check: OK (0.045s)    PASS (QUALIFIED)
 Engine Restart Query Fidelity         100% Entity Preservation        PASS
 Path Traversal Attack Resistance      6 / 6 Payloads Confined         PASS
 Coordinate Privacy Policies           Exact, Generalized, Restricted  PASS
+Authentication Boundary               No Auth Layer (Proxy Req.)      ARCHITECTURAL
+Docker Container Runtime              Daemon Offline on Audit Host    BLOCKED
 ================================================================================
-OVERALL PRODUCTION VERDICT:           ACCEPTED FOR RELEASE
+OVERALL PRODUCTION VERDICT:           CONDITIONAL GO FOR RELEASE
 ================================================================================
 ```
 
@@ -125,9 +127,17 @@ Raw audio windows are written to `/storage/live_audio/{session_id}/segment_{star
 
 ### 5.3 Live Hot Database Online Backup & Restore
 A hot snapshot of the live SQLite database was created while WAL transactions were active using the SQLite online backup protocol:
-- **Backup Execution Duration:** 0.0448 seconds
+- **Backup Execution Duration:** 0.0448 seconds (confirmed in 0.080s in Phase 6.1 independent re-test)
 - **PRAGMA integrity_check:** **`ok`**
 - **Row Count Parity:** 100% parity across `sites`, `live_sessions`, `live_segments`, `live_events`, `disturbance_events`, and `soundscape_measurements`.
+
+> [!WARNING]
+> **Critical Backup & Disaster Recovery Boundary:**
+> SQLite online backups (`sqlite3.backup` or `VACUUM INTO`) only duplicate the relational catalog (`ecosonic.db`). They do **NOT** back up external filesystem storage:
+> - `backend/storage/live_audio/` (2,040 recorded `.wav` segments)
+> - `backend/storage/embeddings/` (1,103 `.npy` feature vectors)
+> - `backend/storage/audio/` (uploaded analysis files)
+> Totaling ~379 MB across 3,143 files. Restoring `ecosonic.db` without a synchronized storage snapshot leaves thousands of database records pointing to non-existent disk files. Production operations must execute a coordinated two-stage backup (SQLite snapshot + atomic directory rsync).
 
 ### 5.4 Restart Persistence Verification
 The database engine connection pool was completely disposed and re-initialized:
@@ -158,9 +168,17 @@ The `Site.get_public_coordinates()` method was audited across all sensitivity ti
 ### 6.3 Sensitive Route & Secret Protection
 HTTP path inspection confirmed that `/.env`, `/.model_cache`, `/storage`, and `/test_ecosonic.db` return `404 Not Found` or `405 Method Not Allowed`, preventing direct file retrieval.
 
+### 6.4 Architectural Authentication Boundary
+The EcoSonic backend currently does **not** include an internal user authentication or JWT authorization middleware.
+- **Architectural Designation:** Designed as an internal bioacoustic microservice / edge worker.
+- **Deployment Mandate:** The API must NEVER be exposed directly to the public internet without an authenticating reverse proxy (Nginx, Traefik, Caddy, Cloudflare Access) or private VPC/VPN perimeter. Exposing raw port 8000 allows unauthenticated session creation and audio injection.
+
 ---
 
 ## 7. Stage F: Containerization & Deployment
+
+> [!NOTE]
+> **Runtime Verification Status:** Docker CLI 29.1.3 is present on the audit host, but the Docker Desktop daemon service was offline during Phase 6.1 verification. Multi-stage Dockerfile and Docker Compose syntax were statically validated (see `docs/PHASE_6_1_DOCKER_VERIFICATION.md`). Container runtime execution is marked **BLOCKED**.
 
 ### 7.1 Multi-Stage Dockerfile Verification
 The production `backend/Dockerfile` implements:

@@ -78,13 +78,24 @@ To prevent poaching, illegal egg collection, and disruptive human visitation in 
 
 ---
 
-## 5. Automated Data Pruning Protocol
+## 5. Automated Data Pruning Protocol & Reference Integrity
 
-EcoSonic administrators may schedule periodic storage reclamation:
+To prevent orphaned database references, filesystem pruning must be coordinated with database record updates.
 
 ```bash
-# Clean up raw WAV segments older than 14 days while preserving embeddings & metrics
+# Step 1: Remove expired WAV files older than 14 days
 find /app/storage/live_audio/ -type f -name "*.wav" -mtime +14 -delete
+
+# Step 2: Reconcile database references to reflect purged audio
+# Set audio_path = NULL for pruned segments so API endpoints return 410 Gone / null instead of 500
+sqlite3 /app/storage/db/ecosonic.db "
+UPDATE live_segments 
+SET audio_path = NULL 
+WHERE id IN (
+    SELECT id FROM live_segments 
+    WHERE created_at < datetime('now', '-14 days')
+);
+"
 ```
 
 ---

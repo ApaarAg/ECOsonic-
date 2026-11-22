@@ -3,7 +3,7 @@
   "recordings": [
     {
       "file": "birds_forest.ogg",
-      "analysis_id": "1afa7851-df28-4db6-919f-53d82a018356",
+      "analysis_id": "4475dcd8-ed37-4309-a01c-1843b0db5979",
       "status": "completed",
       "recording_duration_seconds": 14.65469387755102,
       "processed_audio": {
@@ -25,8 +25,8 @@
           "confidence_score": 0.9275641441345215,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "f876b9cf-99f1-4de1-917e-bdd737d14427",
-          "analysis_id": "1afa7851-df28-4db6-919f-53d82a018356",
+          "id": "1ee720af-ef98-428e-951d-58dcd0a000ba",
+          "analysis_id": "4475dcd8-ed37-4309-a01c-1843b0db5979",
           "reviews": []
         },
         {
@@ -40,8 +40,8 @@
           "confidence_score": 0.7829364538192749,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "db000ee9-3912-41ef-92f7-6d7ffa9a74cc",
-          "analysis_id": "1afa7851-df28-4db6-919f-53d82a018356",
+          "id": "b0d4df7b-34a0-4386-a639-ad8c0334347c",
+          "analysis_id": "4475dcd8-ed37-4309-a01c-1843b0db5979",
           "reviews": []
         },
         {
@@ -55,8 +55,8 @@
           "confidence_score": 0.7508766055107117,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "d223c6cb-0b7f-466b-9d05-1bd155661810",
-          "analysis_id": "1afa7851-df28-4db6-919f-53d82a018356",
+          "id": "5d58458c-e5b8-4c8c-b381-2c1883c043f5",
+          "analysis_id": "4475dcd8-ed37-4309-a01c-1843b0db5979",
           "reviews": []
         },
         {
@@ -70,8 +70,8 @@
           "confidence_score": 0.5784634947776794,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "0ed58e45-75e2-4ac4-870c-36db6d5447c6",
-          "analysis_id": "1afa7851-df28-4db6-919f-53d82a018356",
+          "id": "5b14d0b6-2afb-4731-b77b-5275e3221562",
+          "analysis_id": "4475dcd8-ed37-4309-a01c-1843b0db5979",
           "reviews": []
         },
         {
@@ -85,8 +85,8 @@
           "confidence_score": 0.5495466589927673,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "e47d84a7-256a-4470-9efd-447f703b8c69",
-          "analysis_id": "1afa7851-df28-4db6-919f-53d82a018356",
+          "id": "d2bdf061-2efc-47f2-9e6e-e461e16cb606",
+          "analysis_id": "4475dcd8-ed37-4309-a01c-1843b0db5979",
           "reviews": []
         }
       ],
@@ -109,18 +109,18 @@
         "completed"
       ],
       "timings": {
-        "preprocessing_seconds": 0.04106550000142306,
-        "prediction_seconds": 2.8080524999968475,
-        "encoding_seconds": 2.260866199998418,
-        "database_insertion_seconds": 0.008216400005039759,
-        "total_analysis_seconds": 5.238929200000712
+        "preprocessing_seconds": 0.059928500006208196,
+        "prediction_seconds": 2.8982288999832235,
+        "encoding_seconds": 2.875289799994789,
+        "database_insertion_seconds": 0.005210400006035343,
+        "total_analysis_seconds": 5.985327100002905
       },
-      "model_initialization_seconds": 0.3574969999899622,
-      "peak_rss_bytes": 484978688
+      "model_initialization_seconds": 0.021146399987628683,
+      "peak_rss_bytes": 1862799360
     },
     {
       "file": "frog_mixed.ogg",
-      "analysis_id": "8a5df466-d492-45fd-b7da-4aee321fefa1",
+      "analysis_id": "80711685-19c8-4785-a167-f4822788e7e3",
       "status": "completed",
       "recording_duration_seconds": 32.854784580498865,
       "processed_audio": {
@@ -142,8 +142,8 @@
           "confidence_score": 0.6797631978988647,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "be2b923c-f893-4940-9db3-bdf70e52e63e",
-          "analysis_id": "8a5df466-d492-45fd-b7da-4aee321fefa1",
+          "id": "f9f2f508-ae95-496a-b5ac-ba0d88a91cea",
+          "analysis_id": "80711685-19c8-4785-a167-f4822788e7e3",
           "reviews": []
         },
         {
@@ -157,8 +157,8 @@
           "confidence_score": 0.673704206943512,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "1ba0b36c-6ebc-4b7e-bbaf-3ef46814227a",
-          "analysis_id": "8a5df466-d492-45fd-b7da-4aee321fefa1",
+          "id": "06eec6f3-508f-4e42-815f-5037857e39a3",
+          "analysis_id": "80711685-19c8-4785-a167-f4822788e7e3",
           "reviews": []
         },
         {
@@ -172,8 +172,8 @@
           "confidence_score": 0.3708914518356323,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "0abadb0a-0fff-433f-86a3-fde895d19496",
-          "analysis_id": "8a5df466-d492-45fd-b7da-4aee321fefa1",
+          "id": "5ce0e769-f065-4013-9016-f251f7b0753f",
+          "analysis_id": "80711685-19c8-4785-a167-f4822788e7e3",
           "reviews": []
         },
         {
@@ -187,8 +187,8 @@
           "confidence_score": 0.35138559341430664,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "24d8cc50-dbbb-4d8f-88e4-fc4cb5edec6e",
-          "analysis_id": "8a5df466-d492-45fd-b7da-4aee321fefa1",
+          "id": "59db2a90-6663-4229-8550-dc48fff49f9e",
+          "analysis_id": "80711685-19c8-4785-a167-f4822788e7e3",
           "reviews": []
         },
         {
@@ -202,8 +202,8 @@
           "confidence_score": 0.3112563490867615,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "46b2c61c-e40b-4cc8-a2fd-04942d25c606",
-          "analysis_id": "8a5df466-d492-45fd-b7da-4aee321fefa1",
+          "id": "af7d1835-65cb-4005-9193-b822837282da",
+          "analysis_id": "80711685-19c8-4785-a167-f4822788e7e3",
           "reviews": []
         }
       ],
@@ -226,18 +226,18 @@
         "completed"
       ],
       "timings": {
-        "preprocessing_seconds": 0.04735600001004059,
-        "prediction_seconds": 2.7973357000009855,
-        "encoding_seconds": 2.713972500001546,
-        "database_insertion_seconds": 0.008132600007229485,
-        "total_analysis_seconds": 5.703149299995857
+        "preprocessing_seconds": 0.056257100019138306,
+        "prediction_seconds": 2.7718763999873772,
+        "encoding_seconds": 2.5264724000007845,
+        "database_insertion_seconds": 0.006091499992180616,
+        "total_analysis_seconds": 5.475445700023556
       },
-      "model_initialization_seconds": 0.3574969999899622,
-      "peak_rss_bytes": 488087552
+      "model_initialization_seconds": 0.021146399987628683,
+      "peak_rss_bytes": 1862799360
     },
     {
       "file": "cicada_orni.ogg",
-      "analysis_id": "825c01ec-a044-4b7c-b5ef-854ced51f23d",
+      "analysis_id": "529d2989-5efe-452a-a8c7-ac1fee8c31e9",
       "status": "completed",
       "recording_duration_seconds": 28.841,
       "processed_audio": {
@@ -259,8 +259,8 @@
           "confidence_score": 0.9139165878295898,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "44c8be07-d7a3-41b3-9ba8-5a86c81539a5",
-          "analysis_id": "825c01ec-a044-4b7c-b5ef-854ced51f23d",
+          "id": "e7be7330-4750-4c8b-b11f-13d1b6c77d7a",
+          "analysis_id": "529d2989-5efe-452a-a8c7-ac1fee8c31e9",
           "reviews": []
         },
         {
@@ -274,8 +274,8 @@
           "confidence_score": 0.9040298461914062,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "f7eceaf0-6659-48cc-9e59-53f4b7b88016",
-          "analysis_id": "825c01ec-a044-4b7c-b5ef-854ced51f23d",
+          "id": "95f9a0ec-4b93-42b2-b033-d9656e0b660a",
+          "analysis_id": "529d2989-5efe-452a-a8c7-ac1fee8c31e9",
           "reviews": []
         },
         {
@@ -289,8 +289,8 @@
           "confidence_score": 0.8855564594268799,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "32142fa8-1090-4cca-aa97-a12a8de45223",
-          "analysis_id": "825c01ec-a044-4b7c-b5ef-854ced51f23d",
+          "id": "62d23457-f77b-48db-b854-27a8e4d78ac3",
+          "analysis_id": "529d2989-5efe-452a-a8c7-ac1fee8c31e9",
           "reviews": []
         },
         {
@@ -304,8 +304,8 @@
           "confidence_score": 0.8816275000572205,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "f829a43a-e961-491f-85c0-42bd10e0423f",
-          "analysis_id": "825c01ec-a044-4b7c-b5ef-854ced51f23d",
+          "id": "ebe7ddb2-7000-4116-90d1-1b3567a33dca",
+          "analysis_id": "529d2989-5efe-452a-a8c7-ac1fee8c31e9",
           "reviews": []
         },
         {
@@ -319,8 +319,8 @@
           "confidence_score": 0.8577947020530701,
           "geo_score": null,
           "review_status": "unreviewed",
-          "id": "c0840cd5-fccb-4409-a4c6-01a78a0d0bf0",
-          "analysis_id": "825c01ec-a044-4b7c-b5ef-854ced51f23d",
+          "id": "7081ec15-d6c5-4926-a958-b579bec8cc9f",
+          "analysis_id": "529d2989-5efe-452a-a8c7-ac1fee8c31e9",
           "reviews": []
         }
       ],
@@ -343,14 +343,14 @@
         "completed"
       ],
       "timings": {
-        "preprocessing_seconds": 0.04420699999900535,
-        "prediction_seconds": 2.51227179999114,
-        "encoding_seconds": 2.502144500002032,
-        "database_insertion_seconds": 0.0079258000041591,
-        "total_analysis_seconds": 5.190825199999381
+        "preprocessing_seconds": 0.040621699998155236,
+        "prediction_seconds": 2.433310699998401,
+        "encoding_seconds": 2.4298068000061903,
+        "database_insertion_seconds": 0.004881000000750646,
+        "total_analysis_seconds": 5.05021499999566
       },
-      "model_initialization_seconds": 0.3574969999899622,
-      "peak_rss_bytes": 488087552
+      "model_initialization_seconds": 0.021146399987628683,
+      "peak_rss_bytes": 1862799360
     }
   ]
 }

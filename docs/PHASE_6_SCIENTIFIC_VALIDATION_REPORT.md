@@ -5,7 +5,7 @@
 **Target Release:** EcoSonic v1.0 Production Backend  
 **Audit Branch:** `integration/ecosonic-v1-release`  
 **Execution Environment:** Windows x64 (Python 3.11.15), NVIDIA CUDAExecutionProvider (Direct ONNX GPU)  
-**Status:** VALIDATED & APPROVED  
+**Status:** QUALIFIED VALIDATION (OPERATIONAL DEMONSTRATION & MATHEMATICAL PARITY CONFIRMED)  
 
 ---
 
@@ -13,21 +13,27 @@
 
 This report establishes the empirical scientific validation of the integrated EcoSonic 3.0 bioacoustic intelligence backend. All seven scientific intelligence modules were evaluated against experimental and empirical benchmarks utilizing real bioacoustic field recordings (`birds_forest.ogg`, `frog_mixed.ogg`, `cicada_orni.ogg`, and 1,897 multi-session live monitoring chunks from `backend/storage/live_audio/`).
 
+> [!IMPORTANT]
+> **Independent Audit Notice (Phase 6.1):** Ground-truth bioacoustic annotations (e.g., Raven selection tables or Audacity label tracks) are NOT present in the repository. Evaluations on test recordings demonstrate **operational multi-taxa inference, temporal stability, and software correctness**, not calibrated model precision/recall. True model accuracy must be evaluated against standardized bioacoustic benchmarks prior to formal conservation reporting.
+
 Key empirical findings:
-1. **Multi-Taxa Acoustic Discrimination:** Verified across Aves (Willow Warbler, 71.16% confidence), Amphibia (Eastern Banjo Frog / Pobblebonk, 35.23% confidence), and Insecta (Ash Cicada, 89.26% confidence) with raw forward pass latency of 34.58 ms – 45.85 ms on GPU.
-2. **Taxonomy & Geographic Occurrence Reconciliation:** 10,874 of 11,725 acoustic classes (92.74%) were mapped to the BirdNET Geo V3.0 occurrence model. Exactly 16 classes were classified as non-taxonomic anthropogenic/disturbance categories (`occurrence_score = None`, status `"not_applicable"`), and 835 unmodeled taxa were isolated (`occurrence_score = None`, status `"unmodeled"`).
-3. **Soundscape Fingerprint Stability:** ACI, ADI, AEI, NDSI, and Spectral Shannon Entropy demonstrated mathematical scale invariance under gain variations from -12 dB to +12 dB (ADI: 1.5083, AEI: 0.8232, NDSI: 0.2081, Spectral Entropy: 0.7302 across all tested gains).
-4. **Disturbance Radar & Bout Deduplication:** Consecutive industrial impulse events consolidated at a 2.0x ratio into continuous incident bouts, eliminating alert fragmentation.
-5. **Acoustic Memory Precision & Parity:** Exact vector dot-product parity between FAISS `IndexFlatIP` and NumPy brute-force cosine similarity demonstrated a maximum absolute difference $|\Delta| = 2.38 \times 10^{-7}$ ($< 10^{-5}$ acceptance ceiling), with 100.0% Recall@1, Recall@5, and Recall@10. UMAP 2D projections with `random_state=42` achieved zero coordinate deviation ($\Delta = 0.00$).
-6. **Acoustic Anomaly Sensitivity:** Multi-factor novelty scoring successfully separated normal biophony ($S=0.225$) from severe sensor glitches ($S=0.895$) and novel bioacoustic signals ($S=0.530$).
-7. **Habitat Drift Statistical Robustness:** Median and Median Absolute Deviation (MAD) proved immune to extreme outlier contamination, maintaining robust Z-score stability ($Z=5.40$ on clean baseline vs $Z=2.70$ on 10x outlier baseline, compared to standard Z-score complete inversion from $+5.66$ to $-0.38$).
+1. **Multi-Taxa Acoustic Inference:** Verified across Aves (Willow Warbler, 71.16% confidence), Amphibia (Eastern Banjo Frog / Pobblebonk, 35.23% confidence), and Insecta (Ash Cicada, 89.26% confidence) with raw forward pass latency of 34.58 ms – 45.85 ms on GPU.
+2. **Taxonomy & Geographic Occurrence Reconciliation:** 10,874 of 11,725 acoustic classes (92.74%) were mapped to the BirdNET Geo V3.0 occurrence model. Exactly 16 classes were classified as non-taxonomic anthropogenic/disturbance categories (`occurrence_score = None`, status `"not_applicable"`), and 835 unmodeled taxa were isolated (`occurrence_score = None`, status `"unmodeled"`): 564 non-avian classes unmodeled by eBird Geo, 43 taxonomic synonyms, and 228 island endemics.
+3. **Soundscape Fingerprint Stability:** ACI, ADI, AEI, NDSI, and Spectral Shannon Entropy demonstrated mathematical scale invariance under ideal digital linear gain variations from -12 dB to +12 dB (ADI: 1.5083, AEI: 0.8232, NDSI: 0.2081, Spectral Entropy: 0.7302 across all tested gains). Physical hardware boundary breakdowns (silence, clipping, mic roll-off, preamp noise) were formally characterized.
+4. **Disturbance Radar & Bout Deduplication:** Consecutive industrial impulse events consolidated at a 2.0x ratio into continuous incident bouts, eliminating alert fragmentation. Detections are screening observations, not legal evidence.
+5. **Acoustic Memory Precision & Parity:** Exact vector dot-product parity between FAISS `IndexFlatIP` and NumPy brute-force cosine similarity demonstrated a maximum absolute difference $|\Delta| = 3.35 \times 10^{-8}$ ($< 10^{-5}$ acceptance ceiling), with 100.0% Recall@1, Recall@5, and Recall@10. UMAP 2D projections with `random_state=42` achieved zero coordinate deviation ($\Delta = 0.00$).
+6. **Acoustic Anomaly Sensitivity:** Multi-factor novelty scoring successfully separated normal biophony ($S=0.225$) from severe sensor glitches ($S=0.895$) and novel bioacoustic signals ($S=0.530$). Scores are uncalibrated outlier metrics, not biological probabilities.
+7. **Habitat Drift Statistical Robustness:** Median and Median Absolute Deviation (MAD) proved immune to extreme outlier contamination, maintaining robust Z-score stability ($Z=5.40$ on clean baseline vs $Z=2.70$ on 10x outlier baseline, compared to standard Z-score complete inversion from $+5.66$ to $-0.38$). Drift measures statistical distribution divergence, not biological population decline.
 
 ---
 
 ## 1. BirdNET Acoustic Model Validation
 
-### 1.1 Multi-Taxa Classification Performance
+### 1.1 Multi-Taxa Operational Inference Demonstration
 Direct in-memory inference was executed across three primary bioacoustic taxonomic groups using native 32 kHz 3.0-second inference windows:
+
+> [!NOTE]
+> **Evaluation Classification:** In the absence of independently verified, time-aligned bioacoustic annotations, these tests demonstrate the functional execution of the ONNX inference pipeline across diverse frequency ranges (amphibian low-frequency bellows, avian harmonics, and insect high-frequency stridulation). They are categorized as **inference demonstrations**, not model accuracy benchmarks.
 
 | Taxonomic Class | Source File | Top Species Prediction | Common Name | Confidence Score | GPU Latency | Embedding Norm |
 |---|---|---|---|---:|---:|---:|
@@ -80,7 +86,12 @@ Total BirdNET Geo Model Species:       14,082
 Reconciled Exact Matches:              10,874 (92.74%)
 Non-Taxonomic Disturbance Classes:         16 (0.14%)
 Unmodeled Acoustic Taxa:                  835 (7.12%)
+  - Non-Avian Taxa (Insecta/Amphibia/Mammalia/Fish/Reptiles): 564
+  - Taxonomic Nomenclature Synonyms / Splits:                   43
+  - Remote Island Endemics / Pelagic Species:                  228
 ```
+
+*Scientific Policy:* For all 835 unmodeled taxa, the service returns `occurrence_score = None` with status `"unmodeled"`. This gracefully falls back to raw acoustic inference without applying an ungrounded geographic penalty or causing a runtime crash.
 
 ### 2.2 Non-Taxonomic Disturbance Class Inventory
 The 16 non-taxonomic sound classes physically present in BirdNET+ V3.0:
@@ -157,6 +168,14 @@ Audio amplitudes were scaled across a 24 dB dynamic range ($-12\text{ dB}$ to $+
 | **+12.0 dB** | $3.9811\times$ | 372.05 | 1.5083 | 0.8232 | +0.2081 | 0.7302 |
 
 *Scientific Proof:* **Exact mathematical invariance** was demonstrated for ADI, AEI, NDSI, and Spectral Entropy across the entire dynamic range ($\Delta = 0.0000$). ACI varied by less than 0.2% due to discrete quantization bounds.
+
+> [!WARNING]
+> **Physical Sensor Hardware Breakdown Limits:**
+> While scale invariance is mathematically exact under ideal digital scaling, physical deployment hardware imposes concrete operational boundaries:
+> 1. **Extreme Silence ($< 10^{-4}$ RMS):** Signal power drops near floating-point epsilon ($10^{-12}$), causing spectrogram normalization denominators to approach zero and triggering the `silent_window` quality flag.
+> 2. **Digital Saturation / Clipping ($> 0.999$ amplitude):** Hard clipping introduces odd-harmonic distortion that generates false high-frequency energy, distorting NDSI and elevating spectral entropy. The engine flags this via `clipping_detected`.
+> 3. **Hardware Frequency Response:** Microphones with analog high-pass roll-offs ($< 500$ Hz) attenuate low-frequency anthrophony, artificially inflating NDSI.
+> 4. **Preamp Analog Noise Floor:** High thermal/flicker noise elevates energy across quiet bands, driving AEI toward 1.0 (false maximum evenness).
 
 ### 3.3 Noise Floor Robustness (SNR Degradation Curve)
 Additive Gaussian noise was injected at decreasing Signal-to-Noise Ratios:
@@ -242,6 +261,10 @@ Sensitivity was evaluated across distinct environmental acoustic archetypes:
 
 *Result:* The default balanced weighting (0.4/0.3/0.3) cleanly stratifies signals across baseline tiers ($0.225$ for known biophony, $0.530$ for novel calls, and $0.895$ for broadband hardware artifacts).
 
+> [!NOTE]
+> **Heuristic Interpretation & Non-Taxonomic Disclaimer:**
+> The composite anomaly score $S \in [0.0, 1.0]$ is an **uncalibrated outlier rank**, NOT a biological discovery probability. A high anomaly score signifies that an acoustic segment deviates from the indexed background manifold (e.g., enclosure thumps, rain on sensor housing, novel acoustic phenomena), not that a new or endangered species is present. All candidates must undergo manual human verification.
+
 ---
 
 ## 7. Habitat Drift Statistical Validation
@@ -282,11 +305,12 @@ The baseline sufficiency guardrail was validated across session history sizes:
 
 ## Conclusion & Scientific Verdict
 
-The EcoSonic 3.0 intelligence engine has satisfied all empirical, theoretical, and numerical criteria for scientific deployment:
-1. Multi-taxa acoustic validation confirmed.
-2. 10,874 species mapped with non-taxonomic disturbance isolation.
-3. Ecoacoustic indices demonstrate scale invariance under dynamic range shifts.
-4. FAISS and NumPy parity confirmed with $|\Delta| < 2.39 \times 10^{-7}$.
-5. Robust statistics guard against field noise contamination.
+The EcoSonic 3.0 intelligence engine has satisfied all empirical, theoretical, and numerical criteria for operational software readiness:
+1. Operational multi-taxa acoustic forward inference confirmed across Aves, Amphibia, and Insecta.
+2. 10,874 species mapped with non-taxonomic disturbance isolation and graceful fallback for 835 unmodeled classes.
+3. Ecoacoustic indices demonstrate mathematical scale invariance under linear dynamic range shifts, with documented hardware boundary limitations.
+4. FAISS and NumPy vector retrieval parity confirmed with $|\Delta| < 3.35 \times 10^{-8}$.
+5. Robust statistics (MAD) mathematically protect against outlier contamination in habitat drift analysis.
 
-**Stage B Scientific Validation: APPROVED.**
+**Stage B Scientific Validation: QUALIFIED PASS.**  
+*Release Condition:* Operational deployment is approved for monitoring and screening; formal ecological claims and legal enforcement must be backed by expert verification and annotated bioacoustic ground truth benchmarks.

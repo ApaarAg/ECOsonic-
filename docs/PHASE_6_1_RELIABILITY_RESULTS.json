@@ -1,0 +1,87 @@
+{
+  "suite": "EcoSonic 3.0 Phase 6.1 Independent Reliability & Endurance Audit",
+  "timestamp": "2026-11-22T11:01:22Z",
+  "replay_endurance": {
+    "status": "REVIEW",
+    "duration_seconds": 303.34,
+    "total_frames_sent": 1131,
+    "processed_windows": 94,
+    "dropped_windows": 0,
+    "detections_count": 378,
+    "ram_initial_mb": 1179.73,
+    "ram_final_mb": 1231.42,
+    "ram_growth_delta_mb": 51.69,
+    "peak_ram_mb": 1276.31,
+    "peak_vram_mb": 1982.0,
+    "mean_cpu_percent": 8.03,
+    "max_queue_depth": 1,
+    "mean_queue_depth": 0.27,
+    "saved_segments_count": 94,
+    "saved_events_count": 378,
+    "saved_fingerprints_count": 4,
+    "saved_disturbances_count": 0,
+    "dropped_window_events": []
+  },
+  "failure_injection_and_recovery": {
+    "abrupt_disconnect": {
+      "shutdown_latency_ms": 124.69,
+      "session_final_status": "stopped",
+      "clean_shutdown": true
+    },
+    "corrupted_audio_injection": [
+      {
+        "case": "odd_byte_length",
+        "accepted": false,
+        "warning": "Invalid PCM16 frame length: 3 bytes is not a multiple of 2.",
+        "handled_gracefully": true
+      },
+      {
+        "case": "empty_payload",
+        "accepted": false,
+        "warning": "Empty PCM frame received; discarded.",
+        "handled_gracefully": true
+      },
+      {
+        "case": "oversized_payload",
+        "accepted": false,
+        "warning": "Oversized PCM frame: 2000000 bytes exceeds maximum allowed 640000 bytes.",
+        "handled_gracefully": true
+      }
+    ],
+    "restart_recovery": {
+      "abandoned_sessions_reconciled": 3,
+      "database_wal_verified": true
+    }
+  },
+  "concurrency_capacity": {
+    "concurrency_evaluations": [
+      {
+        "concurrent_sessions": 1,
+        "duration_s": 15.0,
+        "total_frames_ingested": 60,
+        "total_windows_processed": 5,
+        "total_windows_dropped": 0,
+        "windows_per_second": 0.33,
+        "drop_rate_pct": 0.0
+      },
+      {
+        "concurrent_sessions": 3,
+        "duration_s": 15.0,
+        "total_frames_ingested": 177,
+        "total_windows_processed": 12,
+        "total_windows_dropped": 0,
+        "windows_per_second": 0.8,
+        "drop_rate_pct": 0.0
+      },
+      {
+        "concurrent_sessions": 5,
+        "duration_s": 15.0,
+        "total_frames_ingested": 303,
+        "total_windows_processed": 25,
+        "total_windows_dropped": 0,
+        "windows_per_second": 1.67,
+        "drop_rate_pct": 0.0
+      }
+    ]
+  }
+}

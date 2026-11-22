@@ -1,0 +1,356 @@
+{
+  "audit": "EcoSonic 3.0 Phase 6.1 Scientific Deep Dive",
+  "timestamp": "2026-11-22T10:52:02Z",
+  "stage_2_c_soundscape_invariance": {
+    "gain_sweep_eval": [
+      {
+        "gain_db": -12.0,
+        "gain_multiplier": 0.2512,
+        "aci": 372.21,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      },
+      {
+        "gain_db": -6.0,
+        "gain_multiplier": 0.5012,
+        "aci": 372.69,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      },
+      {
+        "gain_db": -3.0,
+        "gain_multiplier": 0.7079,
+        "aci": 372.45,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      },
+      {
+        "gain_db": 0.0,
+        "gain_multiplier": 1.0,
+        "aci": 371.96,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      },
+      {
+        "gain_db": 3.0,
+        "gain_multiplier": 1.4125,
+        "aci": 372.13,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      },
+      {
+        "gain_db": 6.0,
+        "gain_multiplier": 1.9953,
+        "aci": 371.84,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      },
+      {
+        "gain_db": 12.0,
+        "gain_multiplier": 3.9811,
+        "aci": 372.05,
+        "adi": 1.5083,
+        "aei": 0.8232,
+        "ndsi": 0.2081,
+        "spectral_entropy": 0.7302,
+        "clipping_flag": false,
+        "quality_flags": [
+          "incomplete_window"
+        ]
+      }
+    ],
+    "max_linear_gain_deviations": {
+      "adi_max_diff": 0.0,
+      "aei_max_diff": 0.0,
+      "ndsi_max_diff": 0.0,
+      "entropy_max_diff": 0.0
+    },
+    "is_mathematically_gain_invariant": true,
+    "breakdown_boundaries": {
+      "near_silence": {
+        "rms": 1.0016578016802669e-05,
+        "quality_flags": [
+          "silent_window",
+          "zero_variance_detected",
+          "incomplete_window",
+          "insufficient_energy_for_ndsi",
+          "ndsi_energy_too_low"
+        ],
+        "is_silent_flag": true,
+        "spectral_entropy": null,
+        "ndsi": null,
+        "breakdown_explanation": "Under extreme silence (RMS < 1e-4), signal power approaches numerical epsilon (1e-12). Normalization denominators approach zero and spectral entropy reflects purely uninformative quantization / pseudo-random float noise."
+      },
+      "digital_clipping": {
+        "quality_flags": [
+          "incomplete_window"
+        ],
+        "clipping_flag": false,
+        "clean_ndsi": 0.2081,
+        "clipped_ndsi": 0.2081,
+        "clean_entropy": 0.7302,
+        "clipped_entropy": 0.7302,
+        "breakdown_explanation": "Hard digital clipping creates odd-harmonic square-wave distortion across the spectrum. High-frequency energy is artificially inflated, causing false biophony/anthrophony ratios and corrupting NDSI and spectral entropy."
+      },
+      "sensor_frequency_response": {
+        "baseline_ndsi": 0.2081,
+        "filtered_500hz_ndsi": 0.2081,
+        "ndsi_shift": 0.0,
+        "breakdown_explanation": "A hardware microphone with a low-frequency roll-off (< 500 Hz or < 1 kHz) filters out anthrophony (1-2 kHz) and infrasound, artificially increasing NDSI even in noisy environments."
+      },
+      "analog_preamp_noise": {
+        "snr_db": 25.0,
+        "baseline_aei": 0.8232,
+        "noisy_aei": 0.823,
+        "baseline_entropy": 0.7302,
+        "noisy_entropy": 0.733,
+        "breakdown_explanation": "High analog preamp noise fills empty ecological frequency bands, flattening the spectrum, elevating spectral entropy toward 1.0 and shifting AEI toward maximum evenness."
+      }
+    }
+  },
+  "stage_2_d_disturbance_radar": {
+    "isolated_event_eval": {
+      "input_count": 1,
+      "bouts_created": 1,
+      "duration": 3.0,
+      "status": "PASS"
+    },
+    "repeated_events_dedup_eval": {
+      "input_count": 3,
+      "bouts_created": 1,
+      "merged_duration": 9.0,
+      "peak_confidence": 0.95,
+      "status": "PASS"
+    },
+    "separated_events_eval": {
+      "input_count": 2,
+      "bouts_created": 2,
+      "status": "PASS"
+    },
+    "concurrent_classes_eval": {
+      "input_count": 3,
+      "bouts_created": 2,
+      "classes_detected": [
+        "Chainsaw",
+        "Gun"
+      ],
+      "status": "PASS"
+    },
+    "sub_threshold_rejection_eval": {
+      "input_count": 2,
+      "bouts_created": 0,
+      "status": "PASS"
+    },
+    "geophony_exclusion_eval": {
+      "geophony_in_disturbance_taxonomy": [],
+      "status": "PASS"
+    },
+    "disclaimer_present": true
+  },
+  "stage_2_e_acoustic_memory": {
+    "empty_index_search": {
+      "passed": true,
+      "result_count": 0
+    },
+    "single_vector_search": {
+      "passed": true,
+      "top_similarity": 1.0
+    },
+    "duplicate_vectors_handling": {
+      "passed": true,
+      "total_returned": 5
+    },
+    "matrix_cache_parity": {
+      "passed": true,
+      "vector_count": 5
+    },
+    "faiss_vs_numpy_parity": {
+      "corpus_size": 500,
+      "dimension": 1280,
+      "queries_evaluated": 25,
+      "max_score_absolute_diff": 3.3527612686157227e-08,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
+      "parity_verified": true
+    }
+  },
+  "stage_2_f_acoustic_anomaly": {
+    "scientific_disclaimer": "Acoustic anomaly candidates denote mathematical deviations from indexed baseline soundscapes. They do NOT establish taxonomic discovery, novel biological species, or ecological hazards.",
+    "is_calibrated_probability": false,
+    "interpretation": "Scores are uncalibrated composite heuristic outlier ranks [0.0, 1.0], not biological probabilities.",
+    "weight_schemes": [
+      {
+        "name": "Default Balanced",
+        "w_dist": 0.4,
+        "w_entropy": 0.3,
+        "w_ambiguity": 0.3
+      },
+      {
+        "name": "Distance Heavy",
+        "w_dist": 0.7,
+        "w_entropy": 0.15,
+        "w_ambiguity": 0.15
+      },
+      {
+        "name": "Entropy Heavy",
+        "w_dist": 0.15,
+        "w_entropy": 0.7,
+        "w_ambiguity": 0.15
+      },
+      {
+        "name": "Ambiguity Heavy",
+        "w_dist": 0.15,
+        "w_entropy": 0.15,
+        "w_ambiguity": 0.7
+      }
+    ],
+    "evaluation_matrix": [
+      {
+        "signal": "Typical Known Biophony",
+        "features": {
+          "d_knn": 0.12,
+          "H_spec": 0.42,
+          "A_model": 0.08
+        },
+        "composite_anomaly_scores": {
+          "Default Balanced": 0.198,
+          "Distance Heavy": 0.159,
+          "Entropy Heavy": 0.324,
+          "Ambiguity Heavy": 0.137
+        }
+      },
+      {
+        "signal": "Sensor Glitch (Microphone Thump)",
+        "features": {
+          "d_knn": 0.88,
+          "H_spec": 0.94,
+          "A_model": 0.91
+        },
+        "composite_anomaly_scores": {
+          "Default Balanced": 0.907,
+          "Distance Heavy": 0.8935,
+          "Entropy Heavy": 0.9265,
+          "Ambiguity Heavy": 0.91
+        }
+      },
+      {
+        "signal": "Novel Biological Call (Atypical)",
+        "features": {
+          "d_knn": 0.79,
+          "H_spec": 0.48,
+          "A_model": 0.22
+        },
+        "composite_anomaly_scores": {
+          "Default Balanced": 0.526,
+          "Distance Heavy": 0.658,
+          "Entropy Heavy": 0.4875,
+          "Ambiguity Heavy": 0.3445
+        }
+      }
+    ]
+  },
+  "stage_2_g_habitat_drift": {
+    "scientific_disclaimer": "Habitat drift metrics report statistical differences in observed soundscape features and detection rates. They represent acoustic screening observations and never establish biological population trends, habitat degradation, or local extinction.",
+    "robust_statistics_audit": {
+      "test_value": 16.0,
+      "clean_baseline": {
+        "values": [
+          12.0,
+          12.5,
+          11.8,
+          12.2,
+          12.1
+        ],
+        "median": 12.1,
+        "mad": 0.1,
+        "std": 0.2315,
+        "robust_z": 26.3051,
+        "standard_z": 16.759
+      },
+      "contaminated_baseline": {
+        "values": [
+          12.0,
+          12.5,
+          11.8,
+          12.2,
+          95.0
+        ],
+        "median": 12.2,
+        "mad": 0.3,
+        "std": 33.1508,
+        "robust_z": 8.5435,
+        "standard_z": -0.3831
+      },
+      "robustness_demonstration": "When contaminated with an extreme outlier (95.0), Standard Z drops from 16.76 to -0.38 (masking the anomaly due to inflated standard deviation 33.15), whereas Robust Z remains resilient (26.31 vs 8.54)."
+    },
+    "baseline_guardrails": {
+      "minimum_required_sessions": 3,
+      "cases": [
+        {
+          "sessions": 0,
+          "status": "insufficient_baseline",
+          "allowed": false
+        },
+        {
+          "sessions": 1,
+          "status": "insufficient_baseline",
+          "allowed": false
+        },
+        {
+          "sessions": 2,
+          "status": "insufficient_baseline",
+          "allowed": false
+        },
+        {
+          "sessions": 3,
+          "status": "sufficient_baseline",
+          "allowed": true
+        },
+        {
+          "sessions": 5,
+          "status": "sufficient_baseline",
+          "allowed": true
+        }
+      ],
+      "verified": true
+    },
+    "diurnal_regime_matching_required": true
+  }
+}

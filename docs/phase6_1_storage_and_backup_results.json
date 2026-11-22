@@ -1,0 +1,39 @@
+{
+  "sqlite_pragmas": {
+    "journal_mode": "wal",
+    "foreign_keys": false,
+    "synchronous": 2,
+    "integrity_check": true,
+    "foreign_key_violations_count": 0
+  },
+  "hot_backup_evaluation": {
+    "backup_method": "sqlite3.connect().backup() with pages=100",
+    "backup_duration_ms": 80.13,
+    "backup_integrity_check": "ok",
+    "concurrent_writes_handled": 2,
+    "zero_lock_starvation": true
+  },
+  "external_storage_audit": {
+    "storage_root": "C:\\Users\\apaar\\Desktop\\ECOBIRDS\\backend\\storage",
+    "total_wav_files": 2040,
+    "total_npy_files": 1103,
+    "total_storage_bytes": 397558329,
+    "total_storage_mb": 379.14,
+    "sqlite_backup_preserves_external_files": false,
+    "gap_criticality": "HIGH \u2014 Restoring ecosonic.db without storage/ directory produces database records pointing to non-existent WAV and NPY files."
+  },
+  "reference_integrity_audit": {
+    "total_db_live_segments": 2335,
+    "segments_with_valid_wav_on_disk": 2035,
+    "segments_with_valid_npy_on_disk": 0,
+    "segments_missing_both_files": 300,
+    "total_db_analyses": 0,
+    "analyses_with_audio_on_disk": 0
+  },
+  "recommended_full_backup_procedure": {
+    "step_1": "Perform atomic SQLite online backup: sqlite3 ecosonic.db 'VACUUM INTO \"backup/ecosonic.db\"'",
+    "step_2": "Perform atomic filesystem snapshot/rsync of backend/storage/ (live_audio, audio, embeddings)",
+    "step_3": "Perform atomic copy of .model_cache/ and FAISS/HNSW index files",
+    "step_4": "Verify SHA256 checksums across db and storage manifests"
+  }
+}
