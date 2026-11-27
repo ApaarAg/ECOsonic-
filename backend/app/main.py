@@ -70,9 +70,10 @@ app = FastAPI(
 )
 
 # CORS Middleware for Web & Desktop Clients
+cors_origins = settings.allowed_origins_list
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins if settings.ENVIRONMENT == "production" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -138,16 +139,58 @@ async def health_check():
         )
     )
 
+    import psutil
+    rss_mb = round(psutil.Process().memory_info().rss / (1024 * 1024), 1)
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.PROJECT_VERSION,
         "model_version": settings.MODEL_VERSION,
         "model_ready": model_ready,
-        "model_device": device_raw,
+        "model_device": str(device_raw),
         "execution_provider": execution_provider,
         "provider_fallback_reason": direct_status.get("provider_fallback_reason"),
+        "rss_mb": rss_mb,
         "direct_onnx_engine": direct_status,
+    }
+
+
+@app.get("/ready", tags=["System"])
+async def readiness_check():
+    from sqlalchemy import text
+    from app.services.direct_onnx_engine import direct_onnx_engine
+
+    pipeline_engine = analysis_pipeline.engine
+    pipeline_ready = pipeline_engine is not None and (
+        getattr(pipeline_engine, "_engine", None) is not None
+        or getattr(pipeline_engine, "model", None) is not None
+        or hasattr(pipeline_engine, "analyze_audio")
+    )
+    direct_status = direct_onnx_engine.get_status()
+    model_ready = bool(pipeline_ready or direct_status.get("is_ready"))
+
+    db_ready = False
+    try:
+        async with async_session_factory() as session:
+            await session.execute(text("SELECT 1"))
+        db_ready = True
+    except Exception:
+        db_ready = False
+
+    if not model_ready or not db_ready:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "not_ready",
+                "model_ready": model_ready,
+                "database_ready": db_ready,
+            },
+        )
+
+    return {
+        "status": "ready",
+        "model_ready": model_ready,
+        "database_ready": db_ready,
     }
 
 

@@ -53,9 +53,27 @@ class Settings(BaseSettings):
     MODEL_PREFER_GPU: bool = True
     DEFAULT_CONFIDENCE_THRESHOLD: float = 0.25
     NUM_WORKER_THREADS: int = 4
+    MAX_CONCURRENT_JOBS: int = 1
+
+    # CORS / WebSocket origin allowlist (comma-separated in production)
+    ALLOWED_ORIGINS: str = ""
 
     # Feature Flags
     ENABLE_ACOUSTIC_MEMORY: bool = True
+
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        raw = [o.strip().rstrip("/") for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+        if raw:
+            return [o for o in raw if o != "*"] if self.ENVIRONMENT == "production" else raw
+        if self.ENVIRONMENT == "production":
+            return []
+        return [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ]
 
     @property
     def raw_audio_dir(self) -> Path:

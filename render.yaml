@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: ecosonic-backend
+    runtime: docker
+    repo: https://github.com/ApaarAg/ECOsonic-.git
+    branch: main
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /ready
+    numInstances: 1
+    disk:
+      name: ecosonic-storage
+      mountPath: /app/storage
+      sizeGB: 5
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: MODEL_PREFER_GPU
+        value: "false"
+      - key: MAX_CONCURRENT_JOBS
+        value: "1"
+      - key: STORAGE_BASE_DIR
+        value: /app/storage
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:////app/storage/db/ecosonic.db
+      - key: BIRDNET_APP_DATA
+        value: /app/model_cache
+      - key: ALLOWED_ORIGINS
+        sync: false

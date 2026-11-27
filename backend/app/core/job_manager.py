@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Coroutine, Dict, Optional
 
+from app.config import settings
 from app.core.logging import logger
 
 
@@ -198,4 +199,4 @@ class JobManager:
                 await asyncio.gather(*tasks, return_exceptions=True)
 
 
-job_manager = JobManager()
+job_manager = JobManager(max_concurrent_jobs=settings.MAX_CONCURRENT_JOBS)

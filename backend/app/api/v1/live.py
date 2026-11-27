@@ -870,6 +870,12 @@ async def get_session_intelligence(
 @router.websocket("/sessions/{session_id}/stream")
 async def websocket_live_stream(websocket: WebSocket, session_id: str):
     """Bidirectional WebSocket streaming endpoint for live audio ingestion and event delivery."""
+    if settings.ENVIRONMENT == "production":
+        origin = (websocket.headers.get("origin") or "").strip().rstrip("/")
+        allowed = set(settings.allowed_origins_list)
+        if not origin or origin not in allowed:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
     await websocket.accept()
 
     # Verify session exists in DB

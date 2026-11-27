@@ -16,6 +16,29 @@ async def test_health_and_root(client: AsyncClient):
     assert res_root.status_code == 200
     assert "EcoSonic" in res_root.json()["message"]
 
+    res_ready = await client.get("/ready")
+    assert res_ready.status_code == 200
+    assert res_ready.json()["status"] == "ready"
+    assert res_ready.json()["model_ready"] is True
+    assert res_ready.json()["database_ready"] is True
+
+    # Verify /ready returns 503 when model is unavailable
+    from app.services.analysis_pipeline import analysis_pipeline
+    from app.services.direct_onnx_engine import direct_onnx_engine
+
+    prev_engine = analysis_pipeline.engine
+    prev_ready = direct_onnx_engine._is_ready
+    try:
+        analysis_pipeline.set_engine(None)  # type: ignore[arg-type]
+        direct_onnx_engine._is_ready = False
+        res_not_ready = await client.get("/ready")
+        assert res_not_ready.status_code == 503
+        assert res_not_ready.json()["status"] == "not_ready"
+        assert res_not_ready.json()["model_ready"] is False
+    finally:
+        analysis_pipeline.set_engine(prev_engine)
+        direct_onnx_engine._is_ready = prev_ready
+
 
 @pytest.mark.asyncio
 async def test_sites_api_flow(client: AsyncClient):
