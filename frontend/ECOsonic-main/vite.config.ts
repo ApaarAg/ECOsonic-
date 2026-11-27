@@ -6,6 +6,9 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // The marketing app is mounted below /ecosonic-main on Vercel while
+    // remaining available at / when run locally.
+    base: process.env.VERCEL === '1' ? '/ecosonic-main/' : '/',
     plugins: [
       react(),
       tailwindcss(),

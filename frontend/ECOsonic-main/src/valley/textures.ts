@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 
+const assetBase = `${import.meta.env.BASE_URL}src/assets/images/`;
+
 export const BOTANICAL_PHOTO_PATHS = [
-  '/src/assets/images/flower_marigold_orange_1795691167621.jpg',
-  '/src/assets/images/flower_buttercup_gold_1795691168266.jpg',
-  '/src/assets/images/flower_violet_meadow_1795691168381.jpg',
-  '/src/assets/images/flower_magenta_rose_1795691168930.jpg',
-  '/src/assets/images/foliage_fern_night_1795691169109.jpg',
+  `${assetBase}flower_marigold_orange_1795691167621.jpg`,
+  `${assetBase}flower_buttercup_gold_1795691168266.jpg`,
+  `${assetBase}flower_violet_meadow_1795691168381.jpg`,
+  `${assetBase}flower_magenta_rose_1795691168930.jpg`,
+  `${assetBase}foliage_fern_night_1795691169109.jpg`,
 ] as const;
 
 function seeded(seed: number): () => number {
