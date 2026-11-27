@@ -2,6 +2,7 @@ services:
   - type: web
     name: ecosonic-backend
     runtime: docker
+    plan: 2c-4g
     repo: https://github.com/ApaarAg/ECOsonic-.git
     branch: main
     rootDir: backend
