@@ -27,15 +27,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-try:
-    import maad
-    import maad.features as mf
-    import maad.sound as ms
-except ImportError:
-    maad = None
-    mf = None
-    ms = None
-
 from app.schemas.soundscape import SoundscapeFingerprintResponse, SoundscapeMetrics
 from app.services.soundscape.fingerprint_engine import (
     DEFAULT_ECOLOGICAL_BANDS,

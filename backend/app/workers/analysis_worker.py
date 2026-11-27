@@ -76,7 +76,8 @@ async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
             if analysis_pipeline.engine is None:
                 raise RuntimeError("Real BirdNET model is unavailable; analysis cannot run.")
             (processed_meta, detections, processed_path, timings,
-             provider, model_load_seconds) = await analysis_pipeline.run_pipeline(
+             provider, model_load_seconds,
+             vectors, segments, encoding_seconds) = await analysis_pipeline.run_pipeline_with_embeddings(
                 analysis_id, Path(analysis.audio_path), analysis.latitude,
                 analysis.longitude, progress
             )
@@ -95,10 +96,11 @@ async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
                 ))
             failed_stage = "extracting_embeddings"
             await progress(failed_stage, 82)
-            vectors, segments, encoding_seconds = await asyncio.to_thread(
-                analysis_pipeline.extract_embeddings, processed_path,
-                processed_meta.duration_seconds,
-            )
+            vectors = np.asarray(vectors)
+            if vectors.dtype != np.float32 or vectors.ndim != 2 or vectors.shape[1] != 1280:
+                raise ValueError(f"BirdNET embeddings must be float32 (N, 1280), got {vectors.shape} {vectors.dtype}.")
+            if not np.isfinite(vectors).all():
+                raise ValueError("BirdNET embeddings contain non-finite values.")
             prediction_windows = {
                 (round(d.start_seconds, 6), round(d.end_seconds, 6)) for d in detections
             }

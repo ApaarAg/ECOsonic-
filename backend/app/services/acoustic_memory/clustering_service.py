@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from sklearn.cluster import HDBSCAN
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -116,6 +115,8 @@ class AcousticClusteringService:
                 return summary
 
             # 2. Fit HDBSCAN in executor to avoid blocking the event loop
+            from sklearn.cluster import HDBSCAN
+
             loop = asyncio.get_running_loop()
             clusterer = HDBSCAN(
                 min_cluster_size=min_cluster_size,

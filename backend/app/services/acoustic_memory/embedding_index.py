@@ -32,7 +32,7 @@ EXPECTED_DIMENSION = 1280
 DEFAULT_MODEL_VERSION = "BirdNET+ V3.0"
 
 
-@dataclass
+@dataclass(slots=True)
 class SegmentMetadata:
     """Rich metadata associated with an indexed acoustic segment."""
 
@@ -63,16 +63,31 @@ class EmbeddingIndexService:
         self._lock = threading.RLock()
         self._async_lock = asyncio.Lock()
 
-        # In-memory storage using list buffers with lazy matrix caching
+        # In-memory storage using a single contiguous normalized float32 matrix
+        # plus per-vector L2 norms (4 bytes/vector) for exact raw reconstruction.
         self._segment_ids: List[str] = []
         self._id_to_index: Dict[str, int] = {}
-        self._norm_list: List[np.ndarray] = []
-        self._raw_list: List[np.ndarray] = []
-        self._cached_vectors: Optional[np.ndarray] = None  # Shape (N, 1280), normalized
-        self._cached_raw_vectors: Optional[np.ndarray] = None  # Shape (N, 1280), raw float32
+        self._norm_matrix: Optional[np.ndarray] = None  # Shape (capacity, 1280), float32
+        self._raw_norms: Optional[np.ndarray] = None  # Shape (capacity,), float32
+        self._capacity: int = 0
+        self._count: int = 0
         self._metadata: List[SegmentMetadata] = []
         self._last_updated = datetime.now(timezone.utc)
         self._status = "uninitialized"
+
+    def _ensure_capacity(self, min_capacity: int) -> None:
+        """Grow contiguous embedding storage geometrically when needed."""
+        if min_capacity <= self._capacity and self._norm_matrix is not None and self._raw_norms is not None:
+            return
+        new_cap = max(min_capacity, 64, self._capacity * 2)
+        new_matrix = np.empty((new_cap, self.embedding_dimension), dtype=np.float32)
+        new_norms = np.empty((new_cap,), dtype=np.float32)
+        if self._count > 0 and self._norm_matrix is not None and self._raw_norms is not None:
+            new_matrix[: self._count] = self._norm_matrix[: self._count]
+            new_norms[: self._count] = self._raw_norms[: self._count]
+        self._norm_matrix = new_matrix
+        self._raw_norms = new_norms
+        self._capacity = new_cap
 
     @property
     def vector_count(self) -> int:
@@ -98,10 +113,10 @@ class EmbeddingIndexService:
         with self._lock:
             self._segment_ids.clear()
             self._id_to_index.clear()
-            self._norm_list.clear()
-            self._raw_list.clear()
-            self._cached_vectors = None
-            self._cached_raw_vectors = None
+            self._norm_matrix = None
+            self._raw_norms = None
+            self._capacity = 0
+            self._count = 0
             self._metadata.clear()
             self._status = "ready"
             self._last_updated = datetime.now(timezone.utc)
@@ -134,6 +149,14 @@ class EmbeddingIndexService:
         return arr
 
     @staticmethod
+    def _normalize_with_norm(arr: np.ndarray) -> Tuple[np.ndarray, float]:
+        """Return (L2-normalized vector, original norm or 1.0 for near-zero vectors)."""
+        norm = float(np.linalg.norm(arr))
+        if norm <= 1e-12:
+            return arr.copy(), 1.0
+        return (arr / norm).astype(np.float32), norm
+
+    @staticmethod
     def normalize_vector(arr: np.ndarray) -> np.ndarray:
         """Compute L2 normalized representation for exact cosine similarity."""
         norm = float(np.linalg.norm(arr))
@@ -150,28 +173,26 @@ class EmbeddingIndexService:
     ) -> bool:
         """Validate, normalize, and add a single vector into the in-memory index."""
         arr = self.validate_vector(vector)
-        norm_arr = self.normalize_vector(arr)
+        norm_arr, raw_norm = self._normalize_with_norm(arr)
 
         with self._lock:
             if check_duplicate and segment_id in self._id_to_index:
                 # Update existing vector and metadata
                 idx = self._id_to_index[segment_id]
-                self._raw_list[idx] = arr
-                self._norm_list[idx] = norm_arr
-                self._cached_vectors = None
-                self._cached_raw_vectors = None
+                self._norm_matrix[idx] = norm_arr
+                self._raw_norms[idx] = raw_norm
                 if metadata:
                     self._metadata[idx] = metadata
                 self._last_updated = datetime.now(timezone.utc)
                 return True
 
-            idx = len(self._segment_ids)
+            idx = self._count
+            self._ensure_capacity(idx + 1)
             self._segment_ids.append(segment_id)
             self._id_to_index[segment_id] = idx
-            self._norm_list.append(norm_arr)
-            self._raw_list.append(arr)
-            self._cached_vectors = None
-            self._cached_raw_vectors = None
+            self._norm_matrix[idx] = norm_arr
+            self._raw_norms[idx] = raw_norm
+            self._count += 1
 
             meta = metadata or SegmentMetadata(segment_id=segment_id)
             self._metadata.append(meta)
@@ -182,12 +203,12 @@ class EmbeddingIndexService:
     def get_vector(self, segment_id: str, normalized: bool = True) -> Optional[np.ndarray]:
         """Retrieve a stored vector by segment ID."""
         with self._lock:
-            if segment_id not in self._id_to_index:
+            if segment_id not in self._id_to_index or self._norm_matrix is None:
                 return None
             idx = self._id_to_index[segment_id]
             if normalized:
-                return self._norm_list[idx].copy()
-            return self._raw_list[idx].copy()
+                return self._norm_matrix[idx].copy()
+            return (self._norm_matrix[idx] * self._raw_norms[idx]).astype(np.float32)
 
     def get_metadata(self, segment_id: str) -> Optional[SegmentMetadata]:
         """Retrieve segment metadata by segment ID."""
@@ -200,17 +221,15 @@ class EmbeddingIndexService:
     def get_all_vectors(self, normalized: bool = True) -> Tuple[List[str], np.ndarray, List[SegmentMetadata]]:
         """Return references to all indexed IDs, vectors matrix, and metadata list."""
         with self._lock:
-            if len(self._segment_ids) == 0:
+            if self._count == 0 or self._norm_matrix is None:
                 empty = np.empty((0, EXPECTED_DIMENSION), dtype=np.float32)
                 return [], empty, []
+            norm_view = self._norm_matrix[: self._count].view()
+            norm_view.flags.writeable = False
             if normalized:
-                if self._cached_vectors is None or len(self._cached_vectors) != len(self._segment_ids):
-                    self._cached_vectors = np.asarray(self._norm_list, dtype=np.float32)
-                return list(self._segment_ids), self._cached_vectors, list(self._metadata)
-            else:
-                if self._cached_raw_vectors is None or len(self._cached_raw_vectors) != len(self._segment_ids):
-                    self._cached_raw_vectors = np.asarray(self._raw_list, dtype=np.float32)
-                return list(self._segment_ids), self._cached_raw_vectors, list(self._metadata)
+                return list(self._segment_ids), norm_view, list(self._metadata)
+            raw_view = (norm_view * self._raw_norms[: self._count, None]).astype(np.float32)
+            return list(self._segment_ids), raw_view, list(self._metadata)
 
     async def rebuild_index(self, db: Optional[AsyncSession] = None) -> Dict[str, Any]:
         """Rebuild index by scanning database records and existing embedding files."""
@@ -221,8 +240,8 @@ class EmbeddingIndexService:
             # Reset in-memory buffers
             temp_ids: List[str] = []
             temp_id_map: Dict[str, int] = {}
-            temp_raw: List[np.ndarray] = []
             temp_norm: List[np.ndarray] = []
+            temp_norms: List[float] = []
             temp_meta: List[SegmentMetadata] = []
 
             async def _populate(session: AsyncSession) -> None:
@@ -268,12 +287,12 @@ class EmbeddingIndexService:
                         v = vecs[vec_idx]
                         try:
                             v_clean = self.validate_vector(v)
-                            v_norm = self.normalize_vector(v_clean)
+                            v_norm, v_raw_norm = self._normalize_with_norm(v_clean)
                             if seg_id not in temp_id_map:
                                 temp_id_map[seg_id] = len(temp_ids)
                                 temp_ids.append(seg_id)
-                                temp_raw.append(v_clean)
                                 temp_norm.append(v_norm)
+                                temp_norms.append(v_raw_norm)
                                 temp_meta.append(
                                     SegmentMetadata(
                                         segment_id=seg_id,
@@ -315,12 +334,12 @@ class EmbeddingIndexService:
                         try:
                             v = np.load(str(emb_path), allow_pickle=False)
                             v_clean = self.validate_vector(v)
-                            v_norm = self.normalize_vector(v_clean)
+                            v_norm, v_raw_norm = self._normalize_with_norm(v_clean)
                             if seg_id not in temp_id_map:
                                 temp_id_map[seg_id] = len(temp_ids)
                                 temp_ids.append(seg_id)
-                                temp_raw.append(v_clean)
                                 temp_norm.append(v_norm)
+                                temp_norms.append(v_raw_norm)
                                 temp_meta.append(
                                     SegmentMetadata(
                                         segment_id=seg_id,
@@ -359,14 +378,23 @@ class EmbeddingIndexService:
                 async with async_session_factory() as session:
                     await _populate(session)
 
-            # Atomically swap into in-memory structure
+            # Atomically swap into single contiguous in-memory matrix
+            if temp_norm:
+                new_matrix = np.asarray(temp_norm, dtype=np.float32)
+                new_norms = np.asarray(temp_norms, dtype=np.float32)
+            else:
+                new_matrix = None
+                new_norms = None
+            temp_norm.clear()
+            temp_norms.clear()
+
             with self._lock:
                 self._segment_ids = temp_ids
                 self._id_to_index = temp_id_map
-                self._norm_list = temp_norm
-                self._raw_list = temp_raw
-                self._cached_vectors = np.asarray(temp_norm, dtype=np.float32) if temp_norm else np.empty((0, EXPECTED_DIMENSION), dtype=np.float32)
-                self._cached_raw_vectors = np.asarray(temp_raw, dtype=np.float32) if temp_raw else np.empty((0, EXPECTED_DIMENSION), dtype=np.float32)
+                self._norm_matrix = new_matrix
+                self._raw_norms = new_norms
+                self._capacity = len(temp_ids)
+                self._count = len(temp_ids)
                 self._metadata = temp_meta
                 self._status = "ready"
                 self._last_updated = datetime.now(timezone.utc)

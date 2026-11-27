@@ -57,6 +57,8 @@ async def lifespan(app: FastAPI):
     await live_session_manager.shutdown(timeout=5.0)
     await embedding_worker.stop()
     await soundscape_worker.stop()
+    from app.services.direct_onnx_engine import direct_onnx_engine
+    direct_onnx_engine.close()
     await close_db()
 
 

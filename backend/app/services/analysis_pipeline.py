@@ -85,6 +85,36 @@ class BirdNetEngineAdapter:
         return batch.vectors, batch.segments
 
 
+class DirectOnnxPipelineAdapter:
+    """Adapter exposing the shared DirectOnnxEngine to AnalysisPipeline in a single ONNX pass."""
+
+    def __init__(self, engine: Any):
+        self._engine = engine
+        self._engine.load()
+
+    @property
+    def provider(self) -> str:
+        return getattr(self._engine, "device", "CPU")
+
+    @property
+    def model_version(self) -> str:
+        return str(getattr(self._engine, "model_version", "3.0"))
+
+    def analyze_and_encode_audio(self, audio_path: str, min_confidence: float):
+        result = self._engine.analyze_and_encode_file(
+            audio_path, min_confidence=min_confidence, top_k=5
+        )
+        return result.detections, result.vectors, result.segments
+
+    def analyze_audio(self, audio_path: str, min_confidence: float) -> list[ModelDetectionOutput]:
+        detections, _, _ = self.analyze_and_encode_audio(audio_path, min_confidence)
+        return detections
+
+    def extract_embeddings(self, audio_path: str):
+        _, vectors, segments = self.analyze_and_encode_audio(audio_path, min_confidence=1.0)
+        return vectors, segments
+
+
 class FallbackMockEngine:
     """Deterministic test double. Production never selects this engine implicitly."""
 
@@ -139,10 +169,8 @@ class AnalysisPipeline:
                 else:
                     self.engine = BirdNetEngineAdapter(self._provided_engine)
             else:
-                from app.services.birdnet_engine import BirdNetEngine
-                self.engine = BirdNetEngineAdapter(BirdNetEngine(
-                    precision="fp32", prefer_gpu=settings.MODEL_PREFER_GPU
-                ))
+                from app.services.direct_onnx_engine import direct_onnx_engine
+                self.engine = DirectOnnxPipelineAdapter(direct_onnx_engine)
             self._model_load_seconds = time.perf_counter() - started
             logger.info("Real BirdNET model ready in %.3fs on %s", self._model_load_seconds, self.engine.provider)
 
@@ -193,6 +221,68 @@ class AnalysisPipeline:
 
         return (processed_meta, detections, processed_path, timings,
                 self.engine.provider, self._model_load_seconds)
+
+    async def run_pipeline_with_embeddings(
+        self,
+        analysis_id: str,
+        raw_audio_path: Path,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        progress_callback: Optional[Callable[[str, float], Any]] = None,
+    ):
+        """Run preprocessing and single-pass prediction+embedding extraction when supported."""
+        del latitude, longitude
+        if self.engine is None:
+            raise RuntimeError("Real BirdNET engine is not initialized.")
+
+        timings: dict[str, float] = {}
+
+        async def report(stage: str, progress: float) -> None:
+            if progress_callback:
+                result = progress_callback(stage, progress)
+                if asyncio.iscoroutine(result):
+                    await result
+
+        await report("validating_audio", 5)
+        raw_meta = audio_processor.inspect_audio(raw_audio_path)
+        if raw_meta.is_empty:
+            raise AudioProcessingError("Uploaded audio is silent or empty.")
+
+        await report("preprocessing", 15)
+        processed_path = storage_service.get_processed_path(analysis_id)
+        started = time.perf_counter()
+        processed_meta = audio_processor.convert_to_mono_wav(
+            raw_audio_path, processed_path, target_sr=32000
+        )
+        timings["preprocessing_seconds"] = time.perf_counter() - started
+        if processed_meta.sample_rate != 32000 or processed_meta.channels != 1:
+            raise AudioProcessingError("Normalized audio must be mono at 32,000 Hz.")
+
+        loop = asyncio.get_running_loop()
+        await report("birdnet_inference", 35)
+        started = time.perf_counter()
+        if hasattr(self.engine, "analyze_and_encode_audio"):
+            detections, vectors, segments = await loop.run_in_executor(
+                None, lambda: self.engine.analyze_and_encode_audio(
+                    str(processed_path), settings.DEFAULT_CONFIDENCE_THRESHOLD
+                )
+            )
+            timings["prediction_seconds"] = time.perf_counter() - started
+            encoding_seconds = 0.0
+        else:
+            detections = await loop.run_in_executor(
+                None, lambda: self.engine.analyze_audio(
+                    str(processed_path), settings.DEFAULT_CONFIDENCE_THRESHOLD
+                )
+            )
+            timings["prediction_seconds"] = time.perf_counter() - started
+            vectors, segments, encoding_seconds = await loop.run_in_executor(
+                None, lambda: self.extract_embeddings(processed_path, processed_meta.duration_seconds)
+            )
+
+        return (processed_meta, detections, processed_path, timings,
+                self.engine.provider, self._model_load_seconds,
+                vectors, segments, encoding_seconds)
 
     def extract_embeddings(self, processed_path: Path, duration_seconds: float):
         started = time.perf_counter()

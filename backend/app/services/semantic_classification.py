@@ -25,8 +25,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-import pandas as pd
-
 logger = logging.getLogger(__name__)
 
 # Default threshold below which even a mapped label is treated as low-confidence/uncertain
@@ -182,6 +180,8 @@ class SemanticDetectionClassifier:
             csv_path = _find_labels_raw_csv()
             if csv_path is not None:
                 try:
+                    import pandas as pd
+
                     df = pd.read_csv(
                         csv_path,
                         usecols=["birdnet_id", "scientific_name", "common_name", "taxon_group", "ebird_code"],

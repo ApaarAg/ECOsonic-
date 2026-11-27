@@ -23,16 +23,6 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-import scipy.signal
-
-try:
-    import maad
-    import maad.features as mf
-    import maad.sound as ms
-except ImportError:
-    maad = None  # type: ignore[assignment]
-    mf = None  # type: ignore[assignment]
-    ms = None  # type: ignore[assignment]
 
 from app.schemas.soundscape import SoundscapeFingerprintResponse, SoundscapeMetrics
 
@@ -191,6 +181,15 @@ class SoundscapeFingerprintEngine:
         quality_flags: List[str] = []
         duration_s = len(samples) / sample_rate
         end_seconds = round(start_seconds + duration_s, 2)
+
+        try:
+            import maad
+            import maad.features as mf
+            import maad.sound as ms
+        except ImportError:
+            maad = None  # type: ignore[assignment]
+            mf = None  # type: ignore[assignment]
+            ms = None  # type: ignore[assignment]
 
         # Document calculation parameters
         calc_params: Dict[str, Any] = {

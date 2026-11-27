@@ -11,8 +11,6 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import umap
-from sklearn.decomposition import PCA
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -107,6 +105,8 @@ class AcousticVisualizationService:
                 def _pca_project() -> np.ndarray:
                     if n_samples == 1:
                         return np.zeros((1, 2), dtype=np.float32)
+                    from sklearn.decomposition import PCA
+
                     pca = PCA(n_components=2)
                     return pca.fit_transform(vectors).astype(np.float32)
 
@@ -117,6 +117,8 @@ class AcousticVisualizationService:
                 eff_neighbors = max(2, min(n_neighbors, n_samples - 1))
 
                 def _umap_project() -> np.ndarray:
+                    import umap
+
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore")
                         reducer = umap.UMAP(

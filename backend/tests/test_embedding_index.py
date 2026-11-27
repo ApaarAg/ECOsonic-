@@ -147,3 +147,151 @@ async def test_rebuild_from_disk_embeddings(test_engine, tmp_path):
         assert result["vector_count"] >= 1
         assert service.get_vector(seg_id) is not None
         assert service.get_metadata(seg_id).session_id == session_id
+
+
+def test_embedding_index_empty_one_multiple_and_duplicate():
+    """Verify empty, single, multi, duplicate-update, and raw/normalized parity."""
+    service = EmbeddingIndexService()
+    ids, mat, metas = service.get_all_vectors(normalized=True)
+    assert ids == []
+    assert mat.shape == (0, 1280)
+    assert metas == []
+
+    # One embedding
+    v1 = generate_random_vector(1280, seed=1) * 3.5
+    service.add_vector("seg-1", v1, SegmentMetadata(segment_id="seg-1", session_id="s1"))
+    assert service.vector_count == 1
+    raw_1 = service.get_vector("seg-1", normalized=False)
+    norm_1 = service.get_vector("seg-1", normalized=True)
+    assert raw_1 is not None and norm_1 is not None
+    assert np.allclose(raw_1, v1, atol=1e-5)
+    assert np.isclose(np.linalg.norm(norm_1), 1.0, atol=1e-5)
+
+    # Duplicate ID updates in-place without growing count
+    v1_updated = generate_random_vector(1280, seed=2) * 2.0
+    service.add_vector("seg-1", v1_updated, SegmentMetadata(segment_id="seg-1", session_id="s1b"))
+    assert service.vector_count == 1
+    assert np.allclose(service.get_vector("seg-1", normalized=False), v1_updated, atol=1e-5)
+    assert service.get_metadata("seg-1").session_id == "s1b"
+
+    # Multiple embeddings
+    for i in range(2, 12):
+        service.add_vector(f"seg-{i}", generate_random_vector(1280, seed=i + 10))
+    ids, mat_norm, _ = service.get_all_vectors(normalized=True)
+    _, mat_raw, _ = service.get_all_vectors(normalized=False)
+    assert len(ids) == 11
+    assert mat_norm.shape == (11, 1280)
+    assert mat_raw.shape == (11, 1280)
+    assert np.allclose(np.linalg.norm(mat_norm, axis=1), 1.0, atol=1e-5)
+
+
+def test_embedding_index_search_cosine_and_faiss_consistency():
+    """Verify NumPy search, cosine similarity, and FAISS IndexFlatIP consistency."""
+    from app.services.acoustic_memory.similarity_service import AcousticSimilarityService
+    from app.services.acoustic_memory_engine import AcousticMemoryEngine
+
+    service = EmbeddingIndexService()
+    rng = np.random.default_rng(123)
+    for i in range(20):
+        service.add_vector(f"s-{i}", rng.standard_normal(1280, dtype=np.float32) * (i + 1))
+
+    sim_service = AcousticSimilarityService(index_service=service)
+    engine = AcousticMemoryEngine(index_service=service, sim_service=sim_service)
+
+    query_raw = service.get_vector("s-5", normalized=False)
+    np_results = sim_service.search(query_vector=query_raw, limit=5)
+    assert len(np_results) == 5
+    assert np_results[0].segment_id == "s-5"
+    assert np.isclose(np_results[0].similarity_score, 1.0, atol=1e-5)
+
+    # Cosine similarity parity with explicit normalized dot product
+    _, mat_norm, _ = service.get_all_vectors(normalized=True)
+    q_norm = EmbeddingIndexService.normalize_vector(query_raw)
+    expected_scores = mat_norm @ q_norm
+    top_idx = int(np.argmax(expected_scores))
+    assert top_idx == 5
+    assert np.isclose(np_results[1].similarity_score, float(np.sort(expected_scores)[-2]), atol=1e-4)
+
+    # FAISS consistency
+    ntotal = engine.sync_faiss_index()
+    if ntotal > 0:
+        faiss_results = engine.search_faiss(query_vector=query_raw, limit=5)
+        assert [r.segment_id for r in faiss_results] == [r.segment_id for r in np_results]
+        for fr, nr in zip(faiss_results, np_results):
+            assert np.isclose(fr.similarity_score, nr.similarity_score, atol=1e-4)
+
+
+def test_embedding_index_readonly_view_zero_norm_and_capacity_growth():
+    """Verify returned normalized matrix is read-only, zero-norm is safe, and growth preserves data."""
+    service = EmbeddingIndexService()
+    zero_vec = np.zeros(1280, dtype=np.float32)
+    service.add_vector("zero-seg", zero_vec, SegmentMetadata(segment_id="zero-seg", session_id="s-zero"))
+    assert np.all(service.get_vector("zero-seg", normalized=True) == 0.0)
+    assert np.all(service.get_vector("zero-seg", normalized=False) == 0.0)
+
+    # Grow past multiple geometric capacity boundaries (64 -> 128 -> 256 -> 512)
+    rng = np.random.default_rng(77)
+    expected_raw = {}
+    for i in range(300):
+        vec = rng.standard_normal(1280, dtype=np.float32) * (1.0 + (i % 7))
+        seg_id = f"grow-{i}"
+        expected_raw[seg_id] = vec
+        service.add_vector(seg_id, vec, SegmentMetadata(segment_id=seg_id, session_id=f"sess-{i}"))
+
+    assert service.vector_count == 301
+    ids, mat_norm, metas = service.get_all_vectors(normalized=True)
+    assert len(ids) == len(metas) == 301
+    assert mat_norm.shape == (301, 1280)
+    assert mat_norm.flags.writeable is False
+    with pytest.raises(ValueError):
+        mat_norm[0, 0] = 999.0
+
+    for seg_id, orig in expected_raw.items():
+        assert np.allclose(service.get_vector(seg_id, normalized=False), orig, atol=1e-4)
+        assert service.get_metadata(seg_id).segment_id == seg_id
+
+
+@pytest.mark.asyncio
+async def test_embedding_index_reload_preserves_search_results(test_engine):
+    """Verify persistence and rebuild_index() preserve identical search results."""
+    from app.services.acoustic_memory.similarity_service import AcousticSimilarityService
+
+    session_id = "test-reload-search"
+    rng = np.random.default_rng(55)
+    vecs = [rng.standard_normal(1280, dtype=np.float32) for _ in range(5)]
+
+    svc1 = EmbeddingIndexService()
+    async with AsyncSession(test_engine) as session:
+        session.add(LiveSession(id=session_id, source_type="browser_mic", status="stopped"))
+        for i, v in enumerate(vecs):
+            seg_id = f"reload-seg-{i}"
+            emb_path = storage_service.save_live_embedding(
+                session_id=session_id,
+                start_seconds=float(i * 3),
+                end_seconds=float((i + 1) * 3),
+                vector=v,
+            )
+            session.add(
+                LiveSegment(
+                    id=seg_id,
+                    session_id=session_id,
+                    start_seconds=float(i * 3),
+                    end_seconds=float((i + 1) * 3),
+                    audio_path=f"fake/{seg_id}.wav",
+                    embedding_path=str(emb_path),
+                    processing_status="embedding_extracted",
+                )
+            )
+            svc1.add_vector(seg_id, v, SegmentMetadata(segment_id=seg_id, session_id=session_id))
+        await session.commit()
+
+    before_res = AcousticSimilarityService(index_service=svc1).search(query_vector=vecs[2], limit=5)
+
+    svc2 = EmbeddingIndexService()
+    async with AsyncSession(test_engine) as session:
+        await svc2.rebuild_index(session)
+    after_res = AcousticSimilarityService(index_service=svc2).search(query_vector=vecs[2], limit=5)
+
+    assert [r.segment_id for r in after_res] == [r.segment_id for r in before_res]
+    for a, b in zip(after_res, before_res):
+        assert np.isclose(a.similarity_score, b.similarity_score, atol=1e-5)

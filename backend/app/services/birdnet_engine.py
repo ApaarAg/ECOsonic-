@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import pandas as pd
 import soundfile as sf
 
 
@@ -181,6 +180,8 @@ class BirdNetEngine:
 
     def predict(self, audio_path: str | Path) -> pd.DataFrame:
         """Run inference and return normalized per-segment prediction rows."""
+        import pandas as pd
+
         path, duration_s = self._validate_audio(audio_path)
         model = self._require_model()
         try:
@@ -237,6 +238,8 @@ class BirdNetEngine:
 
     def encode(self, audio_path: str | Path) -> EmbeddingBatch:
         """Extract finite embeddings and matching segment time metadata."""
+        import pandas as pd
+
         path, duration_s = self._validate_audio(audio_path)
         model = self._require_model()
         try:

@@ -24,7 +24,6 @@ from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 import numpy as np
-import pandas as pd
 
 # Set BIRDNET_APP_DATA to local .model_cache if available
 model_cache_path = Path(__file__).resolve().parents[3] / ".model_cache"
@@ -224,6 +223,8 @@ class GeoTemporalIntelligenceService:
 
     def _load_taxonomy(self) -> None:
         """Load taxonomy table for stable BirdNET IDs and eBird codes."""
+        import pandas as pd
+
         # Check local cache first
         candidates = [
             model_cache_path / "taxonomy-v3",

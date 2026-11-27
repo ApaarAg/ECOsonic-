@@ -39,6 +39,75 @@ EXPECTED_SAMPLE_RATE = 32000
 EXPECTED_SEGMENT_SAMPLES = 96000  # 3.0 seconds @ 32 kHz
 
 
+def detect_available_cpus(
+    cgroup_v2_path: Path = Path("/sys/fs/cgroup/cpu.max"),
+    cgroup_v1_quota_path: Path = Path("/sys/fs/cgroup/cpu/cpu.cfs_quota_us"),
+    cgroup_v1_period_path: Path = Path("/sys/fs/cgroup/cpu/cpu.cfs_period_us"),
+) -> Tuple[int, List[str]]:
+    """Detect effective available CPUs across OS count, Linux affinity, and cgroup v1/v2 quotas."""
+    sources: List[str] = []
+    limits: List[int] = []
+
+    host_cpus = os.cpu_count() or 1
+    limits.append(max(1, int(host_cpus)))
+    sources.append(f"os.cpu_count={host_cpus}")
+
+    if hasattr(os, "sched_getaffinity"):
+        try:
+            aff_count = len(os.sched_getaffinity(0))
+            if aff_count > 0:
+                limits.append(aff_count)
+                sources.append(f"sched_getaffinity={aff_count}")
+        except OSError:
+            pass
+
+    if cgroup_v2_path.is_file():
+        try:
+            raw = cgroup_v2_path.read_text(encoding="utf-8").strip().split()
+            if len(raw) == 2 and raw[0] != "max":
+                quota = int(raw[0])
+                period = int(raw[1])
+                if quota > 0 and period > 0:
+                    cg2 = max(1, int(quota / period))
+                    limits.append(cg2)
+                    sources.append(f"cgroup_v2={quota}/{period}->{cg2}")
+        except (OSError, ValueError):
+            pass
+    elif cgroup_v1_quota_path.is_file() and cgroup_v1_period_path.is_file():
+        try:
+            quota = int(cgroup_v1_quota_path.read_text(encoding="utf-8").strip())
+            period = int(cgroup_v1_period_path.read_text(encoding="utf-8").strip())
+            if quota > 0 and period > 0:
+                cg1 = max(1, int(quota / period))
+                limits.append(cg1)
+                sources.append(f"cgroup_v1={quota}/{period}->{cg1}")
+        except (OSError, ValueError):
+            pass
+
+    return max(1, min(limits)), sources
+
+
+def resolve_onnx_thread_config() -> Tuple[int, int, int, List[str]]:
+    """Return (intra_op_threads, inter_op_threads, available_cpus, detection_sources)."""
+    available_cpus, sources = detect_available_cpus()
+    inter_op = 1
+
+    env_val = os.environ.get("ONNX_INTRA_OP_THREADS", "").strip()
+    if env_val:
+        try:
+            parsed = int(env_val)
+            if parsed >= 1:
+                sources.append(f"env:ONNX_INTRA_OP_THREADS={parsed}")
+                return parsed, inter_op, available_cpus, sources
+            logger.warning("Ignoring non-positive ONNX_INTRA_OP_THREADS=%r", env_val)
+        except ValueError:
+            logger.warning("Ignoring invalid ONNX_INTRA_OP_THREADS=%r", env_val)
+
+    # Cap default intra-op threads at 2 (or 1 on 1-vCPU containers) to avoid oversubscription
+    intra_op = min(2, available_cpus)
+    return intra_op, inter_op, available_cpus, sources
+
+
 @dataclass(frozen=True)
 class DirectInferenceResult:
     """Encapsulates detection outputs and extracted acoustic embeddings from a single forward pass."""
@@ -51,6 +120,16 @@ class DirectInferenceResult:
     @property
     def inference_time_ms(self) -> float:
         return self.inference_duration_s * 1000.0
+
+
+@dataclass(frozen=True)
+class DirectFileInferenceResult:
+    """Encapsulates multi-window detections and embeddings from a single-pass file run."""
+
+    detections: List[ModelDetectionOutput]
+    vectors: np.ndarray  # shape (N, 1280), dtype float32
+    segments: List[Tuple[float, float]]
+    inference_duration_s: float
 
 
 class DirectOnnxEngine:
@@ -195,9 +274,20 @@ class DirectOnnxEngine:
             if preload_dlls is not None:
                 preload_dlls(directory="")
 
+            intra_threads, inter_threads, available_cpus, cpu_sources = resolve_onnx_thread_config()
             sess_options = ort.SessionOptions()
             sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+            sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+            sess_options.inter_op_num_threads = inter_threads
+            sess_options.intra_op_num_threads = intra_threads
             sess_options.log_severity_level = 3  # Warnings and errors only
+            logger.info(
+                "ONNX Runtime CPU config: available_cpus=%d (%s), intra_op_num_threads=%d, inter_op_num_threads=%d, execution_mode=ORT_SEQUENTIAL",
+                available_cpus,
+                ", ".join(cpu_sources),
+                intra_threads,
+                inter_threads,
+            )
 
             if self._custom_providers is not None:
                 providers_to_try = list(self._custom_providers)
@@ -331,6 +421,30 @@ class DirectOnnxEngine:
             )
 
         # Extract Top-K species detections
+        detections = self._scores_to_detections(
+            scores=scores,
+            start_s=0.0,
+            end_s=3.0,
+            min_confidence=min_confidence,
+            top_k=top_k,
+        )
+
+        return DirectInferenceResult(
+            detections=detections,
+            embedding=embedding,
+            raw_scores=scores,
+            inference_duration_s=inference_duration_s,
+        )
+
+    def _scores_to_detections(
+        self,
+        scores: np.ndarray,
+        start_s: float,
+        end_s: float,
+        min_confidence: float,
+        top_k: int,
+    ) -> List[ModelDetectionOutput]:
+        """Map raw 11,725-class scores for one window into filtered ModelDetectionOutput records."""
         if top_k is not None and top_k > 0:
             top_indices = np.argsort(scores)[-top_k:][::-1]
         else:
@@ -359,16 +473,144 @@ class DirectOnnxEngine:
                     common_name=common,
                     taxon_group=group,
                     record_type=record_type,
-                    start_seconds=0.0,
-                    end_seconds=3.0,
+                    start_seconds=start_s,
+                    end_seconds=end_s,
                     confidence_score=score,
                 )
             )
+        return detections
 
-        return DirectInferenceResult(
-            detections=detections,
-            embedding=embedding,
-            raw_scores=scores,
+    def analyze_and_encode_file(
+        self,
+        audio_path: str | Path,
+        min_confidence: float = 0.10,
+        top_k: int = 5,
+        batch_size: Optional[int] = None,
+    ) -> DirectFileInferenceResult:
+        """Run bounded-batch single-pass ONNX inference on a normalized 32 kHz mono audio file."""
+        import soundfile as sf
+
+        if self._session is None or not self._is_ready:
+            self.load()
+
+        path = Path(audio_path).expanduser().resolve()
+        if not path.is_file():
+            raise AudioValidationError(f"Audio file does not exist: {path}")
+
+        try:
+            with sf.SoundFile(str(path), mode="r") as f:
+                sr = int(f.samplerate)
+                channels = int(f.channels)
+                total_frames = int(f.frames)
+                if sr <= 0 or channels <= 0:
+                    raise AudioValidationError(f"Audio metadata is invalid for {path}.")
+                duration_s = total_frames / float(sr)
+                if not np.isfinite(duration_s) or duration_s < 0.1 or total_frames < 3200:
+                    raise AudioValidationError(
+                        f"Audio is too short ({duration_s:.6f}s); minimum is 0.100s."
+                    )
+                if sr != EXPECTED_SAMPLE_RATE:
+                    raise AudioValidationError(
+                        f"Expected {EXPECTED_SAMPLE_RATE} Hz audio, got {sr} Hz for {path}."
+                    )
+
+                default_batch = 4 if self.device == "GPU" else 1
+                eff_batch = max(1, int(batch_size if batch_size is not None else default_batch))
+                block_frames = eff_batch * EXPECTED_SEGMENT_SAMPLES
+
+                all_detections: List[ModelDetectionOutput] = []
+                all_embeddings: List[np.ndarray] = []
+                segments: List[Tuple[float, float]] = []
+                global_min = float("inf")
+                global_max = float("-inf")
+                start_idx = 0
+                t_infer_start = time.perf_counter()
+
+                while start_idx < total_frames:
+                    block = f.read(frames=block_frames, dtype="float32", always_2d=False)
+                    if block.size == 0:
+                        break
+                    if block.ndim > 1:
+                        block = np.mean(block, axis=1, dtype=np.float32)
+                    else:
+                        block = np.asarray(block, dtype=np.float32)
+
+                    if not np.isfinite(block).all():
+                        raise AudioValidationError(
+                            f"Audio contains no samples or non-finite samples: {path}"
+                        )
+
+                    global_min = min(global_min, float(np.min(block)))
+                    global_max = max(global_max, float(np.max(block)))
+                    if start_idx == 0 and len(block) == total_frames and global_max == global_min:
+                        raise AudioValidationError(
+                            f"Audio has zero variance (digital silence or constant-valued input): {path}"
+                        )
+
+                    window_chunks: List[np.ndarray] = []
+                    batch_segments: List[Tuple[float, float]] = []
+                    for offset in range(0, len(block), EXPECTED_SEGMENT_SAMPLES):
+                        chunk = block[offset : offset + EXPECTED_SEGMENT_SAMPLES]
+                        if len(chunk) < EXPECTED_SEGMENT_SAMPLES:
+                            chunk = np.pad(chunk, (0, EXPECTED_SEGMENT_SAMPLES - len(chunk)))
+                        abs_start = start_idx + offset
+                        start_s = abs_start / float(EXPECTED_SAMPLE_RATE)
+                        end_s = min(
+                            (abs_start + EXPECTED_SEGMENT_SAMPLES) / float(EXPECTED_SAMPLE_RATE),
+                            duration_s,
+                        )
+                        window_chunks.append(chunk)
+                        batch_segments.append((start_s, end_s))
+
+                    batch_tensor = np.stack(window_chunks, axis=0).astype(np.float32, copy=False)
+                    with self._lock:
+                        if self._session is None:
+                            raise BirdNetEngineError("ONNX session is not active.")
+                        preds, embs = self._session.run(
+                            ["predictions", "embeddings"],
+                            {"input": batch_tensor},
+                        )
+
+                    preds_arr = np.asarray(preds, dtype=np.float32)
+                    embs_arr = np.asarray(embs, dtype=np.float32)
+                    if embs_arr.ndim != 2 or embs_arr.shape[1] != EXPECTED_EMBEDDING_DIM:
+                        raise BirdNetEngineError(
+                            f"Direct ONNX produced invalid batch embedding shape {embs_arr.shape}."
+                        )
+                    if not np.isfinite(preds_arr).all() or not np.isfinite(embs_arr).all():
+                        raise BirdNetEngineError(
+                            "Direct ONNX produced non-finite predictions or embeddings."
+                        )
+
+                    for i, (seg_start, seg_end) in enumerate(batch_segments):
+                        all_detections.extend(
+                            self._scores_to_detections(
+                                scores=preds_arr[i],
+                                start_s=seg_start,
+                                end_s=seg_end,
+                                min_confidence=min_confidence,
+                                top_k=top_k,
+                            )
+                        )
+                    segments.extend(batch_segments)
+                    all_embeddings.append(embs_arr)
+                    start_idx += len(block)
+
+                if start_idx == 0 or global_max == global_min:
+                    raise AudioValidationError(
+                        f"Audio has zero variance (digital silence or constant-valued input): {path}"
+                    )
+        except (AudioValidationError, BirdNetEngineError):
+            raise
+        except Exception as exc:
+            raise AudioValidationError(f"Could not read audio file {path}.") from exc
+
+        inference_duration_s = time.perf_counter() - t_infer_start
+        vectors = np.concatenate(all_embeddings, axis=0).astype(np.float32, copy=False)
+        return DirectFileInferenceResult(
+            detections=all_detections,
+            vectors=vectors,
+            segments=segments,
             inference_duration_s=inference_duration_s,
         )
 
