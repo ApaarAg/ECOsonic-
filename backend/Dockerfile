@@ -51,7 +51,6 @@ RUN mkdir -p /app/model_cache \
              /app/storage/live_embeddings \
              /app/storage/evidence \
              /app/storage/db && \
-    python scripts/download_birdnet_models.py && \
     chown -R appuser:ecosonic /app/storage /app/model_cache /home/appuser
 
 ENV PATH=/home/appuser/.local/bin:$PATH
@@ -64,6 +63,10 @@ ENV MAX_CONCURRENT_JOBS=1
 ENV PORT=8000
 
 USER appuser
+
+# Download model files after switching users so Python can import dependencies
+# installed in /home/appuser/.local and the cache is owned by the runtime user.
+RUN python scripts/download_birdnet_models.py
 
 # Health check verifying API + model + DB readiness
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
