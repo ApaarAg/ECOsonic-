@@ -11,6 +11,7 @@ from typing import List
 
 import numpy as np
 import psutil
+import soundfile as sf
 
 from app.config import settings
 from app.core.database import async_session_factory
@@ -21,6 +22,7 @@ from app.models.detection import Detection
 from app.repositories.analysis_repository import AnalysisRepository
 from app.repositories.detection_repository import DetectionRepository
 from app.services.analysis_pipeline import analysis_pipeline
+from app.services.ecological_analysis_service import ecological_analysis_service
 from app.services.storage_service import storage_service
 
 
@@ -130,14 +132,70 @@ async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
             # Publish all database result rows in the same transaction as the
             # final completed state. If inference, encoding, or persistence
             # fails, users never see a partial set of detections/segments.
+            failed_stage = "ecological_synthesis"
+            await progress(failed_stage, 95)
+
+            def _read_processed_mono() -> np.ndarray | None:
+                try:
+                    samples, _ = sf.read(str(processed_path), dtype="float32")
+                    if samples.ndim > 1:
+                        samples = np.mean(samples, axis=1)
+                    return samples
+                except Exception as read_exc:
+                    logger.warning("Could not read processed WAV %s for soundscape: %s", processed_path, read_exc)
+                    return None
+
+            processed_audio = await asyncio.to_thread(_read_processed_mono)
+            eco_started = time.perf_counter()
+            ecological_summary = await ecological_analysis_service.build_analysis_ecology(
+                analysis_id=analysis_id,
+                filename=analysis.filename,
+                duration_seconds=processed_meta.duration_seconds,
+                sample_rate=processed_meta.sample_rate,
+                channels=processed_meta.channels,
+                latitude=analysis.latitude,
+                longitude=analysis.longitude,
+                recorded_at=analysis.recorded_at,
+                model_version=analysis.model_version or settings.MODEL_VERSION,
+                execution_provider=provider,
+                raw_detections=detections,
+                processed_audio=processed_audio,
+            )
+            timings["ecological_synthesis_seconds"] = time.perf_counter() - eco_started
+
+            # Populate geo_score cleanly on biological detections using the already-cached Geo prior
+            expected_by_sci = {
+                str(item.get("scientific_name", "")).strip().lower(): float(item["occurrence_score"])
+                for item in (ecological_summary.get("expected_species", {}).get("expected_species") or [])
+                if item.get("scientific_name") and item.get("occurrence_score") is not None
+            }
+            if expected_by_sci:
+                for det_row in db_detections:
+                    if det_row.record_type == "animal" and det_row.scientific_name:
+                        sci_key = det_row.scientific_name.strip().lower()
+                        if sci_key in expected_by_sci:
+                            det_row.geo_score = round(expected_by_sci[sci_key], 4)
+
             db_started = time.perf_counter()
             await detection_repo.create_batch(db_detections)
             await analysis_repo.add_embedding_segments(db_segments)
             timings["database_insertion_seconds"] = time.perf_counter() - db_started
             timings["total_analysis_seconds"] = time.perf_counter() - started
+
+            sp_sum = ecological_summary.get("species", {}).get("summary", {})
+            dist_sec = ecological_summary.get("disturbance", {})
+            exp_sec = ecological_summary.get("expected_species", {})
+            gap_cov = ecological_summary.get("observation_gap", {}).get("coverage", {})
             metrics = {
                 "total_detections": len(db_detections),
                 "unique_classes": len({d.class_label for d in db_detections}),
+                "biological_detections_count": sp_sum.get("biological_detection_count", 0),
+                "unique_biological_species": sp_sum.get("unique_biological_species", 0),
+                "non_biological_detections_count": sp_sum.get("non_biological_detection_count", 0),
+                "unknown_detections_count": sp_sum.get("unknown_detection_count", 0),
+                "disturbance_index": dist_sec.get("disturbance_index"),
+                "expected_species_status": exp_sec.get("expected_species_status"),
+                "acoustic_coverage_ratio": gap_cov.get("coverage_ratio"),
                 "average_confidence": round(float(np.mean([d.confidence_score for d in db_detections])) if db_detections else 0.0, 4),
                 "embedding_vectors_count": len(vectors),
                 "embedding_shape": list(vectors.shape),
@@ -156,7 +214,9 @@ async def run_analysis_task(analysis_id: str, manager: JobManager) -> None:
                 processed_path=str(storage_service.get_processed_path(analysis_id)),
                 embedding_path=str(embedding_path),
                 duration_seconds=processed_meta.duration_seconds,
-                model_version=settings.MODEL_VERSION, metrics_json=metrics,
+                model_version=settings.MODEL_VERSION,
+                metrics_json=metrics,
+                ecological_summary_json=ecological_summary,
                 error_message=None,
             )
             await session.commit()

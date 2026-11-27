@@ -20,6 +20,7 @@ from app.models.soundscape import (
     DisturbanceEvent,
     SoundscapeMeasurement,
 )
+from app.models.species_image import SpeciesImageCache
 
 __all__ = [
     "Analysis",
@@ -33,6 +34,7 @@ __all__ = [
     "CoOccurrenceObservation",
     "Review",
     "Site",
+    "SpeciesImageCache",
     "EmbeddingIndex",
     "AcousticClusterRun",
     "AcousticClusterAssignment",

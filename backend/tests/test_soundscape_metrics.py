@@ -99,7 +99,7 @@ def test_acoustic_complexity_and_temporal_activity():
     import soundfile as sf
     from pathlib import Path
 
-    audio_file = Path("backend/data/smoke_audio/birds_forest.ogg")
+    audio_file = Path(__file__).resolve().parents[1] / "data/smoke_audio/birds_forest.ogg"
     if audio_file.exists():
         samples, sr = sf.read(str(audio_file))
         if samples.ndim > 1:

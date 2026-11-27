@@ -1,0 +1,218 @@
+{
+  "results": [
+    {
+      "viewport": "1440x900",
+      "s11Audit": {
+        "bgExists": true,
+        "bgPosition": "fixed",
+        "bgZIndex": "0",
+        "bgPointerEvents": "none",
+        "bgWidth": "1440px",
+        "bgHeight": "900px",
+        "bgTextLength": 0,
+        "s11Transparent": true,
+        "s11BgColor": "rgba(0, 0, 0, 0)",
+        "canvasCount": 1,
+        "canvasPresent": true,
+        "canvasWidth": 1440,
+        "canvasHeight": 900,
+        "specimenButtonsCount": 8,
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "diagnostics": {
+          "fps": 16,
+          "frameTimeMs": 64.27,
+          "drawCalls": 9,
+          "triangles": 0,
+          "points": 1290,
+          "lines": 1388,
+          "contextLost": false,
+          "dpr": 1,
+          "latency": {
+            "captureLatencyMs": null,
+            "wsLatencyMs": null,
+            "inferenceLatencyMs": null,
+            "visualResponseLatencyMs": null
+          }
+        }
+      },
+      "specimenInteractive": true,
+      "continuityAudit": {
+        "sameBgNode": true,
+        "sameCanvasNode": true,
+        "sameWebGLContext": true,
+        "canvasCountAfter": 1,
+        "bgTextLength": 0
+      },
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "viewport": "1920x1080",
+      "s11Audit": {
+        "bgExists": true,
+        "bgPosition": "fixed",
+        "bgZIndex": "0",
+        "bgPointerEvents": "none",
+        "bgWidth": "1920px",
+        "bgHeight": "1080px",
+        "bgTextLength": 0,
+        "s11Transparent": true,
+        "s11BgColor": "rgba(0, 0, 0, 0)",
+        "canvasCount": 1,
+        "canvasPresent": true,
+        "canvasWidth": 1920,
+        "canvasHeight": 1080,
+        "specimenButtonsCount": 8,
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "diagnostics": {
+          "fps": 5,
+          "frameTimeMs": 194.4,
+          "drawCalls": 9,
+          "triangles": 0,
+          "points": 1290,
+          "lines": 1388,
+          "contextLost": false,
+          "dpr": 1,
+          "latency": {
+            "captureLatencyMs": null,
+            "wsLatencyMs": null,
+            "inferenceLatencyMs": null,
+            "visualResponseLatencyMs": null
+          }
+        }
+      },
+      "specimenInteractive": true,
+      "continuityAudit": {
+        "sameBgNode": true,
+        "sameCanvasNode": true,
+        "sameWebGLContext": true,
+        "canvasCountAfter": 1,
+        "bgTextLength": 0
+      },
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "viewport": "390x844",
+      "s11Audit": {
+        "bgExists": true,
+        "bgPosition": "fixed",
+        "bgZIndex": "0",
+        "bgPointerEvents": "none",
+        "bgWidth": "390px",
+        "bgHeight": "844px",
+        "bgTextLength": 0,
+        "s11Transparent": true,
+        "s11BgColor": "rgba(0, 0, 0, 0)",
+        "canvasCount": 1,
+        "canvasPresent": true,
+        "canvasWidth": 390,
+        "canvasHeight": 844,
+        "specimenButtonsCount": 4,
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "diagnostics": {
+          "fps": 22,
+          "frameTimeMs": 45.13,
+          "drawCalls": 7,
+          "triangles": 0,
+          "points": 384,
+          "lines": 496,
+          "contextLost": false,
+          "dpr": 1,
+          "latency": {
+            "captureLatencyMs": null,
+            "wsLatencyMs": null,
+            "inferenceLatencyMs": null,
+            "visualResponseLatencyMs": null
+          }
+        }
+      },
+      "specimenInteractive": true,
+      "continuityAudit": {
+        "sameBgNode": true,
+        "sameCanvasNode": true,
+        "sameWebGLContext": true,
+        "canvasCountAfter": 1,
+        "bgTextLength": 0
+      },
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "viewport": "412x915",
+      "s11Audit": {
+        "bgExists": true,
+        "bgPosition": "fixed",
+        "bgZIndex": "0",
+        "bgPointerEvents": "none",
+        "bgWidth": "412px",
+        "bgHeight": "915px",
+        "bgTextLength": 0,
+        "s11Transparent": true,
+        "s11BgColor": "rgba(0, 0, 0, 0)",
+        "canvasCount": 1,
+        "canvasPresent": true,
+        "canvasWidth": 412,
+        "canvasHeight": 915,
+        "specimenButtonsCount": 4,
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "diagnostics": {
+          "fps": 21,
+          "frameTimeMs": 47.98,
+          "drawCalls": 7,
+          "triangles": 0,
+          "points": 384,
+          "lines": 496,
+          "contextLost": false,
+          "dpr": 1,
+          "latency": {
+            "captureLatencyMs": null,
+            "wsLatencyMs": null,
+            "inferenceLatencyMs": null,
+            "visualResponseLatencyMs": null
+          }
+        }
+      },
+      "specimenInteractive": true,
+      "continuityAudit": {
+        "sameBgNode": true,
+        "sameCanvasNode": true,
+        "sameWebGLContext": true,
+        "canvasCountAfter": 1,
+        "bgTextLength": 0
+      },
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    }
+  ],
+  "rmAudit": {
+    "bgExists": true,
+    "bgTextLength": 0,
+    "reducedMotionMatch": true,
+    "canvasCount": 1,
+    "diagnostics": {
+      "fps": 8,
+      "frameTimeMs": 129.1,
+      "drawCalls": 9,
+      "triangles": 0,
+      "points": 1290,
+      "lines": 1388,
+      "contextLost": false,
+      "dpr": 1,
+      "latency": {
+        "captureLatencyMs": null,
+        "wsLatencyMs": null,
+        "inferenceLatencyMs": null,
+        "visualResponseLatencyMs": null
+      }
+    }
+  }
+}

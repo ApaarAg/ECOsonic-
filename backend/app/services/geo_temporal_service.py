@@ -13,13 +13,15 @@ Scientific Guardrails:
 
 from __future__ import annotations
 
+from collections import OrderedDict
 import logging
 import math
 import os
+import re
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -43,6 +45,87 @@ SCIENTIFIC_GEO_DISCLAIMER = (
     "They do NOT establish empirical presence or absence. Vagrant species, range expansions, and migratory individuals "
     "may occur in areas with low baseline suitability."
 )
+
+# Exact normalized labels representing non-biological sound classes or human presence.
+# IMPORTANT: Always match whole normalized labels / comma-separated parts rather than
+# loose substring checks so real taxa (e.g. Gunnison Grouse, Western Lesser Siren) are never excluded.
+NON_BIOLOGICAL_LABELS: Set[str] = {
+    "human",
+    "human vocal",
+    "human non-vocal",
+    "human whistle",
+    "speech",
+    "noise",
+    "ambient noise",
+    "environmental",
+    "engine",
+    "chainsaw",
+    "siren",
+    "sirens",
+    "vehicle",
+    "gunshot",
+    "gunshots",
+    "helicopter",
+    "airplane",
+    "aircraft",
+    "horn",
+    "car horn",
+    "whistle",
+    "machinery",
+    "power tools",
+    "dog",
+    "cat",
+    "fireworks",
+    "alarm",
+    "bell",
+    "music",
+    "footsteps",
+    "wind",
+    "rain",
+    "thunder",
+    "sound_class",
+}
+
+
+def canonical_species_id(
+    scientific_name: str,
+    birdnet_taxonomy_id: Optional[str] = None,
+) -> str:
+    """Return a deterministic canonical species identifier."""
+    if birdnet_taxonomy_id and birdnet_taxonomy_id.strip():
+        return birdnet_taxonomy_id.strip()
+    slug = re.sub(r"[^a-z0-9]+", "_", scientific_name.strip().lower()).strip("_")
+    return f"taxon_{slug}" if slug else "taxon_unknown"
+
+
+def is_non_biological_taxon(
+    label_or_sci: Optional[str],
+    common_name: Optional[str] = None,
+    taxon_group: Optional[str] = None,
+    record_type: Optional[str] = None,
+) -> bool:
+    """Identify non-biological, anthropogenic, or sound_class labels without taxon false positives."""
+    if taxon_group and taxon_group.strip().lower() == "sound_class":
+        return True
+    if record_type and record_type.strip().lower() == "sound_class":
+        return True
+
+    candidates: List[str] = []
+    for raw in (label_or_sci, common_name):
+        if not raw:
+            continue
+        cleaned = " ".join(raw.strip().lower().split())
+        if not cleaned:
+            continue
+        candidates.append(cleaned)
+        if "_" in cleaned:
+            candidates.extend(" ".join(p.strip().split()) for p in cleaned.split("_") if p.strip())
+
+    for cand in candidates:
+        if cand in NON_BIOLOGICAL_LABELS:
+            return True
+
+    return False
 
 
 class CacheInfo(NamedTuple):
@@ -87,7 +170,8 @@ class GeoTemporalIntelligenceService:
         self._sci_to_birdnet_id: Dict[str, str] = {}
         self._sci_to_ebird_code: Dict[str, str] = {}
         self._sci_to_common_name: Dict[str, str] = {}
-        self._prediction_cache: Dict[Tuple[float, float, int], np.ndarray] = {}
+        self._cache_lock = threading.Lock()
+        self._prediction_cache: "OrderedDict[Tuple[str, float, float, int], np.ndarray]" = OrderedDict()
         self._max_cache_size = 500
         self._cache_hits = 0
         self._cache_misses = 0
@@ -97,12 +181,13 @@ class GeoTemporalIntelligenceService:
             return self.get_raw_geo_predictions(latitude, longitude, week, recording_date)
 
         def _get_cache_info() -> CacheInfo:
-            return CacheInfo(
-                hits=self._cache_hits,
-                misses=self._cache_misses,
-                maxsize=self._max_cache_size,
-                currsize=len(self._prediction_cache),
-            )
+            with self._cache_lock:
+                return CacheInfo(
+                    hits=self._cache_hits,
+                    misses=self._cache_misses,
+                    maxsize=self._max_cache_size,
+                    currsize=len(self._prediction_cache),
+                )
 
         _predict.cache_info = _get_cache_info  # type: ignore[attr-defined]
         self.predict_species_probabilities = _predict
@@ -188,10 +273,20 @@ class GeoTemporalIntelligenceService:
                         logger.warning("Failed reading taxonomy CSV %s: %s", p, exc)
 
     def validate_coordinates(self, latitude: float, longitude: float) -> Tuple[float, float]:
-        """Validate geographic coordinates."""
-        if not (-90.0 <= latitude <= 90.0):
+        """Validate geographic coordinates (finite, non-boolean, within WGS84 bounds)."""
+        if (
+            isinstance(latitude, bool)
+            or not isinstance(latitude, (int, float))
+            or not math.isfinite(float(latitude))
+            or not (-90.0 <= float(latitude) <= 90.0)
+        ):
             raise ValueError(f"Latitude must be between -90 and 90 (got {latitude}).")
-        if not (-180.0 <= longitude <= 180.0):
+        if (
+            isinstance(longitude, bool)
+            or not isinstance(longitude, (int, float))
+            or not math.isfinite(float(longitude))
+            or not (-180.0 <= float(longitude) <= 180.0)
+        ):
             raise ValueError(f"Longitude must be between -180 and 180 (got {longitude}).")
         return float(latitude), float(longitude)
 
@@ -217,23 +312,32 @@ class GeoTemporalIntelligenceService:
                 raise ValueError(f"Week must be -1 or between 1 and 48 (got {week}).")
             week_val = int(week)
 
-        cache_key = (round(lat_clean, 3), round(lon_clean, 3), week_val)
-        if cache_key in self._prediction_cache:
-            self._cache_hits += 1
-            return self._prediction_cache[cache_key]
+        cache_key = (self.model_version, round(lat_clean, 3), round(lon_clean, 3), week_val)
+        with self._cache_lock:
+            cached = self._prediction_cache.get(cache_key)
+            if cached is not None:
+                self._cache_hits += 1
+                self._prediction_cache.move_to_end(cache_key)
+                return cached
 
-        self._cache_misses += 1
-        # Execute ONNX geo model
-        res = self._model.predict(lat_clean, lon_clean, week=week_val)
-        probs = res.species_probs.astype(np.float32)
+        # Serialize ONNX geo inference safely across concurrent threads
+        with self._lock:
+            res = self._model.predict(lat_clean, lon_clean, week=week_val)
+            probs = res.species_probs.astype(np.float32)
+            probs.flags.writeable = False
 
-        # Cache management
-        if len(self._prediction_cache) >= self._max_cache_size:
-            first_key = next(iter(self._prediction_cache))
-            del self._prediction_cache[first_key]
+        with self._cache_lock:
+            existing = self._prediction_cache.get(cache_key)
+            if existing is not None:
+                self._cache_hits += 1
+                self._prediction_cache.move_to_end(cache_key)
+                return existing
 
-        self._prediction_cache[cache_key] = probs
-        return probs
+            self._cache_misses += 1
+            if len(self._prediction_cache) >= self._max_cache_size:
+                self._prediction_cache.popitem(last=False)
+            self._prediction_cache[cache_key] = probs
+            return probs
 
     def get_species_occurrence_score(
         self,
@@ -285,12 +389,31 @@ class GeoTemporalIntelligenceService:
         sci_clean = scientific_name.strip().lower()
         birdnet_id = self._sci_to_birdnet_id.get(sci_clean)
         com_name = self._sci_to_common_name.get(sci_clean)
+        species_id = canonical_species_id(scientific_name, birdnet_id)
+
+        if is_non_biological_taxon(scientific_name, common_name=com_name):
+            return AcousticDetectionGeoContext(
+                detection_id=detection_id,
+                live_event_id=live_event_id,
+                species_id=species_id,
+                scientific_name=scientific_name,
+                common_name=com_name,
+                birdnet_taxonomy_id=birdnet_id,
+                acoustic_confidence=acoustic_confidence,
+                geographic_score=None,
+                occurrence_status="not_applicable",
+                is_unusual_occurrence=False,
+                review_recommended=False,
+                flag_reason="Class is non-biological or unmapped in regional occurrence model.",
+                disclaimer=SCIENTIFIC_GEO_DISCLAIMER,
+            )
 
         # Handle missing coordinates safely
         if latitude is None or longitude is None:
             return AcousticDetectionGeoContext(
                 detection_id=detection_id,
                 live_event_id=live_event_id,
+                species_id=species_id,
                 scientific_name=scientific_name,
                 common_name=com_name,
                 birdnet_taxonomy_id=birdnet_id,
@@ -312,6 +435,7 @@ class GeoTemporalIntelligenceService:
             return AcousticDetectionGeoContext(
                 detection_id=detection_id,
                 live_event_id=live_event_id,
+                species_id=species_id,
                 scientific_name=scientific_name,
                 common_name=com_name,
                 birdnet_taxonomy_id=birdnet_id,
@@ -354,6 +478,7 @@ class GeoTemporalIntelligenceService:
         return AcousticDetectionGeoContext(
             detection_id=detection_id,
             live_event_id=live_event_id,
+            species_id=species_id,
             scientific_name=scientific_name,
             common_name=com_name,
             birdnet_taxonomy_id=birdnet_id,
@@ -387,36 +512,47 @@ class GeoTemporalIntelligenceService:
         # Rank species by probability
         ranked_indices = np.argsort(probs)[::-1]
 
-        expected_count = int(np.sum(probs >= 0.10))
-        rare_count = int(np.sum((probs >= 0.03) & (probs < 0.10)))
-        total_regional = int(np.sum(probs >= min_score))
+        score_floor = min(min_score, 0.03)
+        expected_count = 0
+        rare_count = 0
+        total_regional = 0
 
         top_species: List[SpeciesGeoContext] = []
-        for idx in ranked_indices[:top_k]:
+        for idx in ranked_indices:
             score = float(probs[idx])
-            if score < min_score:
+            if score < score_floor:
                 break
 
             species_str = str(self._model.species_list[idx])
             sci = species_str.split("_")[0].strip()
             com = species_str.split("_")[1].strip() if "_" in species_str else self._sci_to_common_name.get(sci.lower())
-            b_id = self._sci_to_birdnet_id.get(sci.lower())
-            ebird = self._sci_to_ebird_code.get(sci.lower())
+            if is_non_biological_taxon(sci, com):
+                continue
 
-            status = "expected" if score >= 0.10 else "rare"
+            if score >= 0.10:
+                expected_count += 1
+            elif score >= 0.03:
+                rare_count += 1
 
-            top_species.append(
-                SpeciesGeoContext(
-                    scientific_name=sci,
-                    common_name=com,
-                    birdnet_taxonomy_id=b_id,
-                    species_code=ebird,
-                    geo_score=round(score, 6),
-                    occurrence_status=status,
-                    is_unusual_occurrence=False,
-                    review_recommended=False,
-                )
-            )
+            if score >= min_score:
+                total_regional += 1
+                if len(top_species) < top_k:
+                    b_id = self._sci_to_birdnet_id.get(sci.lower())
+                    ebird = self._sci_to_ebird_code.get(sci.lower())
+                    status = "expected" if score >= 0.10 else "rare"
+                    top_species.append(
+                        SpeciesGeoContext(
+                            species_id=canonical_species_id(sci, b_id),
+                            scientific_name=sci,
+                            common_name=com,
+                            birdnet_taxonomy_id=b_id,
+                            species_code=ebird,
+                            geo_score=round(score, 6),
+                            occurrence_status=status,
+                            is_unusual_occurrence=False,
+                            review_recommended=False,
+                        )
+                    )
 
         return SiteGeoContextResponse(
             site_id=site_id,

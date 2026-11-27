@@ -1,4 +1,5 @@
 from datetime import datetime
+import math
 from typing import Optional
 import uuid
 import numpy as np
@@ -65,11 +66,27 @@ async def get_analysis_results(
             detail="Backing embedding artifact is corrupted, non-finite, or inconsistent with database segments.",
         )
 
+    eco = analysis.ecological_summary_json or {}
     return {
         "analysis_id": analysis.id,
         "status": analysis.status,
+        "filename": analysis.filename,
+        "latitude": analysis.latitude,
+        "longitude": analysis.longitude,
+        "gps_accuracy_m": analysis.gps_accuracy_m,
+        "gps_captured_at": analysis.gps_captured_at.isoformat() if analysis.gps_captured_at else None,
+        "recorded_at": analysis.recorded_at.isoformat() if analysis.recorded_at else None,
+        "duration_seconds": analysis.duration_seconds,
         "metrics": analysis.metrics_json,
         "detections": [DetectionResponse.model_validate(d) for d in analysis.detections],
+        "species": eco.get("species"),
+        "disturbance": eco.get("disturbance"),
+        "context": eco.get("context"),
+        "geospatial_context": eco.get("geospatial_context"),
+        "expected_species": eco.get("expected_species"),
+        "observation_gap": eco.get("observation_gap"),
+        "soundscape": eco.get("soundscape"),
+        "ecological_summary": analysis.ecological_summary_json,
         "embeddings": {
             "path": analysis.embedding_path,
             "shape": list(vectors.shape),
@@ -107,6 +124,8 @@ async def create_analysis(
     file: UploadFile = File(..., description="Audio file (WAV, MP3, FLAC, OGG, M4A)"),
     latitude: Optional[float] = Form(None, ge=-90.0, le=90.0),
     longitude: Optional[float] = Form(None, ge=-180.0, le=180.0),
+    gps_accuracy_m: Optional[float] = Form(None, ge=0.0),
+    gps_captured_at: Optional[datetime] = Form(None),
     recorded_at: Optional[datetime] = Form(None),
     model_version: Optional[str] = Form(settings.MODEL_VERSION),
     repo: AnalysisRepository = Depends(get_analysis_repository),
@@ -115,6 +134,22 @@ async def create_analysis(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file must have a valid filename.",
+        )
+
+    if (latitude is None) != (longitude is None):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Both latitude and longitude must be provided together.",
+        )
+    if latitude is not None and (not math.isfinite(latitude) or not math.isfinite(longitude)):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Geographic coordinates must be finite numbers.",
+        )
+    if gps_accuracy_m is not None and (not math.isfinite(gps_accuracy_m) or gps_accuracy_m < 0):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="GPS accuracy must be a finite non-negative number.",
         )
 
     # 1. Validate extension
@@ -164,6 +199,8 @@ async def create_analysis(
         duration_seconds=preliminary_meta.duration_seconds,
         latitude=latitude,
         longitude=longitude,
+        gps_accuracy_m=gps_accuracy_m,
+        gps_captured_at=gps_captured_at,
         recorded_at=recorded_at,
         model_version=model_version,
     )
@@ -192,8 +229,14 @@ async def list_analyses(
     items, total = await repo.list(skip=skip, limit=page_size, status=status)
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
+    serialized_items = []
+    for item in items:
+        resp = AnalysisResponse.model_validate(item)
+        resp.detections_count = len(item.detections or [])
+        serialized_items.append(resp)
+
     return PaginatedResponse(
-        items=items,
+        items=serialized_items,
         total=total,
         page=page,
         page_size=page_size,
@@ -204,7 +247,7 @@ async def list_analyses(
 @router.get(
     "/{analysis_id}",
     response_model=AnalysisDetailResponse,
-    summary="Get full analysis details with detections and embedding segments",
+    summary="Get full analysis details with detections, embedding segments, and persisted ecological intelligence",
 )
 async def get_analysis(
     analysis_id: str,
@@ -216,7 +259,16 @@ async def get_analysis(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis with ID '{analysis_id}' not found.",
         )
-    return analysis
+    detail = AnalysisDetailResponse.model_validate(analysis)
+    detail.detections_count = len(analysis.detections)
+    eco = analysis.ecological_summary_json
+    if isinstance(eco, dict):
+        detail.species_analysis = eco.get("species")
+        detail.disturbance_analysis = eco.get("disturbance")
+        detail.context_analysis = eco.get("context")
+        detail.expected_species_analysis = eco.get("expected_species")
+        detail.observation_gap_analysis = eco.get("observation_gap")
+    return detail
 
 
 @router.get(

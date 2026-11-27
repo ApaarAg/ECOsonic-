@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import struct
 import uuid
+import wave
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from fastapi import (
     APIRouter,
@@ -22,8 +27,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.config import settings
 from app.core.database import async_session_factory, get_db
 from app.core.logging import logger
+from app.models.analysis import Analysis, EmbeddingSegment
+from app.models.detection import Detection
 from app.models.live_session import LiveEvent, LiveSegment, LiveSession
 from app.models.soundscape import (
     CoOccurrenceObservation,
@@ -49,6 +57,9 @@ from app.schemas.soundscape import (
     TimelineItemResponse,
 )
 from app.services.acoustic_anomaly_service import acoustic_anomaly_service
+from app.services.direct_onnx_engine import direct_onnx_engine
+from app.services.ecological_analysis_service import ecological_analysis_service
+from app.services.storage_service import storage_service
 from app.services.live.session_manager import (
     LiveSessionState,
     get_hardware_metrics,
@@ -84,6 +95,8 @@ async def create_live_session(
         site_id=payload.site_id,
         latitude=payload.latitude,
         longitude=payload.longitude,
+        gps_accuracy_m=payload.gps_accuracy_m,
+        gps_captured_at=payload.gps_captured_at,
         sample_rate=payload.sample_rate,
         channels=payload.channels,
         status="created",
@@ -205,10 +218,233 @@ async def get_live_session(
     return detail
 
 
+@router.get(
+    "/sessions/{session_id}/stats",
+    response_model=LiveSessionStats,
+    summary="Get real-time or persisted statistics for a live session",
+)
+async def get_live_session_stats(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(LiveSession).where(LiveSession.id == session_id))
+    session_obj = result.scalar_one_or_none()
+    if not session_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Live session {session_id} not found.",
+        )
+
+    mem_state = live_session_manager.get_session(session_id)
+    if mem_state:
+        return mem_state.get_stats()
+
+    hw = get_hardware_metrics()
+    return LiveSessionStats(
+        audio_capture_rate=0.0,
+        audio_input_continuity=100.0,
+        avg_inference_latency_ms=0.0,
+        avg_embedding_latency_ms=0.0,
+        window_processing_lag_ms=0.0,
+        e2e_event_delivery_latency_ms=0.0,
+        dropped_frames=session_obj.dropped_frames,
+        dropped_windows=session_obj.dropped_windows,
+        gpu_utilization_pct=hw["gpu_utilization_pct"],
+        cpu_utilization_pct=hw["cpu_utilization_pct"],
+        peak_memory_mb=hw["peak_memory_mb"],
+    )
+
+
+async def _finalize_live_session_to_analysis(
+    session_id: str, db: AsyncSession
+) -> Optional[str]:
+    """Persist a stopped LiveSession with recorded windows into a canonical Analysis."""
+    query = (
+        select(LiveSession)
+        .options(
+            selectinload(LiveSession.events),
+            selectinload(LiveSession.segments),
+        )
+        .where(LiveSession.id == session_id)
+    )
+    res = await db.execute(query)
+    session_obj = res.scalar_one_or_none()
+    if not session_obj:
+        return None
+    if session_obj.analysis_id:
+        return session_obj.analysis_id
+
+    ordered_segments = sorted(session_obj.segments, key=lambda s: s.start_seconds)
+    if not ordered_segments:
+        return None
+
+    analysis_id = str(uuid.uuid4())
+    filename = f"live_{session_id[:8]}.wav"
+    raw_path = storage_service.get_raw_path(analysis_id, filename)
+    processed_path = storage_service.get_processed_path(analysis_id)
+
+    # Concatenate segment WAV PCM frames into raw & canonical 32kHz mono WAV
+    pcm_chunks: List[bytes] = []
+    for seg in ordered_segments:
+        seg_path = Path(seg.audio_path)
+        if seg_path.exists():
+            try:
+                with wave.open(str(seg_path), "rb") as wf:
+                    pcm_chunks.append(wf.readframes(wf.getnframes()))
+            except Exception as wav_exc:
+                logger.warning("Skipping unreadable segment WAV %s: %s", seg_path, wav_exc)
+
+    if not pcm_chunks:
+        return None
+
+    total_pcm = b"".join(pcm_chunks)
+    for target in (raw_path, processed_path):
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with wave.open(str(target), "wb") as out_wf:
+            out_wf.setnchannels(session_obj.channels)
+            out_wf.setsampwidth(2)
+            out_wf.setframerate(session_obj.sample_rate)
+            out_wf.writeframes(total_pcm)
+
+    duration_s = max(
+        float(session_obj.processed_audio_seconds or 0.0),
+        float(session_obj.total_audio_seconds or 0.0),
+        float(len(total_pcm)) / float(max(1, session_obj.sample_rate * session_obj.channels * 2)),
+    )
+
+    # Assemble (N, 1280) float32 embeddings matching segments strictly
+    vec_rows: List[np.ndarray] = []
+    embedding_segments: List[EmbeddingSegment] = []
+    for idx, seg in enumerate(ordered_segments):
+        vec: Optional[np.ndarray] = None
+        if seg.embedding_path and Path(seg.embedding_path).exists():
+            try:
+                loaded = np.load(seg.embedding_path).astype(np.float32)
+                if loaded.ndim == 2 and loaded.shape[1] == 1280 and np.isfinite(loaded).all():
+                    vec = loaded[0]
+                elif loaded.ndim == 1 and loaded.shape[0] == 1280 and np.isfinite(loaded).all():
+                    vec = loaded
+            except Exception:
+                vec = None
+        if vec is None:
+            vec = np.zeros((1280,), dtype=np.float32)
+        vec_rows.append(vec)
+        embedding_segments.append(
+            EmbeddingSegment(
+                analysis_id=analysis_id,
+                vector_index=idx,
+                start_seconds=float(seg.start_seconds),
+                end_seconds=float(seg.end_seconds),
+            )
+        )
+
+    vectors = np.stack(vec_rows, axis=0).astype(np.float32)
+    embedding_path = storage_service.save_embeddings(analysis_id, vectors)
+
+    db_detections = [
+        Detection(
+            analysis_id=analysis_id,
+            class_label=ev.class_label,
+            scientific_name=ev.scientific_name,
+            common_name=ev.common_name,
+            taxon_group=ev.taxon_group,
+            record_type=ev.record_type or "animal",
+            start_seconds=float(ev.start_seconds),
+            end_seconds=float(ev.end_seconds),
+            confidence_score=float(ev.confidence_score),
+        )
+        for ev in session_obj.events
+    ]
+
+    onnx_status = direct_onnx_engine.get_status()
+    exec_provider = (
+        (onnx_status.get("active_providers") or [None])[0]
+        or onnx_status.get("device")
+        or "CPUExecutionProvider"
+    )
+    recorded_ts = session_obj.gps_captured_at or session_obj.started_at
+    processed_samples = (
+        np.frombuffer(total_pcm, dtype=np.int16).astype(np.float32) / 32768.0
+    )
+    ecological_summary = await ecological_analysis_service.build_analysis_ecology(
+        analysis_id=analysis_id,
+        filename=filename,
+        duration_seconds=duration_s,
+        sample_rate=session_obj.sample_rate,
+        channels=session_obj.channels,
+        latitude=session_obj.latitude,
+        longitude=session_obj.longitude,
+        recorded_at=recorded_ts,
+        model_version=settings.MODEL_VERSION,
+        execution_provider=str(exec_provider),
+        raw_detections=session_obj.events,
+        processed_audio=processed_samples,
+    )
+
+    sp_sum = ecological_summary.get("species", {}).get("summary", {})
+    dist_sec = ecological_summary.get("disturbance", {})
+    exp_sec = ecological_summary.get("expected_species", {})
+    gap_cov = ecological_summary.get("observation_gap", {}).get("coverage", {})
+    metrics = {
+        "source_type": session_obj.source_type,
+        "live_session_id": session_id,
+        "total_detections": len(db_detections),
+        "unique_classes": len({d.class_label for d in db_detections}),
+        "biological_detections_count": sp_sum.get("biological_detection_count", 0),
+        "unique_biological_species": sp_sum.get("unique_biological_species", 0),
+        "non_biological_detections_count": sp_sum.get("non_biological_detection_count", 0),
+        "unknown_detections_count": sp_sum.get("unknown_detection_count", 0),
+        "disturbance_index": dist_sec.get("disturbance_index"),
+        "expected_species_status": exp_sec.get("expected_species_status"),
+        "acoustic_coverage_ratio": gap_cov.get("coverage_ratio"),
+        "average_confidence": round(
+            float(np.mean([d.confidence_score for d in db_detections])) if db_detections else 0.0,
+            4,
+        ),
+        "embedding_vectors_count": len(vectors),
+        "embedding_shape": list(vectors.shape),
+        "embedding_dtype": str(vectors.dtype),
+        "sample_rate": session_obj.sample_rate,
+        "channels": session_obj.channels,
+        "execution_provider": str(exec_provider),
+    }
+
+    analysis_row = Analysis(
+        id=analysis_id,
+        filename=filename,
+        audio_path=str(raw_path),
+        processed_path=str(processed_path),
+        embedding_path=str(embedding_path),
+        status="completed",
+        progress=100.0,
+        current_stage="completed",
+        duration_seconds=round(duration_s, 3),
+        latitude=session_obj.latitude,
+        longitude=session_obj.longitude,
+        gps_accuracy_m=session_obj.gps_accuracy_m,
+        gps_captured_at=session_obj.gps_captured_at,
+        recorded_at=recorded_ts,
+        model_version=settings.MODEL_VERSION,
+        metrics_json=metrics,
+        ecological_summary_json=ecological_summary,
+    )
+    db.add(analysis_row)
+    if db_detections:
+        db.add_all(db_detections)
+    if embedding_segments:
+        db.add_all(embedding_segments)
+
+    session_obj.analysis_id = analysis_id
+    session_obj.recording_path = str(processed_path)
+    await db.commit()
+    await db.refresh(session_obj)
+    return analysis_id
+
+
 @router.post(
     "/sessions/{session_id}/stop",
     response_model=LiveSessionResponse,
-    summary="Gracefully stop a live streaming session",
+    summary="Gracefully stop a live streaming session and finalize persisted Analysis",
 )
 async def stop_live_session(
     session_id: str,
@@ -226,12 +462,14 @@ async def stop_live_session(
             detail=f"Live session {session_id} not found.",
         )
 
-    if not state:
+    if not state and session_obj.status != "stopped":
         session_obj.status = "stopped"
         session_obj.stopped_at = datetime.now(timezone.utc)
         await db.commit()
         await db.refresh(session_obj)
 
+    await _finalize_live_session_to_analysis(session_id, db)
+    await db.refresh(session_obj)
     return LiveSessionResponse.model_validate(session_obj)
 
 
@@ -310,7 +548,7 @@ async def get_session_timeline(
         select(LiveEvent)
         .where(
             LiveEvent.session_id == session_id,
-            LiveEvent.taxon_group != "sound_class",
+            LiveEvent.record_type == "animal",
         )
     )
     bio_events = bio_res.scalars().all()
@@ -518,19 +756,27 @@ async def get_session_intelligence(
             detail=f"Live session {session_id} not found.",
         )
 
-    # 1. Biological detections
-    bio_res = await db.execute(
-        select(LiveEvent).where(
-            LiveEvent.session_id == session_id,
-            LiveEvent.taxon_group != "sound_class",
-        )
+    # 1. All session detections classified semantically (biological vs non-biological vs unknown)
+    all_ev_res = await db.execute(
+        select(LiveEvent).where(LiveEvent.session_id == session_id)
     )
-    bio_events = bio_res.scalars().all()
-    detections_count = len(bio_events)
-    unique_species = set(b.common_name or b.class_label for b in bio_events if b.common_name or b.class_label)
+    all_events = all_ev_res.scalars().all()
+    species_analysis = ecological_analysis_service.build_species_analysis(all_events)
+
+    bio_items = species_analysis["biological_detections"]
+    detections_count = len(bio_items)
+    unique_species = {
+        b.get("common_name") or b.get("scientific_name") or b.get("label")
+        for b in bio_items
+        if b.get("scientific_name") or b.get("common_name")
+    }
 
     from collections import Counter
-    species_counts = Counter(b.common_name or b.class_label for b in bio_events if b.common_name or b.class_label)
+    species_counts = Counter(
+        b.get("common_name") or b.get("scientific_name") or b.get("label")
+        for b in bio_items
+        if b.get("scientific_name") or b.get("common_name")
+    )
     top_species = [
         {"species": sp, "count": cnt}
         for sp, cnt in species_counts.most_common(5)
@@ -548,8 +794,41 @@ async def get_session_intelligence(
     anomalies = acoustic_anomaly_service.discover_session_anomalies(session_id=session_id)
     anom_responses = [AnomalyCandidateResponse.model_validate(a.to_dict()) for a in anomalies]
 
-    # 4. Fingerprint
+    # 4. Fingerprint & Soundscape context
     fingerprint_res = await get_session_fingerprint(session_id, db)
+    soundscape_payload = (
+        {
+            "metrics": fingerprint_res.metrics.model_dump(),
+            "frequency_bands": fingerprint_res.frequency_bands,
+            "calculation_parameters": fingerprint_res.calculation_parameters,
+            "quality_flags": fingerprint_res.quality_flags,
+        }
+        if any(v is not None for v in fingerprint_res.metrics.model_dump().values())
+        else None
+    )
+
+    duration_s = max(float(session_obj.total_audio_seconds or 0.0), float(session_obj.processed_audio_seconds or 0.0))
+    disturbance_analysis = ecological_analysis_service.build_disturbance_analysis(
+        analysis_or_session_id=session_id,
+        species_analysis=species_analysis,
+        duration_seconds=duration_s,
+        soundscape_data=soundscape_payload,
+    )
+    context_analysis = ecological_analysis_service.build_context_analysis(
+        recording_id=session_id,
+        filename=None,
+        duration_seconds=duration_s,
+        sample_rate=session_obj.sample_rate,
+        channels=session_obj.channels,
+        latitude=session_obj.latitude,
+        longitude=session_obj.longitude,
+        recorded_at=session_obj.started_at,
+        model_version="BirdNET+ V3.0",
+        execution_provider=None,
+        species_analysis=species_analysis,
+        disturbance_analysis=disturbance_analysis,
+        soundscape_data=soundscape_payload,
+    )
 
     # 5. Co-occurrences
     co_res = await db.execute(
@@ -577,6 +856,9 @@ async def get_session_intelligence(
         soundscape_fingerprint=fingerprint_res,
         co_occurrences=co_responses,
         timeline_events_count=timeline_count,
+        species_analysis=species_analysis,
+        disturbance_analysis=disturbance_analysis,
+        context_analysis=context_analysis,
     )
 
 
@@ -600,6 +882,17 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
             )
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
+
+    if session_obj.sample_rate != 32000 or session_obj.channels != 1:
+        await websocket.send_json(
+            {
+                "type": "error",
+                "code": "UNSUPPORTED_AUDIO_FORMAT",
+                "message": "Live streaming requires sample_rate=32000, channels=1, PCM16 little-endian.",
+            }
+        )
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
 
     # Ensure in-memory session state is ready
     state = live_session_manager.get_session(session_id)
@@ -732,6 +1025,7 @@ async def websocket_live_stream(websocket: WebSocket, session_id: str):
                     await live_session_manager.resume_session(session_id)
                 elif msg_type == "stop":
                     await live_session_manager.stop_session(session_id)
+                    break
                 elif msg_type == "heartbeat":
                     await websocket.send_json(
                         {

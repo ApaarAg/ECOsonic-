@@ -16,6 +16,7 @@ from app.config import settings
 from app.core.exceptions import AudioProcessingError
 from app.core.logging import logger
 from app.services.audio_processor import AudioMetadata, audio_processor
+from app.services.semantic_classification import semantic_classifier
 from app.services.storage_service import storage_service
 
 
@@ -64,16 +65,9 @@ class BirdNetEngineAdapter:
             score = float(row.confidence)
             if score < min_confidence:
                 continue
-            if label in NON_ANIMAL_SOUND_CLASSES:
-                scientific, common, group, record_type = "Unknown", label.split("_", 1)[-1], None, "sound_class"
-            elif "_" in label:
-                scientific, common = (part.strip() for part in label.split("_", 1))
-                if not scientific or not common:
-                    scientific, common, group, record_type = "Unknown", label, "Unknown", "animal"
-                else:
-                    group, record_type = "Unknown", "animal"
-            else:
-                scientific, common, group, record_type = "Unknown", label, "Unknown", "animal"
+            scientific, common, group, record_type = semantic_classifier.resolve_model_fields(label)
+            if label in NON_ANIMAL_SOUND_CLASSES and record_type != "sound_class":
+                scientific, common, group, record_type = "Unknown", label.split("_", 1)[-1], "Anthropogenic", "sound_class"
             detections.append(ModelDetectionOutput(
                 class_label=label,
                 scientific_name=scientific,

@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-forest-950: #101C17;
+  --color-forest-900: #18271F;
+  --color-forest-800: #243B2E;
+  --color-moss-500: #788B68;
+  --color-lichen-200: #D5D9C6;
+  --color-ivory-100: #EEEBDD;
+  --color-stone-400: #A5AC9C;
+  --color-amber-400: #D3A36C;
+  --color-terracotta-500: #E07A5F;
+}
+
+:root {
+  --app-bg: #101C17;
+  --app-surface: #18271F;
+  --app-surface-elevated: #243B2E;
+  --app-border: rgba(213, 217, 198, 0.14);
+  --app-border-strong: rgba(213, 217, 198, 0.24);
+  --app-text: #EEEBDD;
+  --app-text-secondary: #D5D9C6;
+  --app-text-muted: #A5AC9C;
+  --app-accent: #788B68;
+  --app-amber: #D3A36C;
+  --app-terracotta: #E07A5F;
+}
+
+[data-theme="field-light"] {
+  --app-bg: #EEEBDD;
+  --app-surface: #E5E1D0;
+  --app-surface-elevated: #D5D9C6;
+  --app-border: rgba(16, 28, 23, 0.14);
+  --app-border-strong: rgba(16, 28, 23, 0.24);
+  --app-text: #101C17;
+  --app-text-secondary: #243B2E;
+  --app-text-muted: #4A594E;
+  --app-accent: #4E6142;
+  --app-amber: #9E6B30;
+  --app-terracotta: #C95A3E;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle natural paper/grain atmospheric texture for editorial sections */
+.bg-natural-grain {
+  background-image: radial-gradient(rgba(213, 217, 198, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.bg-ivory-grain {
+  background-image: radial-gradient(rgba(16, 28, 23, 0.045) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ECOsonic Adapted Component Tokens & Primitives (daisyUI structural conventions + OriginKit editorial tactile styling) */
+.eco-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  border-width: 1px;
+  transition: all 150ms ease;
+}
+
+.eco-badge-moss {
+  background-color: rgba(120, 139, 104, 0.14);
+  color: #788B68;
+  border-color: rgba(120, 139, 104, 0.32);
+}
+
+.eco-badge-amber {
+  background-color: rgba(211, 163, 108, 0.14);
+  color: #D3A36C;
+  border-color: rgba(211, 163, 108, 0.32);
+}
+
+.eco-badge-terracotta {
+  background-color: rgba(224, 122, 95, 0.15);
+  color: #E07A5F;
+  border-color: rgba(224, 122, 95, 0.35);
+}
+
+.eco-badge-neutral {
+  background-color: var(--app-surface-elevated);
+  color: var(--app-text-secondary);
+  border-color: var(--app-border);
+}
+
+.eco-card-interactive {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 0.5rem;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.eco-card-interactive:hover {
+  border-color: var(--app-border-strong);
+  box-shadow: 0 4px 20px -4px rgba(16, 28, 23, 0.4);
+}
+
+.eco-card-editorial {
+  background-color: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.eco-floating-dock {
+  background-color: rgba(24, 39, 31, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(213, 217, 198, 0.16);
+  border-radius: 9999px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* daisyUI adapted timeline sequence */
+.eco-timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.eco-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.eco-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.eco-timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 0.4375rem;
+  top: 1.25rem;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--app-border);
+}
+
+.eco-timeline-point {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 9999px;
+  border: 2px solid var(--app-accent);
+  background-color: var(--app-surface);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  z-index: 1;
+}
+
+.eco-timeline-point-amber {
+  border-color: var(--app-amber);
+}
+
+.eco-timeline-point-terracotta {
+  border-color: var(--app-terracotta);
+}

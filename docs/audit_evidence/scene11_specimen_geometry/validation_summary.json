@@ -1,0 +1,96 @@
+{
+  "results": [
+    {
+      "viewport": "1440x900",
+      "geometryAudit": {
+        "activeVariant": "active",
+        "activeClipPath": "url(\"#eco-plate-clip-_r_2_\")",
+        "activeHasRectangularCssBorder": false,
+        "activeHasRectangularBoxShadow": false,
+        "activeDropShadowFilter": "drop-shadow(rgba(0, 0, 0, 0.92) 0px 24px 36px)",
+        "activeSvgPathD": "M 0.65 25.65 Q 0.65 22.65 2.55 20.33 L 16.75 2.97 Q 18.65 0.65 21.65 0.65 L 292.35 0.65 Q 295.35 0.65 295.35 3.65 L 295.35 378.85 Q 295.35 381.35 293.72 383.25 L 284.98 393.45 Q 283.35 395.35 280.85 395.35 L 3.65 395.35 Q 0.65 395.35 0.65 392.35 Z",
+        "apertureClipPath": "url(\"#eco-aperture-clip-_r_2_\")",
+        "apertureImageLoaded": true,
+        "leftNeighborPresent": true,
+        "leftNeighborClipPath": "url(\"#eco-plate-clip-_r_1_\")",
+        "rightNeighborPresent": true,
+        "rightNeighborClipPath": "url(\"#eco-plate-clip-_r_3_\")",
+        "horizontalOverflow": false,
+        "sharedBgPresent": true,
+        "canvasCount": 1
+      },
+      "fieldNoteInteractive": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "viewport": "1920x1080",
+      "geometryAudit": {
+        "activeVariant": "active",
+        "activeClipPath": "url(\"#eco-plate-clip-_r_2_\")",
+        "activeHasRectangularCssBorder": false,
+        "activeHasRectangularBoxShadow": false,
+        "activeDropShadowFilter": "drop-shadow(rgba(0, 0, 0, 0.92) 0px 24px 36px)",
+        "activeSvgPathD": "M 0.65 25.65 Q 0.65 22.65 2.55 20.33 L 16.75 2.97 Q 18.65 0.65 21.65 0.65 L 292.35 0.65 Q 295.35 0.65 295.35 3.65 L 295.35 378.85 Q 295.35 381.35 293.72 383.25 L 284.98 393.45 Q 283.35 395.35 280.85 395.35 L 3.65 395.35 Q 0.65 395.35 0.65 392.35 Z",
+        "apertureClipPath": "url(\"#eco-aperture-clip-_r_2_\")",
+        "apertureImageLoaded": true,
+        "leftNeighborPresent": true,
+        "leftNeighborClipPath": "url(\"#eco-plate-clip-_r_1_\")",
+        "rightNeighborPresent": true,
+        "rightNeighborClipPath": "url(\"#eco-plate-clip-_r_3_\")",
+        "horizontalOverflow": false,
+        "sharedBgPresent": true,
+        "canvasCount": 1
+      },
+      "fieldNoteInteractive": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "viewport": "390x844",
+      "geometryAudit": {
+        "activeVariant": "active",
+        "activeClipPath": "url(\"#eco-plate-clip-_r_2_\")",
+        "activeHasRectangularCssBorder": false,
+        "activeHasRectangularBoxShadow": false,
+        "activeDropShadowFilter": "drop-shadow(rgba(0, 0, 0, 0.92) 0px 24px 36px)",
+        "activeSvgPathD": "M 0.65 21.65 Q 0.65 18.65 2.49 16.28 L 12.81 3.02 Q 14.65 0.65 17.65 0.65 L 222.35 0.65 Q 225.35 0.65 225.35 3.65 L 225.35 301.85 Q 225.35 304.35 223.77 306.28 L 217.93 313.42 Q 216.35 315.35 213.85 315.35 L 3.65 315.35 Q 0.65 315.35 0.65 312.35 Z",
+        "apertureClipPath": "url(\"#eco-aperture-clip-_r_2_\")",
+        "apertureImageLoaded": true,
+        "leftNeighborPresent": true,
+        "leftNeighborClipPath": "url(\"#eco-plate-clip-_r_1_\")",
+        "rightNeighborPresent": true,
+        "rightNeighborClipPath": "url(\"#eco-plate-clip-_r_3_\")",
+        "horizontalOverflow": false,
+        "sharedBgPresent": true,
+        "canvasCount": 1
+      },
+      "fieldNoteInteractive": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": []
+    },
+    {
+      "viewport": "412x915",
+      "geometryAudit": {
+        "activeVariant": "active",
+        "activeClipPath": "url(\"#eco-plate-clip-_r_2_\")",
+        "activeHasRectangularCssBorder": false,
+        "activeHasRectangularBoxShadow": false,
+        "activeDropShadowFilter": "drop-shadow(rgba(0, 0, 0, 0.92) 0px 24px 36px)",
+        "activeSvgPathD": "M 0.65 21.65 Q 0.65 18.65 2.57 16.35 L 13.73 2.95 Q 15.65 0.65 18.65 0.65 L 235.35 0.65 Q 238.35 0.65 238.35 3.65 L 238.35 301.85 Q 238.35 304.35 236.67 306.20 L 230.03 313.50 Q 228.35 315.35 225.85 315.35 L 3.65 315.35 Q 0.65 315.35 0.65 312.35 Z",
+        "apertureClipPath": "url(\"#eco-aperture-clip-_r_2_\")",
+        "apertureImageLoaded": true,
+        "leftNeighborPresent": true,
+        "leftNeighborClipPath": "url(\"#eco-plate-clip-_r_1_\")",
+        "rightNeighborPresent": true,
+        "rightNeighborClipPath": "url(\"#eco-plate-clip-_r_3_\")",
+        "horizontalOverflow": false,
+        "sharedBgPresent": true,
+        "canvasCount": 1
+      },
+      "fieldNoteInteractive": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": []
+    }
+  ]
+}

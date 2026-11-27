@@ -29,10 +29,17 @@ async def get_summary_report(
         select(func.count(Analysis.id)).where(Analysis.status == "failed")
     ) or 0
 
-    # Total detections & species richness
+    # Total detections & strictly biological species richness
     total_detections = await session.scalar(select(func.count(Detection.id))) or 0
+    bio_filter = (Detection.record_type == "animal") & (Detection.scientific_name != "Unknown")
+    biological_detections = await session.scalar(
+        select(func.count(Detection.id)).where(bio_filter)
+    ) or 0
+    non_biological_detections = await session.scalar(
+        select(func.count(Detection.id)).where(Detection.record_type == "sound_class")
+    ) or 0
     unique_species = await session.scalar(
-        select(func.count(func.distinct(Detection.scientific_name)))
+        select(func.count(func.distinct(Detection.scientific_name))).where(bio_filter)
     ) or 0
 
     # Human reviews summary
@@ -41,7 +48,7 @@ async def get_summary_report(
         select(func.count(Review.id)).where(Review.review_status == "confirmed")
     ) or 0
 
-    # Top 10 detected species
+    # Top 10 detected biological species
     top_species_query = (
         select(
             Detection.scientific_name,
@@ -49,6 +56,7 @@ async def get_summary_report(
             func.count(Detection.id).label("count"),
             func.max(Detection.confidence_score).label("max_confidence"),
         )
+        .where(bio_filter)
         .group_by(Detection.scientific_name, Detection.common_name)
         .order_by(func.count(Detection.id).desc())
         .limit(10)
@@ -72,6 +80,8 @@ async def get_summary_report(
         },
         "detections": {
             "total": total_detections,
+            "biological_total": biological_detections,
+            "non_biological_total": non_biological_detections,
             "unique_species_count": unique_species,
         },
         "reviews": {

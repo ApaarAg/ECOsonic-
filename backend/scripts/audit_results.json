@@ -1,0 +1,578 @@
+[
+  {
+    "endpoint": "/health",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 6.05,
+    "notes": "Status: healthy"
+  },
+  {
+    "endpoint": "/",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 2.73,
+    "notes": "App: None"
+  },
+  {
+    "endpoint": "/api/v1/sites",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 13.39,
+    "notes": "Found 8 sites"
+  },
+  {
+    "endpoint": "/api/v1/sites",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "latency_ms": 10.86,
+    "notes": "Created ID: 82965fe3-d78d-4c53-acc4-e86153dd5690"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 18.69,
+    "notes": "Retrieved Audit Test Observatory"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690",
+    "method": "PATCH",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 14.83,
+    "notes": "Updated notes"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/geo-context",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 13.1,
+    "notes": "Ecosystem: None"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/species-context",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 10.71,
+    "notes": "Species evaluated: Turdus merula, occurrence: None"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/history",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 16.97,
+    "notes": "History records: 0"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/habitat-drift",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 13.28,
+    "notes": "Sessions analyzed: 0, Warning: None"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/incidents",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 11.26,
+    "notes": "Site incidents: 0"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/reports",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 16.91,
+    "notes": "Report generated: site=82965fe3-d78d-4c53-acc4-e86153dd5690"
+  },
+  {
+    "endpoint": "/api/v1/geo/contextualize",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 3.08,
+    "notes": "Biome: None"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "latency_ms": 40.02,
+    "notes": "Created session ID: 089ab38e-3a59-4c3a-b8ff-dab5ef271217"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 444.71,
+    "notes": "Total sessions: 50"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 51.7,
+    "notes": "Status: created"
+  },
+  {
+    "endpoint": "/api/v1/live/disturbances/taxonomy",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 3.05,
+    "notes": "Classes: 16"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/stream [WS]",
+    "method": "WS",
+    "status_code": 101,
+    "expected_status": 101,
+    "passed": true,
+    "latency_ms": 100.0,
+    "notes": "Handshake received: {\"type\":\"handshake_ack\",\"session_id\":\"08, Frame msg: {\"type\":\"session_started\",\"session_id\":\""
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/soundscape",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 12.65,
+    "notes": "Measurements: 0"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/disturbances",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 8.64,
+    "notes": "Disturbances: 1"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/timeline",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 9.31,
+    "notes": "Timeline points: 2"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/co-occurrence",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 8.91,
+    "notes": "Pairs: 0"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/fingerprint",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 8.13,
+    "notes": "Quality flags: ['insufficient_audio_accumulated']"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/anomalies",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 6.93,
+    "notes": "Candidates: 0"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/intelligence",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 14.37,
+    "notes": "Total detections: 1"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690/comparisons",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 11.31,
+    "notes": "Comparison drift response: 200"
+  },
+  {
+    "endpoint": "/api/v1/live/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/stop",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 111.02,
+    "notes": "Stopped: stopped"
+  },
+  {
+    "endpoint": "/api/v1/analyses",
+    "method": "POST",
+    "status_code": 202,
+    "expected_status": 202,
+    "passed": true,
+    "latency_ms": 40.05,
+    "notes": "Created Analysis ID: 4b2d897a-6783-405f-b18e-ea700c56c1af"
+  },
+  {
+    "endpoint": "/api/v1/analyses",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 13.55,
+    "notes": "Total analyses: 5"
+  },
+  {
+    "endpoint": "/api/v1/analyses/4b2d897a-6783-405f-b18e-ea700c56c1af",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 15.27,
+    "notes": "Status: completed"
+  },
+  {
+    "endpoint": "/api/v1/analyses/4b2d897a-6783-405f-b18e-ea700c56c1af/status",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 3.16,
+    "notes": "Status: completed"
+  },
+  {
+    "endpoint": "/api/v1/analyses/4b2d897a-6783-405f-b18e-ea700c56c1af/results",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 14.79,
+    "notes": "Results retrieved"
+  },
+  {
+    "endpoint": "/api/v1/analyses/4b2d897a-6783-405f-b18e-ea700c56c1af/detections",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 12.0,
+    "notes": "Detections count: 1"
+  },
+  {
+    "endpoint": "/api/v1/analyses/4b2d897a-6783-405f-b18e-ea700c56c1af/embeddings/download",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 11.45,
+    "notes": "Embeddings size: 5248 bytes"
+  },
+  {
+    "endpoint": "/api/v1/acoustic/inspect/4b2d897a-6783-405f-b18e-ea700c56c1af",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 9.86,
+    "notes": "Inspect info: WAV"
+  },
+  {
+    "endpoint": "/api/v1/acoustic/stream/4b2d897a-6783-405f-b18e-ea700c56c1af",
+    "method": "GET",
+    "status_code": 206,
+    "expected_status": 206,
+    "passed": true,
+    "latency_ms": 9.07,
+    "notes": "Streamed 1025 bytes"
+  },
+  {
+    "endpoint": "/api/v1/detections",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 17.51,
+    "notes": "Fetched 4 detections"
+  },
+  {
+    "endpoint": "/api/v1/detections/8f22e729-52af-4a0a-b82b-40937d00c64b",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 10.96,
+    "notes": "Common name: Music"
+  },
+  {
+    "endpoint": "/api/v1/detections/8f22e729-52af-4a0a-b82b-40937d00c64b/reviews",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "latency_ms": 25.18,
+    "notes": "Review status: confirmed"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/index/status",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 1.93,
+    "notes": "Total indexed: None, dimension: None"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/projection",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 5405.26,
+    "notes": "Projected points: 1422"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/visualization/projection",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 5977.24,
+    "notes": "Points: 1422"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/search",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 10.35,
+    "notes": "Matches: 5"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/search",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 6.78,
+    "notes": "Matches: 5"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/clusters",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 11.64,
+    "notes": "Clusters: 1"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/clusters/run",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 1715.58,
+    "notes": "HDBSCAN run result: None clusters"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/benchmark/compare",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 16.84,
+    "notes": "Benchmark comparison completed"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/index/rebuild",
+    "method": "POST",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 1136.7,
+    "notes": "Rebuild status: ready"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/sessions/089ab38e-3a59-4c3a-b8ff-dab5ef271217/segments",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 12.6,
+    "notes": "Segments: 1"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/segments/cb78263e-7700-4ee6-9c95-3f6efd68d39f/similar",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 4.21,
+    "notes": "Similar segments: 5"
+  },
+  {
+    "endpoint": "/api/v1/acoustic-memory/segments/cb78263e-7700-4ee6-9c95-3f6efd68d39f/audio",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 14.96,
+    "notes": "Audio response: 200 (192078 bytes)"
+  },
+  {
+    "endpoint": "/api/v1/environmental-events/test-live-event-01/review",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "latency_ms": 9.87,
+    "notes": "Event review created ID: 348c405e-a325-4d62-98cb-7e5dd9a4d51e"
+  },
+  {
+    "endpoint": "/api/v1/environmental-reviews",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "latency_ms": 15.74,
+    "notes": "Created review ID: be733b69-81a1-4506-8ee2-a04e927b38a6"
+  },
+  {
+    "endpoint": "/api/v1/environmental-reviews",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 14.27,
+    "notes": "Total reviews: 2"
+  },
+  {
+    "endpoint": "/api/v1/environmental-reviews/be733b69-81a1-4506-8ee2-a04e927b38a6",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 8.62,
+    "notes": "Review decision: confirmed"
+  },
+  {
+    "endpoint": "/api/v1/environmental-reviews/be733b69-81a1-4506-8ee2-a04e927b38a6",
+    "method": "PATCH",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 8.17,
+    "notes": "Updated decision: confirmed"
+  },
+  {
+    "endpoint": "/api/v1/environmental-incidents",
+    "method": "POST",
+    "status_code": 201,
+    "expected_status": 201,
+    "passed": true,
+    "latency_ms": 24.72,
+    "notes": "Created Incident ID: 02da4e29-295a-4763-bc15-50649a3d022b"
+  },
+  {
+    "endpoint": "/api/v1/environmental-incidents",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 19.91,
+    "notes": "Total incidents: 1"
+  },
+  {
+    "endpoint": "/api/v1/environmental-incidents/02da4e29-295a-4763-bc15-50649a3d022b",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 10.3,
+    "notes": "Incident severity/priority: critical"
+  },
+  {
+    "endpoint": "/api/v1/environmental-incidents/02da4e29-295a-4763-bc15-50649a3d022b",
+    "method": "PATCH",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 10.08,
+    "notes": "Updated status: under_review"
+  },
+  {
+    "endpoint": "/api/v1/reports/summary",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 27.46,
+    "notes": "Total detections: None, sites: None"
+  },
+  {
+    "endpoint": "/api/v1/reports/export",
+    "method": "GET",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 11.58,
+    "notes": "CSV export lines: 5"
+  },
+  {
+    "endpoint": "/api/v1/analyses/4b2d897a-6783-405f-b18e-ea700c56c1af",
+    "method": "DELETE",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 28.93,
+    "notes": "Analysis deleted"
+  },
+  {
+    "endpoint": "/api/v1/sites/82965fe3-d78d-4c53-acc4-e86153dd5690",
+    "method": "DELETE",
+    "status_code": 200,
+    "expected_status": 200,
+    "passed": true,
+    "latency_ms": 15.17,
+    "notes": "Site deleted"
+  }
+]

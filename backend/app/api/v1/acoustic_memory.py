@@ -332,7 +332,7 @@ async def list_acoustic_clusters(
             "dataset_size": r.dataset_size,
             "cluster_count": r.cluster_count,
             "noise_count": r.noise_count,
-            "parameters": r.parameters,
+            "parameters": getattr(r, "parameters_json", {}),
             "status": r.status,
             "created_at": r.created_at.isoformat() if r.created_at else None,
         }

@@ -109,16 +109,34 @@ async def handle_not_found_error(request: Request, exc: ResourceNotFoundError):
 # Health & Metadata Endpoints
 @app.get("/health", tags=["System"])
 async def health_check():
-    model_ready = (
-        analysis_pipeline.engine is not None
-        and getattr(analysis_pipeline.engine, "model", None) is not None
-    )
-    device = (
-        getattr(analysis_pipeline.engine, "device", "unknown")
-        if analysis_pipeline.engine
-        else "none"
-    )
     from app.services.direct_onnx_engine import direct_onnx_engine
+
+    pipeline_engine = analysis_pipeline.engine
+    pipeline_ready = pipeline_engine is not None and (
+        getattr(pipeline_engine, "_engine", None) is not None
+        or getattr(pipeline_engine, "model", None) is not None
+        or hasattr(pipeline_engine, "analyze_audio")
+    )
+    direct_status = direct_onnx_engine.get_status()
+    model_ready = bool(pipeline_ready or direct_status.get("is_ready"))
+    device_raw = (
+        getattr(pipeline_engine, "provider", None)
+        or getattr(pipeline_engine, "device", None)
+        or direct_status.get("device")
+        or "unknown"
+    )
+    active_providers = direct_status.get("active_providers") or []
+    execution_provider = (
+        active_providers[0]
+        if active_providers
+        else (
+            "CUDAExecutionProvider"
+            if str(device_raw).upper() == "GPU"
+            else "CPUExecutionProvider"
+            if str(device_raw).upper() == "CPU"
+            else str(device_raw)
+        )
+    )
 
     return {
         "status": "healthy",
@@ -126,8 +144,10 @@ async def health_check():
         "version": settings.PROJECT_VERSION,
         "model_version": settings.MODEL_VERSION,
         "model_ready": model_ready,
-        "model_device": device,
-        "direct_onnx_engine": direct_onnx_engine.get_status(),
+        "model_device": device_raw,
+        "execution_provider": execution_provider,
+        "provider_fallback_reason": direct_status.get("provider_fallback_reason"),
+        "direct_onnx_engine": direct_status,
     }
 
 

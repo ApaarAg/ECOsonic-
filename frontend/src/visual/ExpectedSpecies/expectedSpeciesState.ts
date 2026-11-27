@@ -1,0 +1,228 @@
+import type {
+  ExpectedSpeciesBaseline,
+  ExpectedSpeciesBaselineContext,
+  ExpectedSpeciesDto,
+} from "../../domain/acousticFieldTypes";
+import { resolveSpeciesAsset, type SpeciesAssetRecord } from "./speciesAssetRegistry";
+
+const NON_BIOLOGICAL_EXACT_KEYWORDS = new Set([
+  "engine",
+  "chainsaw",
+  "chain saw",
+  "siren",
+  "vehicle",
+  "motor vehicle",
+  "motor vehicle (road)",
+  "gunshot",
+  "gunfire",
+  "gun",
+  "helicopter",
+  "airplane",
+  "aircraft",
+  "horn",
+  "whistle",
+  "machinery",
+  "human",
+  "homo sapiens",
+  "human vocalization",
+  "speech",
+  "noise",
+  "environmental noise",
+  "unknown",
+  "unidentified",
+  "wind",
+  "rain",
+  "silence",
+]);
+
+export type SpecimenObservationTag =
+  | "expected"
+  | "detected"
+  | "observation_gap"
+  | "unexpected";
+
+export interface SpecimenRecord {
+  id: string;
+  speciesId: string | null;
+  index: number;
+  indexLabel: string;
+  scientificName: string;
+  abbreviatedScientific: string;
+  commonName: string;
+  occurrenceScore: number;
+  occurrenceStatus: "expected" | "frequent" | "rare";
+  birdnetTaxonomyId: string | null;
+  ebirdCode: string | null;
+  asset: SpeciesAssetRecord;
+  context: ExpectedSpeciesBaselineContext;
+  observationTag: SpecimenObservationTag;
+}
+
+export interface ArchiveSlotTransform {
+  specimen: SpecimenRecord;
+  offset: number;
+  isSelected: boolean;
+  visible: boolean;
+  xPx: number;
+  yPx: number;
+  zPx: number;
+  rotateYDeg: number;
+  widthPx: number;
+  heightPx: number;
+  zIndex: number;
+  dimming: number;
+}
+
+export function isBiologicalTaxon(scientificName: string, commonName?: string | null): boolean {
+  const sci = scientificName.trim().toLowerCase();
+  if (!sci) return false;
+  const com = (commonName ?? "").trim().toLowerCase();
+  if (NON_BIOLOGICAL_EXACT_KEYWORDS.has(sci) || (com && NON_BIOLOGICAL_EXACT_KEYWORDS.has(com))) {
+    return false;
+  }
+  return true;
+}
+
+export function abbreviateBinomial(scientificName: string): string {
+  const parts = scientificName.trim().split(/\s+/);
+  if (parts.length < 2) return scientificName.trim();
+  const genus = parts[0];
+  const epithet = parts.slice(1).join(" ");
+  return `${genus.charAt(0).toUpperCase()}. ${epithet}`;
+}
+
+export function makeSpecimenId(scientificName: string): string {
+  return scientificName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function buildSpecimenArchive(
+  baseline: ExpectedSpeciesBaseline,
+  maxArchiveSize = 18,
+): SpecimenRecord[] {
+  const dedup = new Map<string, ExpectedSpeciesDto>();
+
+  for (const sp of baseline.expectedSpecies) {
+    if (!isBiologicalTaxon(sp.scientificName, sp.commonName)) continue;
+    const key = sp.scientificName.trim().toLowerCase();
+    if (!dedup.has(key)) {
+      dedup.set(key, sp);
+    }
+  }
+
+  const sorted = Array.from(dedup.values()).sort((a, b) => {
+    const scoreDiff = (b.occurrenceScore ?? 0) - (a.occurrenceScore ?? 0);
+    if (Math.abs(scoreDiff) > 1e-6) return scoreDiff;
+    const labelA = (a.commonName || a.scientificName).toLowerCase();
+    const labelB = (b.commonName || b.scientificName).toLowerCase();
+    const cmp = labelA.localeCompare(labelB);
+    if (cmp !== 0) return cmp;
+    return a.scientificName.toLowerCase().localeCompare(b.scientificName.toLowerCase());
+  });
+
+  return sorted.slice(0, maxArchiveSize).map((sp, idx) => {
+    const common = (sp.commonName || sp.scientificName).trim();
+    return {
+      id: makeSpecimenId(sp.scientificName),
+      speciesId: sp.speciesId ?? sp.birdnetTaxonomyId ?? null,
+      index: idx,
+      indexLabel: String(idx + 1).padStart(2, "0"),
+      scientificName: sp.scientificName.trim(),
+      abbreviatedScientific: abbreviateBinomial(sp.scientificName),
+      commonName: common,
+      occurrenceScore: Number(sp.occurrenceScore ?? 0),
+      occurrenceStatus: sp.occurrenceStatus,
+      birdnetTaxonomyId: sp.birdnetTaxonomyId ?? null,
+      ebirdCode: sp.ebirdCode ?? null,
+      asset: resolveSpeciesAsset(sp.scientificName, common, sp.image),
+      context: baseline.context,
+      observationTag: "expected",
+    };
+  });
+}
+
+export function computeArchiveSlotTransforms(
+  specimens: SpecimenRecord[],
+  selectedIndex: number,
+  viewportWidth: number,
+  reducedMotion: boolean,
+): ArchiveSlotTransform[] {
+  if (specimens.length === 0) return [];
+
+  const safeSelected = Math.max(0, Math.min(specimens.length - 1, selectedIndex));
+  const isMobile = viewportWidth < 768;
+  const isTablet = viewportWidth >= 768 && viewportWidth < 1080;
+
+  const maxPerSide = isMobile ? 2 : isTablet ? 4 : 6;
+  const selectedW = isMobile ? Math.min(246, Math.max(206, viewportWidth * 0.58)) : isTablet ? 270 : 296;
+  const selectedH = isMobile ? 316 : isTablet ? 364 : 396;
+
+  const spineW = isMobile ? 44 : isTablet ? 52 : 58;
+  const spineH = isMobile ? 276 : isTablet ? 328 : 362;
+
+  const firstGap = isMobile ? selectedW * 0.5 + 22 : isTablet ? 178 : 196;
+  const stepGap = isMobile ? 42 : isTablet ? 52 : 58;
+
+  return specimens.map((specimen, idx) => {
+    const offset = idx - safeSelected;
+    const absOffset = Math.abs(offset);
+    const isSelected = offset === 0;
+    const visible = absOffset <= maxPerSide;
+
+    if (isSelected) {
+      return {
+        specimen,
+        offset,
+        isSelected: true,
+        visible: true,
+        xPx: 0,
+        yPx: reducedMotion ? 0 : -6,
+        zPx: reducedMotion ? 0 : 92,
+        rotateYDeg: 0,
+        widthPx: selectedW,
+        heightPx: selectedH,
+        zIndex: 40,
+        dimming: 0,
+      };
+    }
+
+    const sign = offset < 0 ? -1 : 1;
+    const stepsBeyondOne = absOffset - 1;
+    const xPx = sign * (firstGap + stepsBeyondOne * stepGap);
+    const zPx = reducedMotion ? 0 : -(34 + stepsBeyondOne * 30);
+    const yPx = reducedMotion ? 0 : Math.min(18, absOffset * 3);
+    const rotateYDeg = reducedMotion
+      ? 0
+      : -sign * Math.min(34, (isMobile ? 18 : 22) + stepsBeyondOne * 3);
+    const dimming = Math.min(0.62, 0.16 + stepsBeyondOne * 0.1);
+
+    return {
+      specimen,
+      offset,
+      isSelected: false,
+      visible,
+      xPx,
+      yPx,
+      zPx,
+      rotateYDeg,
+      widthPx: spineW,
+      heightPx: spineH,
+      zIndex: Math.max(1, 30 - absOffset),
+      dimming,
+    };
+  });
+}
+
+export function formatOccurrenceTierLabel(status: ExpectedSpeciesDto["occurrenceStatus"]): string {
+  switch (status) {
+    case "frequent":
+      return "FREQUENT IN CONTEXT";
+    case "rare":
+      return "INFREQUENT SEASONAL";
+    default:
+      return "EXPECTED IN CONTEXT";
+  }
+}

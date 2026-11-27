@@ -33,6 +33,11 @@ class LiveSession(Base):
     )
     latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    gps_accuracy_m: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    gps_captured_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    analysis_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -103,6 +108,7 @@ class LiveEvent(Base):
     scientific_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     common_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, index=True)
+    record_type: Mapped[str] = mapped_column(String(20), nullable=False, default="animal")
     taxon_group: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     model_version: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

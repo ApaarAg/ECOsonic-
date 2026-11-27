@@ -35,6 +35,7 @@ class DetectionRepository:
         min_confidence: Optional[float] = None,
         species: Optional[str] = None,
         review_status: Optional[str] = None,
+        record_type: Optional[str] = None,
         skip: int = 0,
         limit: int = 50,
     ) -> Tuple[List[Detection], int]:
@@ -55,6 +56,9 @@ class DetectionRepository:
         if review_status:
             count_query = count_query.where(Detection.review_status == review_status)
             query = query.where(Detection.review_status == review_status)
+        if record_type:
+            count_query = count_query.where(Detection.record_type == record_type)
+            query = query.where(Detection.record_type == record_type)
 
         total_res = await self.session.execute(count_query)
         total = total_res.scalar() or 0

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from app.schemas.detection import DetectionResponse, EmbeddingSegmentResponse
 
@@ -36,6 +36,8 @@ class AnalysisResponse(BaseModel):
     duration_seconds: Optional[float] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    gps_accuracy_m: Optional[float] = None
+    gps_captured_at: Optional[datetime] = None
     recorded_at: Optional[datetime] = None
     model_version: Optional[str] = None
     metrics_json: Optional[Dict[str, Any]] = None
@@ -49,3 +51,13 @@ class AnalysisResponse(BaseModel):
 class AnalysisDetailResponse(AnalysisResponse):
     detections: List[DetectionResponse] = []
     embedding_segments: List[EmbeddingSegmentResponse] = []
+    ecological_summary: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("ecological_summary_json", "ecological_summary"),
+        serialization_alias="ecological_summary",
+    )
+    species_analysis: Optional[Dict[str, Any]] = None
+    disturbance_analysis: Optional[Dict[str, Any]] = None
+    context_analysis: Optional[Dict[str, Any]] = None
+    expected_species_analysis: Optional[Dict[str, Any]] = None
+    observation_gap_analysis: Optional[Dict[str, Any]] = None

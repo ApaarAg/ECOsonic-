@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class SpeciesGeoContext(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    species_id: Optional[str] = None
     scientific_name: str
     common_name: Optional[str] = None
     birdnet_taxonomy_id: Optional[str] = None
@@ -27,8 +28,9 @@ class SpeciesGeoContext(BaseModel):
 class SiteGeoContextResponse(BaseModel):
     site_id: Optional[str] = None
     site_name: Optional[str] = None
-    latitude: float
-    longitude: float
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    location_sensitivity: str = "exact"
     week: int
     recording_date: Optional[str] = None
     model_version: str = "BirdNET Geo V3.0"
@@ -42,6 +44,7 @@ class SiteGeoContextResponse(BaseModel):
 class AcousticDetectionGeoContext(BaseModel):
     detection_id: Optional[str] = None
     live_event_id: Optional[str] = None
+    species_id: Optional[str] = None
     scientific_name: str
     common_name: Optional[str] = None
     birdnet_taxonomy_id: Optional[str] = None
@@ -55,6 +58,7 @@ class AcousticDetectionGeoContext(BaseModel):
 
 
 class GeoContextualizeRequest(BaseModel):
+    species_id: Optional[str] = None
     scientific_name: str
     acoustic_confidence: float = Field(..., ge=0.0, le=1.0)
     latitude: float = Field(..., ge=-90.0, le=90.0)

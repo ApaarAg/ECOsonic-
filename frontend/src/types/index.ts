@@ -88,6 +88,7 @@ export interface LiveEvent {
   scientific_name?: string;
   common_name?: string;
   confidence_score: number;
+  record_type: 'animal' | 'sound_class';
   taxon_group?: string;
   model_version?: string;
   geo_score?: number | null;

@@ -151,4 +151,7 @@ class SessionIntelligenceResponse(BaseModel):
     soundscape_fingerprint: Optional[SoundscapeFingerprintResponse] = None
     co_occurrences: List[CoOccurrenceObservationResponse] = Field(default_factory=list)
     timeline_events_count: int = 0
+    species_analysis: Optional[Dict[str, Any]] = None
+    disturbance_analysis: Optional[Dict[str, Any]] = None
+    context_analysis: Optional[Dict[str, Any]] = None
 

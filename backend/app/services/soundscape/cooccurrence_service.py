@@ -132,7 +132,7 @@ class CoOccurrenceService:
                     for e in events
                     if pre_start <= e.start_seconds < pre_end
                     and e.class_label not in BIRDNET_V3_DISTURBANCE_CLASSES
-                    and (e.taxon_group or "").lower() != "sound_class"
+                    and e.record_type == "animal"
                 ]
 
                 bio_post = [
@@ -140,7 +140,7 @@ class CoOccurrenceService:
                     for e in events
                     if post_start <= e.start_seconds <= actual_post_end
                     and e.class_label not in BIRDNET_V3_DISTURBANCE_CLASSES
-                    and (e.taxon_group or "").lower() != "sound_class"
+                    and e.record_type == "animal"
                 ]
 
                 # Deduplicate overlapping 3s inference windows into discrete bouts

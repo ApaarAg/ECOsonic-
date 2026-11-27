@@ -35,8 +35,6 @@ def test_ring_buffer_exact_window_extraction():
     assert n == 32000
     assert warn is None
     # Less than 3 seconds -> no window yet
-    assert len(rb.extract_available_windows()) == 0
-
     # Ingest 2 more seconds -> total 3.0s = 96,000 samples
     two_sec_i16 = (np.ones(64000, dtype="<i2") * 1000).tobytes()
     rb.write_pcm16_bytes(two_sec_i16)
@@ -52,6 +50,17 @@ def test_ring_buffer_exact_window_extraction():
 
     # Second call without new data returns nothing
     assert len(rb.extract_available_windows()) == 0
+
+
+def test_ring_buffer_reports_final_incomplete_window_for_deterministic_discard():
+    rb = AudioRingBuffer(sample_rate=32000, window_duration_s=3.0, hop_duration_s=3.0)
+    rb.write_float_samples(np.ones(32000, dtype=np.float32) * 0.1)
+    assert rb.extract_available_windows() == []
+    assert rb.discard_incomplete_tail() == 32000
+
+    rb.write_float_samples(np.ones(64000, dtype=np.float32) * 0.1)
+    assert len(rb.extract_available_windows()) == 1
+    assert rb.discard_incomplete_tail() == 0
 
 
 def test_ring_buffer_hop_size_1_5s():

@@ -106,6 +106,8 @@ class LiveInferenceWorker:
     async def stop(self) -> None:
         if not self._running:
             return
+        # Finish every complete window already accepted before terminating.
+        await self._queue.join()
         self._running = False
         if self._worker_task:
             self._worker_task.cancel()
@@ -356,6 +358,14 @@ class LiveInferenceWorker:
             abs_start = round(window.start_seconds + det.start_seconds, 3)
             abs_end = round(window.start_seconds + det.end_seconds, 3)
             event_id = str(uuid.uuid4())
+            record_type = getattr(det, "record_type", None)
+            if record_type not in {"animal", "sound_class"}:
+                logger.warning(
+                    "Skipping event with unsupported record_type %r: %s",
+                    record_type,
+                    det.class_label,
+                )
+                continue
 
             live_event = LiveEvent(
                 id=event_id,
@@ -367,7 +377,8 @@ class LiveInferenceWorker:
                 scientific_name=det.scientific_name,
                 common_name=det.common_name,
                 confidence_score=score,
-                taxon_group=det.taxon_group or "Bird",
+                record_type=record_type,
+                taxon_group=det.taxon_group,
                 model_version=active_model_version,
             )
             db_events.append(live_event)
@@ -383,7 +394,9 @@ class LiveInferenceWorker:
                     "scientific_name": det.scientific_name,
                     "common_name": det.common_name,
                     "confidence_score": round(score, 4),
-                    "taxon_group": det.taxon_group or "Bird",
+                    "record_type": record_type,
+                    "event_semantics": "window_detection",
+                    "taxon_group": det.taxon_group,
                     "model_version": active_model_version,
                 }
             )

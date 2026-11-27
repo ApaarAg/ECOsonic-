@@ -1,0 +1,164 @@
+{
+  "cases": [
+    {
+      "label": "desktop_1440x900",
+      "s11State": {
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "chapterPresent": true,
+        "hasExpectedTitle": true,
+        "hasExpectedSubtitle": true,
+        "hasTemplateButtons": false,
+        "overflowPx": 0
+      },
+      "s12State": {
+        "canvasCount": 1,
+        "sameCanvasInstance": true,
+        "sameChapterContainer": true,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "hasGapTitle": true,
+        "hasGapSubtitle": true,
+        "hasForbiddenGapWording": false,
+        "overflowPx": 0
+      },
+      "birdTextureCount": 18,
+      "portraitRequestCount": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNonApiAssets": []
+    },
+    {
+      "label": "desktop_1920x1080",
+      "s11State": {
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "chapterPresent": true,
+        "hasExpectedTitle": true,
+        "hasExpectedSubtitle": true,
+        "hasTemplateButtons": false,
+        "overflowPx": 0
+      },
+      "s12State": {
+        "canvasCount": 1,
+        "sameCanvasInstance": true,
+        "sameChapterContainer": true,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "hasGapTitle": true,
+        "hasGapSubtitle": true,
+        "hasForbiddenGapWording": false,
+        "overflowPx": 0
+      },
+      "birdTextureCount": 18,
+      "portraitRequestCount": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNonApiAssets": []
+    },
+    {
+      "label": "mobile_390x844",
+      "s11State": {
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "chapterPresent": true,
+        "hasExpectedTitle": true,
+        "hasExpectedSubtitle": true,
+        "hasTemplateButtons": false,
+        "overflowPx": 0
+      },
+      "s12State": {
+        "canvasCount": 1,
+        "sameCanvasInstance": true,
+        "sameChapterContainer": true,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "hasGapTitle": true,
+        "hasGapSubtitle": true,
+        "hasForbiddenGapWording": false,
+        "overflowPx": 0
+      },
+      "birdTextureCount": 18,
+      "portraitRequestCount": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNonApiAssets": []
+    },
+    {
+      "label": "mobile_412x915",
+      "s11State": {
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "chapterPresent": true,
+        "hasExpectedTitle": true,
+        "hasExpectedSubtitle": true,
+        "hasTemplateButtons": false,
+        "overflowPx": 0
+      },
+      "s12State": {
+        "canvasCount": 1,
+        "sameCanvasInstance": true,
+        "sameChapterContainer": true,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "hasGapTitle": true,
+        "hasGapSubtitle": true,
+        "hasForbiddenGapWording": false,
+        "overflowPx": 0
+      },
+      "birdTextureCount": 18,
+      "portraitRequestCount": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNonApiAssets": []
+    },
+    {
+      "label": "reduced_1440x900",
+      "s11State": {
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "chapterPresent": true,
+        "hasExpectedTitle": true,
+        "hasExpectedSubtitle": true,
+        "hasTemplateButtons": false,
+        "overflowPx": 0
+      },
+      "s12State": {
+        "canvasCount": 1,
+        "sameCanvasInstance": true,
+        "sameChapterContainer": true,
+        "atmosphereOverlayCount": 0,
+        "grainOverlayCount": 0,
+        "ecologicalFieldVisible": false,
+        "hasGapTitle": true,
+        "hasGapSubtitle": true,
+        "hasForbiddenGapWording": false,
+        "overflowPx": 0
+      },
+      "birdTextureCount": 18,
+      "portraitRequestCount": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedNonApiAssets": []
+    }
+  ]
+}

@@ -68,42 +68,15 @@ async def test_uint32_sequence_wraparound_and_gaps():
 
 
 @pytest.mark.asyncio
-async def test_multichannel_downmixing_and_alignment(test_engine, test_session):
-    """Verify 2-channel stereo audio is downmixed to mono via channel averaging and alignment checked."""
+async def test_live_session_manager_rejects_unsupported_audio_formats():
+    """The inference session contract rejects anything except 32 kHz mono PCM16."""
     manager = LiveSessionManager()
     session_id = str(uuid.uuid4())
-    live_sess = LiveSession(
-        id=session_id,
-        source_type="field_device",
-        sample_rate=32000,
-        channels=2,
-        status="active",
-    )
-    test_session.add(live_sess)
-    await test_session.commit()
+    with pytest.raises(ValueError, match="sample_rate=32000 and channels=1"):
+        await manager.create_session(session_id=session_id, channels=2)
 
-    # Create 2-channel stereo session in memory
-    state = await manager.create_session(session_id=session_id, channels=2)
-    state.status = "active"
-
-    # Ingest misaligned payload (6 bytes is divisible by 2, but NOT by 4 for stereo)
-    bad_bytes = b"\x00\x01\x02\x03\x04\x05"
-    ok, err = await manager.ingest_audio_frame(session_id, 0, bad_bytes)
-    assert ok is False
-    assert "not aligned to 2 channels" in (err or "")
-
-    # Create interleaved stereo samples: Ch1 = 1000, Ch2 = 3000 -> mean = 2000
-    n_stereo_samples = 4000
-    stereo_data = np.empty((n_stereo_samples, 2), dtype="<i2")
-    stereo_data[:, 0] = 1000
-    stereo_data[:, 1] = 3000
-    stereo_bytes = stereo_data.tobytes()
-
-    ok, err = await manager.ingest_audio_frame(session_id, 0, stereo_bytes)
-    assert ok is True
-    assert err is None
-    # Verify that total samples written is 4000 mono samples
-    assert state.ring_buffer.total_samples_written == n_stereo_samples
+    with pytest.raises(ValueError, match="sample_rate=32000 and channels=1"):
+        await manager.create_session(session_id=session_id, sample_rate=44100)
 
 
 def test_ring_buffer_zero_variance_detection():

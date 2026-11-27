@@ -1,0 +1,93 @@
+{
+  "viewports": [
+    {
+      "label": "1440x900",
+      "scene11CanvasCount": 1,
+      "scrollCanvasCount": 1,
+      "idleState": {
+        "canvasCount": 1,
+        "sharedBgPresent": true,
+        "oldHolderRemoved": true,
+        "slotCount": 5,
+        "hasFrontSlot": true,
+        "imgCount": 5,
+        "brokenImgCount": 0,
+        "unsplashCount": 0,
+        "frontRevealOpacity": "0",
+        "horizontalOverflowPx": 0,
+        "hasForbiddenWording": false
+      },
+      "hoverDetectedOpacity": "0.963537",
+      "hoverDetectedHasText": true,
+      "hoverGapOpacity": "0.918192",
+      "hoverGapHasText": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "label": "1920x1080",
+      "idleState": {
+        "canvasCount": 1,
+        "sharedBgPresent": true,
+        "oldHolderRemoved": true,
+        "slotCount": 5,
+        "hasFrontSlot": true,
+        "imgCount": 5,
+        "brokenImgCount": 0,
+        "unsplashCount": 0,
+        "frontRevealOpacity": "0",
+        "horizontalOverflowPx": 0,
+        "hasForbiddenWording": false
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "label": "390x844",
+      "idleState": {
+        "canvasCount": 1,
+        "sharedBgPresent": true,
+        "oldHolderRemoved": true,
+        "slotCount": 5,
+        "hasFrontSlot": true,
+        "imgCount": 5,
+        "brokenImgCount": 0,
+        "unsplashCount": 0,
+        "frontRevealOpacity": "0",
+        "horizontalOverflowPx": 0,
+        "hasForbiddenWording": false
+      },
+      "revealedAfterTap": true,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "label": "412x915",
+      "idleState": {
+        "canvasCount": 1,
+        "sharedBgPresent": true,
+        "oldHolderRemoved": true,
+        "slotCount": 5,
+        "hasFrontSlot": true,
+        "imgCount": 5,
+        "brokenImgCount": 0,
+        "unsplashCount": 0,
+        "frontRevealOpacity": "0",
+        "horizontalOverflowPx": 0,
+        "hasForbiddenWording": false
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedAssets": []
+    }
+  ],
+  "reducedMotion": {
+    "trackReduced": "true",
+    "floatAnim": "none",
+    "focusRevealOpacity": "1"
+  },
+  "keyboardFocus": null
+}

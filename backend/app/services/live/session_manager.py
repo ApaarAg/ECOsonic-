@@ -104,6 +104,7 @@ class LiveSessionState:
         self.dropped_frames = 0
         self.duplicate_frames = 0
         self.total_bytes_received = 0
+        self.final_partial_samples_discarded = 0
 
         self.started_at_time = time.perf_counter()
         self.last_audio_received_at = time.perf_counter()
@@ -208,6 +209,10 @@ class LiveSessionState:
         return LiveSessionStats(
             audio_capture_rate=round(capture_rate, 2),
             audio_input_continuity=round(continuity, 2),
+            received_frames=self.received_frames,
+            total_bytes_received=self.total_bytes_received,
+            duplicate_frames=self.duplicate_frames,
+            next_expected_sequence=self.expected_seq,
             avg_inference_latency_ms=round(self.inference_worker.avg_inference_latency_ms, 2),
             avg_embedding_latency_ms=round(embedding_worker.avg_latency_ms, 2),
             window_processing_lag_ms=round(self.inference_worker.avg_window_lag_ms, 2),
@@ -218,6 +223,8 @@ class LiveSessionState:
             ),
             dropped_frames=self.dropped_frames,
             dropped_windows=self.inference_worker.dropped_windows + self.ring_buffer.dropped_windows,
+            final_partial_samples_discarded=self.final_partial_samples_discarded,
+            final_partial_seconds_discarded=self.final_partial_samples_discarded / self.sample_rate,
             processed_windows=self.inference_worker.processed_windows,
             inferred_windows=self.inference_worker.inferred_windows,
             silent_windows=self.inference_worker.silent_windows,
@@ -276,6 +283,8 @@ class LiveSessionManager:
         hop_duration_s: float = 3.0,
         min_confidence: float = 0.10,
     ) -> LiveSessionState:
+        if sample_rate != 32000 or channels != 1:
+            raise ValueError("Live sessions require sample_rate=32000 and channels=1 (mono PCM16).")
         async with self._lock:
             if session_id in self._sessions:
                 return self._sessions[session_id]
@@ -365,7 +374,8 @@ class LiveSessionManager:
             return None
 
         state.status = "stopped"
-        # Stop worker
+        # Incomplete windows are discarded; complete queued windows are drained.
+        state.final_partial_samples_discarded = state.ring_buffer.discard_incomplete_tail()
         await state.inference_worker.stop()
 
         # Enqueue final soundscape window if eligible (>= 10s audio)

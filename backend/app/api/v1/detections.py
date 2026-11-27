@@ -21,16 +21,20 @@ async def list_detections(
     min_confidence: Optional[float] = Query(None, ge=0.0, le=1.0, description="Minimum confidence score threshold"),
     species: Optional[str] = Query(None, description="Filter by scientific or common species name"),
     review_status: Optional[str] = Query(None, description="Filter by review status (unreviewed, confirmed, rejected, etc.)"),
+    record_type: Optional[str] = Query(None, description="Filter by record_type (animal or sound_class)"),
+    biological_only: bool = Query(False, description="When true, exclude non-biological sound_class rows"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     repo: DetectionRepository = Depends(get_detection_repository),
 ):
     skip = (page - 1) * page_size
+    effective_record_type = "animal" if biological_only else record_type
     items, total = await repo.list(
         analysis_id=analysis_id,
         min_confidence=min_confidence,
         species=species,
         review_status=review_status,
+        record_type=effective_record_type,
         skip=skip,
         limit=page_size,
     )

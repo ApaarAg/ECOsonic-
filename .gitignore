@@ -2,17 +2,37 @@
 .python/
 .uv-cache/
 .model_cache/
-__pycache__/
-*.py[cod]
+**/__pycache__/
+**/*.py[cod]
 .pytest_cache/
+backend/.pytest_cache/
 
-# Frontend
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Frontend / Web
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
+web/node_modules/
+web/dist/
 node_modules/
 dist/
 
-# Runtime storage and temp files
+# Runtime storage, local databases, browser profiles, and temp files
 storage/
+backend/storage/*
+!backend/storage/.gitkeep
+tmp_audit_profile/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
 *.log
 

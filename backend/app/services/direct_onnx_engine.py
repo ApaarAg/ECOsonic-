@@ -23,6 +23,7 @@ import onnxruntime as ort
 
 from app.config import settings
 from app.services.analysis_pipeline import ModelDetectionOutput, NON_ANIMAL_SOUND_CLASSES
+from app.services.semantic_classification import semantic_classifier
 from app.services.birdnet_engine import (
     AudioValidationError,
     BirdNetEngineError,
@@ -342,22 +343,14 @@ class DirectOnnxEngine:
                 continue
 
             label = self._species_list[idx]
-            if label in NON_ANIMAL_SOUND_CLASSES:
+            scientific, common, group, record_type = semantic_classifier.resolve_model_fields(label)
+            if label in NON_ANIMAL_SOUND_CLASSES and record_type != "sound_class":
                 scientific, common, group, record_type = (
                     "Unknown",
                     label.split("_", 1)[-1],
-                    None,
+                    "Anthropogenic",
                     "sound_class",
                 )
-            elif "_" in label:
-                parts = label.split("_", 1)
-                scientific, common = parts[0].strip(), parts[1].strip()
-                if not scientific or not common:
-                    scientific, common, group, record_type = "Unknown", label, "Unknown", "animal"
-                else:
-                    group, record_type = "Unknown", "animal"
-            else:
-                scientific, common, group, record_type = "Unknown", label, "Unknown", "animal"
 
             detections.append(
                 ModelDetectionOutput(

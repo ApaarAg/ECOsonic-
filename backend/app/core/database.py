@@ -87,6 +87,7 @@ async def init_db() -> None:
             review,
             site,
             soundscape,
+            species_image,
         )
         logger.info("Initializing database schema from metadata...")
         await conn.run_sync(Base.metadata.create_all)
@@ -120,6 +121,40 @@ async def init_db() -> None:
                     cursor.execute("ALTER TABLE sites ADD COLUMN ecosystem_profile_json JSON")
                 if site_cols and "metadata_json" not in site_cols:
                     cursor.execute("ALTER TABLE sites ADD COLUMN metadata_json JSON")
+
+                cursor.execute("PRAGMA table_info(live_events)")
+                live_event_cols = {row[1] for row in cursor.fetchall()}
+                if live_event_cols and "record_type" not in live_event_cols:
+                    cursor.execute(
+                        "ALTER TABLE live_events ADD COLUMN record_type VARCHAR(20) NOT NULL DEFAULT 'animal'"
+                    )
+                    # Recover legacy sound-class rows where the old code used
+                    # this sentinel. Other misclassified legacy rows are unknown.
+                    cursor.execute(
+                        "UPDATE live_events SET record_type='sound_class' WHERE taxon_group='sound_class'"
+                    )
+
+                # 4. Analyses ecological summary JSON & GPS column migrations
+                cursor.execute("PRAGMA table_info(analyses)")
+                analysis_cols = {row[1] for row in cursor.fetchall()}
+                if analysis_cols and "ecological_summary_json" not in analysis_cols:
+                    cursor.execute(
+                        "ALTER TABLE analyses ADD COLUMN ecological_summary_json JSON"
+                    )
+                if analysis_cols and "gps_accuracy_m" not in analysis_cols:
+                    cursor.execute("ALTER TABLE analyses ADD COLUMN gps_accuracy_m FLOAT")
+                if analysis_cols and "gps_captured_at" not in analysis_cols:
+                    cursor.execute("ALTER TABLE analyses ADD COLUMN gps_captured_at DATETIME")
+
+                # 5. LiveSession GPS metadata & analysis link column migrations
+                cursor.execute("PRAGMA table_info(live_sessions)")
+                live_session_cols = {row[1] for row in cursor.fetchall()}
+                if live_session_cols and "gps_accuracy_m" not in live_session_cols:
+                    cursor.execute("ALTER TABLE live_sessions ADD COLUMN gps_accuracy_m FLOAT")
+                if live_session_cols and "gps_captured_at" not in live_session_cols:
+                    cursor.execute("ALTER TABLE live_sessions ADD COLUMN gps_captured_at DATETIME")
+                if live_session_cols and "analysis_id" not in live_session_cols:
+                    cursor.execute("ALTER TABLE live_sessions ADD COLUMN analysis_id VARCHAR(36)")
             except Exception as e:
                 logger.warning("Auto column migration check failed: %s", e)
             finally:

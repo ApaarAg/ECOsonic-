@@ -39,11 +39,18 @@ class Analysis(Base):
     duration_seconds: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    gps_accuracy_m: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    gps_captured_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     recorded_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     model_version: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     metrics_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON, nullable=True
+    )
+    ecological_summary_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSON, nullable=True
     )
     embedding_path: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)

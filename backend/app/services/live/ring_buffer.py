@@ -86,6 +86,11 @@ class AudioRingBuffer:
         with self._lock:
             return self._dropped_windows
 
+    def discard_incomplete_tail(self) -> int:
+        """Return the trailing sample count that cannot form a full window."""
+        with self._lock:
+            return max(0, self._total_samples_written - self._next_window_start_sample)
+
     def write_pcm16_bytes(
         self, raw_bytes: bytes
     ) -> Tuple[int, Optional[str]]:

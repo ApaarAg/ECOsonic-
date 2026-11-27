@@ -1,3 +1,4 @@
+import asyncio
 import io
 import uuid
 from datetime import datetime
@@ -176,14 +177,32 @@ async def get_site_geo_context(
     if not site:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Site '{site_id}' not found.")
 
-    return geo_temporal_service.get_site_regional_checklist(
-        latitude=site.latitude,
-        longitude=site.longitude,
-        week=week,
-        site_id=site.id,
-        site_name=site.name,
-        top_k=top_k,
-    )
+    try:
+        checklist = await asyncio.to_thread(
+            geo_temporal_service.get_site_regional_checklist,
+            latitude=site.latitude,
+            longitude=site.longitude,
+            week=week,
+            site_id=site.id,
+            site_name=site.name,
+            top_k=top_k,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "INVALID_OBSERVATION_COORDINATES", "message": str(exc)},
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "ECOLOGICAL_DATA_UNAVAILABLE", "message": str(exc)},
+        ) from exc
+
+    public_coords = site.get_public_coordinates()
+    checklist.latitude = public_coords["latitude"]
+    checklist.longitude = public_coords["longitude"]
+    checklist.location_sensitivity = str(public_coords["sensitivity"])
+    return checklist
 
 
 @router.get(
@@ -202,13 +221,25 @@ async def get_site_species_context(
     if not site:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Site '{site_id}' not found.")
 
-    return geo_temporal_service.contextualize_acoustic_detection(
-        scientific_name=scientific_name,
-        acoustic_confidence=confidence,
-        latitude=site.latitude,
-        longitude=site.longitude,
-        week=week,
-    )
+    try:
+        return await asyncio.to_thread(
+            geo_temporal_service.contextualize_acoustic_detection,
+            scientific_name=scientific_name,
+            acoustic_confidence=confidence,
+            latitude=site.latitude,
+            longitude=site.longitude,
+            week=week,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "INVALID_OBSERVATION_COORDINATES", "message": str(exc)},
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "ECOLOGICAL_DATA_UNAVAILABLE", "message": str(exc)},
+        ) from exc
 
 
 @router.get(

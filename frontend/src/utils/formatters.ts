@@ -18,9 +18,9 @@ export function formatBytes(bytes?: number): string {
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 }
 
-export function formatConfidence(score?: number): string {
-  if (score === undefined || score === null || isNaN(score)) return '0%';
-  return `${(score * 100).toFixed(1)}%`;
+export function formatModelScore(score?: number | null): string {
+  if (score === undefined || score === null || !Number.isFinite(score)) return '—';
+  return score.toFixed(2);
 }
 
 export function formatDate(dateStr?: string): string {
@@ -39,7 +39,7 @@ export function formatDate(dateStr?: string): string {
   }
 }
 
-export function formatCoordinates(lat?: number, lon?: number): string {
+export function formatCoordinates(lat?: number | null, lon?: number | null): string {
   if (lat === undefined || lon === undefined || lat === null || lon === null) return 'No GPS data';
   const latStr = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`;
   const lonStr = `${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;

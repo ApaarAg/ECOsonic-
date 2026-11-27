@@ -1,0 +1,119 @@
+{
+  "results": [
+    {
+      "viewport": "1440x900",
+      "beforeNodes": true,
+      "backendStateInfo": {
+        "hasPlates": true,
+        "bodyText": "ACT 12·OBSERVATION GAP·EVIDENCE CORRESPONDENCEWhere does observation differ from expectation?Field Acoustic Station·unsp"
+      },
+      "s12Audit": {
+        "beforeNodesMatched": true,
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "s12Transparent": true,
+        "expectedClipPath": "url(\"#eco-gap-left-_r_j_\")",
+        "observedClipPath": "url(\"#eco-gap-right-_r_j_\")",
+        "expectedBorderSvg": true,
+        "observedBorderSvg": true,
+        "connectorState": "gap",
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "backendPopulatedInitially": true
+      },
+      "allStatesVerified": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "viewport": "1920x1080",
+      "beforeNodes": true,
+      "backendStateInfo": {
+        "hasPlates": true,
+        "bodyText": "ACT 12·OBSERVATION GAP·EVIDENCE CORRESPONDENCEWhere does observation differ from expectation?Field Acoustic Station·unsp"
+      },
+      "s12Audit": {
+        "beforeNodesMatched": true,
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "s12Transparent": true,
+        "expectedClipPath": "url(\"#eco-gap-left-_r_j_\")",
+        "observedClipPath": "url(\"#eco-gap-right-_r_j_\")",
+        "expectedBorderSvg": true,
+        "observedBorderSvg": true,
+        "connectorState": "gap",
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "backendPopulatedInitially": true
+      },
+      "allStatesVerified": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "viewport": "390x844",
+      "beforeNodes": true,
+      "backendStateInfo": {
+        "hasPlates": true,
+        "bodyText": "ACT 12·OBSERVATION GAP·EVIDENCE CORRESPONDENCEWhere does observation differ from expectation?Field Acoustic Station·unsp"
+      },
+      "s12Audit": {
+        "beforeNodesMatched": true,
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "s12Transparent": true,
+        "expectedClipPath": "url(\"#eco-gap-left-_r_j_\")",
+        "observedClipPath": "url(\"#eco-gap-right-_r_j_\")",
+        "expectedBorderSvg": true,
+        "observedBorderSvg": true,
+        "connectorState": "gap",
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "backendPopulatedInitially": true
+      },
+      "allStatesVerified": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    },
+    {
+      "viewport": "412x915",
+      "beforeNodes": true,
+      "backendStateInfo": {
+        "hasPlates": true,
+        "bodyText": "ACT 12·OBSERVATION GAP·EVIDENCE CORRESPONDENCEWhere does observation differ from expectation?Field Acoustic Station·unsp"
+      },
+      "s12Audit": {
+        "beforeNodesMatched": true,
+        "canvasCount": 1,
+        "bgTextLength": 0,
+        "s12Transparent": true,
+        "expectedClipPath": "url(\"#eco-gap-left-_r_j_\")",
+        "observedClipPath": "url(\"#eco-gap-right-_r_j_\")",
+        "expectedBorderSvg": true,
+        "observedBorderSvg": true,
+        "connectorState": "gap",
+        "brokenImages": 0,
+        "horizontalOverflow": false,
+        "backendPopulatedInitially": true
+      },
+      "allStatesVerified": true,
+      "consoleErrorsCount": 0,
+      "consoleErrors": [],
+      "failedAssets": []
+    }
+  ],
+  "rmAudit": {
+    "reducedMotionMatch": true,
+    "canvasCount": 1,
+    "connectorPresent": true,
+    "horizontalOverflow": false
+  },
+  "threeStateAudit": {
+    "confirmedState": "confirmed",
+    "gapState": "gap",
+    "unexpectedState": "unexpected"
+  }
+}
